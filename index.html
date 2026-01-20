@@ -1,0 +1,1955 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a237e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Russia Stars - Партнерская программа 2026</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+            --secondary-gradient: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+            --accent-color: #ff4081;
+            --success-color: #00e676;
+            --warning-color: #ff9100;
+            --error-color: #ff1744;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --shadow-neumorphic: 8px 8px 16px rgba(0, 0, 0, 0.25), 
+                                -8px -8px 16px rgba(255, 255, 255, 0.05);
+            --shadow-neumorphic-inset: inset 4px 4px 8px rgba(0, 0, 0, 0.25), 
+                                     inset -4px -4px 8px rgba(255, 255, 255, 0.05);
+            --border-radius: 20px;
+            --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+        }
+
+        html {
+            height: -webkit-fill-available;
+        }
+
+        /* Стили для Android Chrome */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                min-height: -webkit-fill-available;
+            }
+        }
+
+        /* Улучшенная прокрутка */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 4px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        /* Адаптивные breakpoints для Android */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 8px;
+            }
+        }
+
+        /* Header 2026 */
+        header {
+            background: var(--primary-gradient);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: var(--transition-smooth);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--secondary-gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #ffffff, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* User info with glass morphism */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .balance {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .balance-amount {
+            color: #ffd700;
+            font-weight: 700;
+        }
+
+        /* Кнопки 2026 */
+        button {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-neumorphic);
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        button:hover::after {
+            transform: translateX(100%);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(57, 73, 171, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-neumorphic-inset);
+        }
+
+        /* Main content with modern grid */
+        .main-content {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
+            margin: 30px auto;
+            max-width: 1400px;
+            padding: 0 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sidebar 2026 */
+        .sidebar {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: var(--shadow-neumorphic);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+
+        .sidebar nav ul {
+            list-style: none;
+        }
+
+        .sidebar nav li {
+            margin-bottom: 8px;
+        }
+
+        .sidebar nav a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            border-radius: 16px;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar nav a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-gradient);
+            transition: left 0.4s;
+            z-index: -1;
+        }
+
+        .sidebar nav a:hover {
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar nav a:hover::before {
+            left: 0;
+        }
+
+        .sidebar nav a.active {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(57, 73, 171, 0.3);
+        }
+
+        .sidebar nav a i {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* Content area with glass morphism */
+        .content {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow-neumorphic);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-height: 70vh;
+        }
+
+        .content h2 {
+            background: linear-gradient(45deg, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        /* Modern cards 2026 */
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-color);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h3 {
+            color: white;
+            margin-bottom: 16px;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        /* Dashboard stats 2026 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--primary-gradient);
+            border-radius: var(--border-radius);
+            padding: 28px;
+            text-align: center;
+            transition: var(--transition-smooth);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1%, transparent 20%);
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .stat-card:hover::after {
+            opacity: 1;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-card i {
+            font-size: 42px;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ffffff, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card h3 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(45deg, #ffffff, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Forms 2026 */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            transition: var(--transition-smooth);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(255, 64, 129, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Tables 2026 */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        table th, table td {
+            padding: 18px 20px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        table th {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        table tbody tr {
+            transition: var(--transition-smooth);
+        }
+
+        table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Status badges 2026 */
+        .status {
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+        }
+
+        .status.pending {
+            background: linear-gradient(45deg, #ff9800, #ff5722);
+            color: white;
+        }
+
+        .status.confirmed {
+            background: linear-gradient(45deg, #00e676, #00c853);
+            color: white;
+        }
+
+        .status.cancelled {
+            background: linear-gradient(45deg, #ff1744, #d50000);
+            color: white;
+        }
+
+        /* Login page 2026 */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            background: var(--bg-primary);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(57, 73, 171, 0.1) 0%, transparent 50%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: var(--border-radius);
+            padding: 40px;
+            width: 100%;
+            max-width: 440px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-box h2 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2rem;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50px;
+            padding: 4px;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 16px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-radius: 50px;
+            transition: var(--transition-smooth);
+        }
+
+        .tab.active {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(57, 73, 171, 0.3);
+        }
+
+        /* Admin specific */
+        .admin-header {
+            background: linear-gradient(135deg, #4a148c 0%, #7b1fa2 100%);
+        }
+
+        .admin-indicator {
+            background: var(--accent-color);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-left: 12px;
+            box-shadow: 0 4px 15px rgba(255, 64, 129, 0.3);
+        }
+
+        /* Utility classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-success {
+            background: linear-gradient(45deg, #00e676, #00c853);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .mb-3 {
+            margin-bottom: 20px;
+        }
+
+        .mt-3 {
+            margin-top: 20px;
+        }
+
+        .alert {
+            padding: 18px 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .alert-success {
+            background: linear-gradient(45deg, rgba(0, 230, 118, 0.1), rgba(0, 200, 83, 0.1));
+            border-color: rgba(0, 230, 118, 0.3);
+            color: #00e676;
+        }
+
+        .alert-error {
+            background: linear-gradient(45deg, rgba(255, 23, 68, 0.1), rgba(213, 0, 0, 0.1));
+            border-color: rgba(255, 23, 68, 0.3);
+            color: #ff1744;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            margin-top: 60px;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--bg-secondary);
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .main-content {
+                margin: 20px auto;
+                gap: 20px;
+            }
+            
+            .header-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .user-info {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .sidebar {
+                position: static;
+                margin-bottom: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .login-box {
+                padding: 30px 20px;
+            }
+            
+            button {
+                padding: 16px 24px;
+                width: 100%;
+            }
+            
+            /* Улучшения для touch устройств */
+            .sidebar nav a,
+            button,
+            .tab {
+                min-height: 44px; /* Минимальный размер для touch */
+            }
+            
+            .form-control {
+                font-size: 16px; /* Предотвращает увеличение в iOS */
+                padding: 18px 16px;
+            }
+        }
+
+        /* Пейзажная ориентация */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .login-container {
+                padding: 10px;
+            }
+            
+            .login-box {
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+        }
+
+        /* Темная тема для Android */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #0a0a0a;
+                --bg-secondary: #1a1a1a;
+            }
+        }
+
+        /* Предотвращение zoom на input в iOS */
+        @supports (-webkit-touch-callout: none) {
+            input, textarea, select {
+                font-size: 16px !important;
+            }
+        }
+
+        /* Анимации загрузки */
+        .loading {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Swipe-навигация для мобильных */
+        .swipe-area {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .swipe-area {
+                display: block;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 50px;
+                z-index: 1001;
+            }
+            
+            .swipe-indicator {
+                width: 40px;
+                height: 4px;
+                background: var(--text-secondary);
+                border-radius: 2px;
+                margin: 8px auto;
+                opacity: 0.5;
+            }
+        }
+
+        /* Вибро-эффекты для кнопок */
+        @media (hover: none) and (pointer: coarse) {
+            button:active {
+                animation: vibrate 0.1s linear;
+            }
+            
+            @keyframes vibrate {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-1px); }
+                75% { transform: translateX(1px); }
+            }
+        }
+
+        /* Progressive Web App стили */
+        @media (display-mode: standalone) {
+            header {
+                padding-top: env(safe-area-inset-top);
+            }
+            
+            body {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+
+        /* Эффект параллакса */
+        .parallax-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.1;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(57, 73, 171, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 80% 20%, rgba(255, 64, 129, 0.1) 0%, transparent 40%);
+        }
+    </style>
+</head>
+<body>
+    <!-- Parallax background -->
+    <div class="parallax-bg"></div>
+
+    <!-- Swipe navigation for mobile -->
+    <div class="swipe-area">
+        <div class="swipe-indicator"></div>
+    </div>
+
+    <!-- Login Page -->
+    <div id="loginPage" class="login-container">
+        <div class="login-box">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-star" style="color: white; font-size: 20px;"></i>
+                </div>
+                <h1>Russia Stars 2026</h1>
+            </div>
+            
+            <div class="tabs">
+                <div id="loginTab" class="tab active">Вход</div>
+                <div id="registerTab" class="tab">Регистрация</div>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" class="form-control" placeholder="email@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Пароль</label>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="••••••••">
+                </div>
+                <button id="loginBtn" class="btn-primary" style="width: 100%;">
+                    <i class="fas fa-sign-in-alt"></i> Войти
+                </button>
+                <div class="text-center mt-3">
+                    <small style="color: var(--text-secondary);">Демо: admin@admin.com / admin123</small>
+                </div>
+            </div>
+            
+            <!-- Register Form -->
+            <div id="registerForm" class="hidden">
+                <div class="form-group">
+                    <label for="registerName">ФИО</label>
+                    <input type="text" id="registerName" class="form-control" placeholder="Иванов Иван Иванович">
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" class="form-control" placeholder="email@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Пароль</label>
+                    <input type="password" id="registerPassword" class="form-control" placeholder="Не менее 6 символов">
+                </div>
+                <div class="form-group">
+                    <label for="registerPhone">Телефон</label>
+                    <input type="tel" id="registerPhone" class="form-control" placeholder="+7 (999) 999-99-99">
+                </div>
+                <button id="registerBtn" class="btn-primary" style="width: 100%;">
+                    <i class="fas fa-user-plus"></i> Зарегистрироваться
+                </button>
+            </div>
+            
+            <div id="loginMessage" class="mt-3"></div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app" class="hidden">
+        <header id="mainHeader">
+            <div class="container header-container">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-star" style="color: white; font-size: 20px;"></i>
+                    </div>
+                    <h1>Russia Stars <span id="adminIndicator" class="admin-indicator hidden">ADMIN</span></h1>
+                </div>
+                <div class="user-info">
+                    <div class="balance">
+                        <i class="fas fa-wallet"></i>
+                        <span>Баланс: <span id="userBalance" class="balance-amount">0</span> ₽</span>
+                    </div>
+                    <div id="userName" style="font-weight: 600;">Пользователь</div>
+                    <button id="logoutBtn" style="padding: 10px 20px;">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="main-content">
+                <!-- Sidebar -->
+                <div class="sidebar">
+                    <nav>
+                        <ul>
+                            <li><a href="#" class="active" data-page="dashboard">
+                                <i class="fas fa-chart-pie"></i> Дашборд
+                            </a></li>
+                            <li><a href="#" data-page="offers">
+                                <i class="fas fa-gem"></i> Предложения
+                            </a></li>
+                            <li><a href="#" data-page="balance">
+                                <i class="fas fa-credit-card"></i> Баланс
+                            </a></li>
+                            <li><a href="#" data-page="schedule">
+                                <i class="fas fa-calendar-star"></i> Встречи
+                            </a></li>
+                            <li id="adminMenu" class="hidden">
+                                <a href="#" data-page="admin">
+                                    <i class="fas fa-cogs"></i> Админ-панель
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <!-- Content Area -->
+                <div class="content">
+                    <!-- Dashboard Page -->
+                    <div id="dashboardPage" class="animate__animated animate__fadeIn">
+                        <h2><i class="fas fa-chart-pie"></i> Дашборд партнера</h2>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <i class="fas fa-wallet"></i>
+                                <h3 id="dashboardBalance">0</h3>
+                                <p>Текущий баланс</p>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-gem"></i>
+                                <h3 id="activeOffers">0</h3>
+                                <p>Активных предложений</p>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-calendar-star"></i>
+                                <h3 id="upcomingMeetings">0</h3>
+                                <p>Предстоящих встреч</p>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-chart-line"></i>
+                                <h3 id="totalEarned">0</h3>
+                                <p>Всего заработано</p>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h3><i class="fas fa-clock"></i> Следующая рабочая встреча</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
+                                <div>
+                                    <p style="color: var(--text-secondary); margin-bottom: 5px;">Дата и время</p>
+                                    <p style="font-size: 1.2rem; font-weight: 600;" id="nextMeetingDate">Не назначено</p>
+                                </div>
+                                <div>
+                                    <p style="color: var(--text-secondary); margin-bottom: 5px;">Место</p>
+                                    <p style="font-size: 1.2rem; font-weight: 600;" id="nextMeetingLocation">Не указано</p>
+                                </div>
+                                <div>
+                                    <p style="color: var(--text-secondary); margin-bottom: 5px;">Статус</p>
+                                    <p><span id="workStatus" class="status pending">Ожидание</span></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h3><i class="fas fa-history"></i> Последние начисления</h3>
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Дата</th>
+                                            <th>Сумма</th>
+                                            <th>Описание</th>
+                                            <th>Статус</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentTransactions">
+                                        <tr><td colspan="4" style="text-align: center; padding: 40px;">Нет данных</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Offers Page -->
+                    <div id="offersPage" class="hidden animate__animated animate__fadeIn">
+                        <h2><i class="fas fa-gem"></i> Премиум предложения</h2>
+                        <div id="offersList">
+                            <div class="card">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                                    <h3>Заголовок предложения</h3>
+                                    <span class="status confirmed">Активно</span>
+                                </div>
+                                <p>Описание предложения. Современный дизайн с градиентами и анимациями.</p>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                                    <div>
+                                        <p style="color: var(--text-secondary); font-size: 14px;"><i class="far fa-clock"></i> до 31.12.2026</p>
+                                    </div>
+                                    <button class="btn-offer-details" style="padding: 10px 20px;">
+                                        <i class="fas fa-arrow-right"></i> Подробнее
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Balance Page -->
+                    <div id="balancePage" class="hidden animate__animated animate__fadeIn">
+                        <h2><i class="fas fa-credit-card"></i> Финансовый центр</h2>
+                        <div class="card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                                <div>
+                                    <h3 style="margin-bottom: 5px;">Текущий баланс</h3>
+                                    <p style="font-size: 2.5rem; font-weight: 800;" id="currentBalance" class="text-success">0 ₽</p>
+                                </div>
+                                <div>
+                                    <button style="background: var(--secondary-gradient);">
+                                        <i class="fas fa-download"></i> Вывести средства
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h3><i class="fas fa-list-alt"></i> История операций</h3>
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Дата</th>
+                                            <th>Тип</th>
+                                            <th>Сумма</th>
+                                            <th>Описание</th>
+                                            <th>Статус</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="transactionHistory">
+                                        <tr><td colspan="5" style="text-align: center; padding: 40px;">Нет данных</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Schedule Page -->
+                    <div id="schedulePage" class="hidden animate__animated animate__fadeIn">
+                        <h2><i class="fas fa-calendar-star"></i> Расписание встреч</h2>
+                        <div class="card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                <h3>Предстоящие встречи</h3>
+                                <button style="padding: 10px 20px;">
+                                    <i class="fas fa-plus"></i> Новая встреча
+                                </button>
+                            </div>
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Дата и время</th>
+                                            <th>Место</th>
+                                            <th>Тема</th>
+                                            <th>Статус</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="meetingsList">
+                                        <tr><td colspan="4" style="text-align: center; padding: 40px;">Нет запланированных встреч</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Page -->
+                    <div id="adminPage" class="hidden animate__animated animate__fadeIn">
+                        <h2><i class="fas fa-cogs"></i> Админ-панель PRO</h2>
+                        
+                        <div class="card">
+                            <h3><i class="fas fa-money-bill-wave"></i> Начисление средств</h3>
+                            <div class="form-group">
+                                <label for="partnerSelect">Выберите партнера</label>
+                                <select id="partnerSelect" class="form-control">
+                                    <option value="">Загрузка...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="amount">Сумма (₽)</label>
+                                <input type="number" id="amount" class="form-control" placeholder="5000">
+                            </div>
+                            <div class="form-group">
+                                <label for="description">Описание</label>
+                                <input type="text" id="description" class="form-control" placeholder="Бонус за выполнение проекта">
+                            </div>
+                            <button id="addFundsBtn" class="btn-primary">
+                                <i class="fas fa-check-circle"></i> Начислить средства
+                            </button>
+                            <div id="adminMessage" class="mt-3"></div>
+                        </div>
+                        
+                        <div class="card">
+                            <h3><i class="fas fa-bullhorn"></i> Новое предложение</h3>
+                            <div class="form-group">
+                                <label for="offerTitle">Заголовок</label>
+                                <input type="text" id="offerTitle" class="form-control" placeholder="Специальное предложение">
+                            </div>
+                            <div class="form-group">
+                                <label for="offerDescription">Описание</label>
+                                <textarea id="offerDescription" class="form-control" rows="4" placeholder="Детальное описание предложения..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="offerExpiry">Срок действия</label>
+                                <input type="date" id="offerExpiry" class="form-control">
+                            </div>
+                            <button id="createOfferBtn" class="btn-primary">
+                                <i class="fas fa-plus-circle"></i> Создать предложение
+                            </button>
+                        </div>
+                        
+                        <div class="card">
+                            <h3><i class="fas fa-calendar-plus"></i> Назначить встречу</h3>
+                            <div class="form-group">
+                                <label for="meetingPartnerSelect">Партнер</label>
+                                <select id="meetingPartnerSelect" class="form-control">
+                                    <option value="">Загрузка...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="meetingDate">Дата и время</label>
+                                <input type="datetime-local" id="meetingDate" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="meetingLocation">Место</label>
+                                <input type="text" id="meetingLocation" class="form-control" placeholder="Офис компании">
+                            </div>
+                            <div class="form-group">
+                                <label for="meetingTopic">Тема</label>
+                                <input type="text" id="meetingTopic" class="form-control" placeholder="Обсуждение проекта">
+                            </div>
+                            <button id="scheduleMeetingBtn" class="btn-primary">
+                                <i class="fas fa-calendar-check"></i> Назначить встречу
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p style="margin-bottom: 10px;">© 2026 Russia Stars. Все права защищены.</p>
+            <p style="font-size: 14px; color: var(--text-secondary);">Версия 3.0.2026 | Next Generation Platform</p>
+        </footer>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Импорт Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            signOut,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { 
+            getDatabase, 
+            ref, 
+            set, 
+            get, 
+            push, 
+            update,
+            onValue
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // Конфигурация Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpGH7L6ypNIpQ7FJf7N6TCKNIGrn1WCAc",
+            authDomain: "partner-41918.firebaseapp.com",
+            databaseURL: "https://partner-41918-default-rtdb.firebaseio.com",
+            projectId: "partner-41918",
+            storageBucket: "partner-41918.firebasestorage.app",
+            messagingSenderId: "419669340316",
+            appId: "1:419669340316:web:a2610ccf31e288e0317d59",
+            measurementId: "G-LLN4651P4H"
+        };
+
+        // Инициализация Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+
+        // DOM элементы
+        const loginPage = document.getElementById('loginPage');
+        const appContainer = document.getElementById('app');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const loginMessage = document.getElementById('loginMessage');
+        const adminIndicator = document.getElementById('adminIndicator');
+        const adminMenu = document.getElementById('adminMenu');
+        const mainHeader = document.getElementById('mainHeader');
+        
+        // Данные пользователя
+        let currentUser = null;
+        let isAdmin = false;
+
+        // Обработчики вкладок
+        loginTab.addEventListener('click', () => {
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+        });
+
+        registerTab.addEventListener('click', () => {
+            registerTab.classList.add('active');
+            loginTab.classList.remove('active');
+            registerForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+        });
+
+        // Регистрация
+        registerBtn.addEventListener('click', async () => {
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const phone = document.getElementById('registerPhone').value;
+            
+            if (!name || !email || !password || !phone) {
+                showMessage('Пожалуйста, заполните все поля', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showMessage('Пароль должен содержать минимум 6 символов', 'error');
+                return;
+            }
+            
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                await set(ref(database, 'users/' + user.uid), {
+                    name: name,
+                    email: email,
+                    phone: phone,
+                    balance: 0,
+                    totalEarned: 0,
+                    role: 'partner',
+                    registrationDate: new Date().toISOString()
+                });
+                
+                showMessage('Регистрация прошла успешно! Теперь вы можете войти.', 'success');
+                
+                loginTab.click();
+                document.getElementById('registerName').value = '';
+                document.getElementById('registerEmail').value = email;
+                document.getElementById('registerPassword').value = '';
+                document.getElementById('registerPhone').value = '';
+                
+            } catch (error) {
+                let errorMessage = 'Ошибка регистрации: ';
+                
+                switch(error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMessage += 'Этот email уже зарегистрирован';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage += 'Неверный формат email';
+                        break;
+                    default:
+                        errorMessage += error.message;
+                }
+                
+                showMessage(errorMessage, 'error');
+            }
+        });
+
+        // Вход
+        loginBtn.addEventListener('click', async () => {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                showMessage('Пожалуйста, введите email и пароль', 'error');
+                return;
+            }
+            
+            // Показать индикатор загрузки
+            const originalText = loginBtn.innerHTML;
+            loginBtn.innerHTML = '<div class="loading"></div>';
+            loginBtn.disabled = true;
+            
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                showMessage('Вход выполнен успешно!', 'success');
+            } catch (error) {
+                let errorMessage = 'Ошибка входа: ';
+                
+                switch(error.code) {
+                    case 'auth/invalid-email':
+                        errorMessage += 'Неверный формат email';
+                        break;
+                    case 'auth/user-not-found':
+                        errorMessage += 'Пользователь не найден';
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage += 'Неверный пароль';
+                        break;
+                    default:
+                        errorMessage += error.message;
+                }
+                
+                showMessage(errorMessage, 'error');
+            } finally {
+                loginBtn.innerHTML = originalText;
+                loginBtn.disabled = false;
+            }
+        });
+
+        // Выход
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error('Ошибка выхода:', error);
+            }
+        });
+
+        // Отслеживание состояния аутентификации
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                
+                const userRef = ref(database, 'users/' + user.uid);
+                const snapshot = await get(userRef);
+                
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    isAdmin = userData.role === 'admin';
+                    
+                    updateUI(userData);
+                    loadUserData(user.uid, isAdmin);
+                    
+                    loginPage.classList.add('hidden');
+                    appContainer.classList.remove('hidden');
+                    
+                    // Анимация появления
+                    appContainer.classList.add('animate__animated', 'animate__fadeIn');
+                    
+                    if (isAdmin) {
+                        adminIndicator.classList.remove('hidden');
+                        adminMenu.classList.remove('hidden');
+                        mainHeader.classList.add('admin-header');
+                        loadPartnersForAdmin();
+                    }
+                } else {
+                    const userData = {
+                        name: user.email.split('@')[0],
+                        email: user.email,
+                        phone: '',
+                        balance: 0,
+                        totalEarned: 0,
+                        role: 'partner',
+                        registrationDate: new Date().toISOString()
+                    };
+                    
+                    await set(ref(database, 'users/' + user.uid), userData);
+                    updateUI(userData);
+                    
+                    loginPage.classList.add('hidden');
+                    appContainer.classList.remove('hidden');
+                    appContainer.classList.add('animate__animated', 'animate__fadeIn');
+                }
+            } else {
+                loginPage.classList.remove('hidden');
+                appContainer.classList.add('hidden');
+                currentUser = null;
+                isAdmin = false;
+                
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+            }
+        });
+
+        // Обновление интерфейса
+        function updateUI(userData) {
+            document.getElementById('userName').textContent = userData.name;
+            document.getElementById('userBalance').textContent = userData.balance || 0;
+            document.getElementById('dashboardBalance').textContent = userData.balance || 0;
+            document.getElementById('currentBalance').textContent = (userData.balance || 0) + ' ₽';
+            document.getElementById('totalEarned').textContent = (userData.totalEarned || 0) + ' ₽';
+        }
+
+        // Загрузка данных пользователя
+        function loadUserData(userId, isAdminUser) {
+            if (isAdminUser) {
+                loadAllUsers();
+                loadAllOffers();
+                loadAllMeetings();
+            } else {
+                loadPartnerOffers();
+                loadPartnerMeetings(userId);
+                loadPartnerTransactions(userId);
+            }
+        }
+
+        // Загрузка предложений
+        async function loadPartnerOffers() {
+            try {
+                const offersRef = ref(database, 'offers');
+                const snapshot = await get(offersRef);
+                
+                if (snapshot.exists()) {
+                    const offers = snapshot.val();
+                    const offersList = document.getElementById('offersList');
+                    offersList.innerHTML = '';
+                    
+                    let activeOffersCount = 0;
+                    
+                    Object.keys(offers).forEach(key => {
+                        const offer = offers[key];
+                        const expiryDate = new Date(offer.expiry);
+                        const today = new Date();
+                        
+                        if (expiryDate > today) {
+                            activeOffersCount++;
+                            
+                            const offerElement = document.createElement('div');
+                            offerElement.className = 'card';
+                            offerElement.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                                    <h3>${offer.title}</h3>
+                                    <span class="status confirmed">Активно</span>
+                                </div>
+                                <p>${offer.description}</p>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                                    <div>
+                                        <p style="color: var(--text-secondary); font-size: 14px;"><i class="far fa-clock"></i> до ${expiryDate.toLocaleDateString('ru-RU')}</p>
+                                    </div>
+                                    <button class="btn-offer-details" style="padding: 10px 20px;">
+                                        <i class="fas fa-arrow-right"></i> Подробнее
+                                    </button>
+                                </div>
+                            `;
+                            offersList.appendChild(offerElement);
+                        }
+                    });
+                    
+                    document.getElementById('activeOffers').textContent = activeOffersCount;
+                    
+                    if (activeOffersCount === 0) {
+                        offersList.innerHTML = '<div class="card"><h3>Нет активных предложений</h3><p>В данный момент нет активных предложений от компании.</p></div>';
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки предложений:', error);
+            }
+        }
+
+        // Загрузка встреч
+        async function loadPartnerMeetings(userId) {
+            try {
+                const meetingsRef = ref(database, 'meetings');
+                const snapshot = await get(meetingsRef);
+                
+                if (snapshot.exists()) {
+                    const meetings = snapshot.val();
+                    const meetingsList = document.getElementById('meetingsList');
+                    meetingsList.innerHTML = '';
+                    
+                    let upcomingMeetingsCount = 0;
+                    let nextMeeting = null;
+                    
+                    Object.keys(meetings).forEach(key => {
+                        const meeting = meetings[key];
+                        
+                        if (meeting.partnerId === userId) {
+                            const meetingDate = new Date(meeting.dateTime);
+                            const today = new Date();
+                            
+                            if (meetingDate > today) {
+                                upcomingMeetingsCount++;
+                                
+                                if (!nextMeeting || meetingDate < new Date(nextMeeting.dateTime)) {
+                                    nextMeeting = meeting;
+                                }
+                                
+                                const statusClass = meeting.status || 'pending';
+                                const statusText = meeting.status === 'confirmed' ? 'Подтверждена' : 
+                                                  meeting.status === 'cancelled' ? 'Отменена' : 'Ожидание';
+                                
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${meetingDate.toLocaleString('ru-RU')}</td>
+                                    <td>${meeting.location}</td>
+                                    <td>${meeting.topic}</td>
+                                    <td><span class="status ${statusClass}">${statusText}</span></td>
+                                `;
+                                meetingsList.appendChild(row);
+                            }
+                        }
+                    });
+                    
+                    document.getElementById('upcomingMeetings').textContent = upcomingMeetingsCount;
+                    
+                    if (nextMeeting) {
+                        const nextMeetingDate = new Date(nextMeeting.dateTime);
+                        document.getElementById('nextMeetingDate').textContent = nextMeetingDate.toLocaleString('ru-RU');
+                        document.getElementById('nextMeetingLocation').textContent = nextMeeting.location;
+                        document.getElementById('workStatus').textContent = 'Подтверждена';
+                        document.getElementById('workStatus').className = 'status confirmed';
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки встреч:', error);
+            }
+        }
+
+        // Загрузка транзакций
+        async function loadPartnerTransactions(userId) {
+            try {
+                const transactionsRef = ref(database, 'transactions');
+                const snapshot = await get(transactionsRef);
+                
+                if (snapshot.exists()) {
+                    const transactions = snapshot.val();
+                    const transactionHistory = document.getElementById('transactionHistory');
+                    const recentTransactions = document.getElementById('recentTransactions');
+                    
+                    transactionHistory.innerHTML = '';
+                    recentTransactions.innerHTML = '';
+                    
+                    let transactionsArray = [];
+                    
+                    Object.keys(transactions).forEach(key => {
+                        const transaction = transactions[key];
+                        
+                        if (transaction.userId === userId) {
+                            transactionsArray.push({
+                                key: key,
+                                ...transaction
+                            });
+                        }
+                    });
+                    
+                    transactionsArray.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    
+                    transactionsArray.forEach(transaction => {
+                        const date = new Date(transaction.date);
+                        const statusClass = transaction.status || 'confirmed';
+                        const statusText = transaction.status === 'pending' ? 'В обработке' : 'Завершено';
+                        
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${date.toLocaleDateString('ru-RU')}</td>
+                            <td>${transaction.type === 'withdrawal' ? 'Вывод' : 'Начисление'}</td>
+                            <td>${transaction.amount} ₽</td>
+                            <td>${transaction.description}</td>
+                            <td><span class="status ${statusClass}">${statusText}</span></td>
+                        `;
+                        transactionHistory.appendChild(row);
+                    });
+                    
+                    const recent = transactionsArray.slice(0, 3);
+                    recent.forEach(transaction => {
+                        const date = new Date(transaction.date);
+                        const statusClass = transaction.status || 'confirmed';
+                        const statusText = transaction.status === 'pending' ? 'В обработке' : 'Завершено';
+                        
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${date.toLocaleDateString('ru-RU')}</td>
+                            <td>${transaction.amount} ₽</td>
+                            <td>${transaction.description}</td>
+                            <td><span class="status ${statusClass}">${statusText}</span></td>
+                        `;
+                        recentTransactions.appendChild(row);
+                    });
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки транзакций:', error);
+            }
+        }
+
+        // Загрузка всех пользователей для админа
+        async function loadAllUsers() {
+            try {
+                const usersRef = ref(database, 'users');
+                const snapshot = await get(usersRef);
+                
+                if (snapshot.exists()) {
+                    const users = snapshot.val();
+                    const partnerSelect = document.getElementById('partnerSelect');
+                    const meetingPartnerSelect = document.getElementById('meetingPartnerSelect');
+                    
+                    partnerSelect.innerHTML = '<option value="">Выберите партнера</option>';
+                    meetingPartnerSelect.innerHTML = '<option value="">Выберите партнера</option>';
+                    
+                    Object.keys(users).forEach(key => {
+                        const user = users[key];
+                        if (user.role === 'partner') {
+                            const option1 = document.createElement('option');
+                            option1.value = key;
+                            option1.textContent = `${user.name} (${user.email})`;
+                            partnerSelect.appendChild(option1);
+                            
+                            const option2 = document.createElement('option');
+                            option2.value = key;
+                            option2.textContent = `${user.name} (${user.email})`;
+                            meetingPartnerSelect.appendChild(option2);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки пользователей:', error);
+            }
+        }
+
+        // Админ: начисление средств
+        document.getElementById('addFundsBtn').addEventListener('click', async () => {
+            const partnerId = document.getElementById('partnerSelect').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const description = document.getElementById('description').value;
+            
+            if (!partnerId || !amount || !description) {
+                showAdminMessage('Пожалуйста, заполните все поля', 'error');
+                return;
+            }
+            
+            if (amount <= 0) {
+                showAdminMessage('Сумма должна быть больше 0', 'error');
+                return;
+            }
+            
+            try {
+                const partnerRef = ref(database, 'users/' + partnerId);
+                const snapshot = await get(partnerRef);
+                
+                if (snapshot.exists()) {
+                    const partnerData = snapshot.val();
+                    const newBalance = (partnerData.balance || 0) + amount;
+                    const newTotalEarned = (partnerData.totalEarned || 0) + amount;
+                    
+                    await update(ref(database, 'users/' + partnerId), {
+                        balance: newBalance,
+                        totalEarned: newTotalEarned
+                    });
+                    
+                    const transactionRef = push(ref(database, 'transactions'));
+                    await set(transactionRef, {
+                        userId: partnerId,
+                        amount: amount,
+                        description: description,
+                        type: 'deposit',
+                        date: new Date().toISOString(),
+                        status: 'confirmed',
+                        adminId: currentUser.uid
+                    });
+                    
+                    showAdminMessage(`✅ Средства начислены. Новый баланс: ${newBalance} ₽`, 'success');
+                    
+                    document.getElementById('amount').value = '';
+                    document.getElementById('description').value = '';
+                }
+            } catch (error) {
+                showAdminMessage('❌ Ошибка: ' + error.message, 'error');
+            }
+        });
+
+        // Админ: создание предложения
+        document.getElementById('createOfferBtn').addEventListener('click', async () => {
+            const title = document.getElementById('offerTitle').value;
+            const description = document.getElementById('offerDescription').value;
+            const expiry = document.getElementById('offerExpiry').value;
+            
+            if (!title || !description || !expiry) {
+                showAdminMessage('Пожалуйста, заполните все поля', 'error');
+                return;
+            }
+            
+            try {
+                const offerRef = push(ref(database, 'offers'));
+                await set(offerRef, {
+                    title: title,
+                    description: description,
+                    expiry: expiry,
+                    createdDate: new Date().toISOString(),
+                    createdBy: currentUser.uid
+                });
+                
+                showAdminMessage('✅ Предложение создано', 'success');
+                
+                document.getElementById('offerTitle').value = '';
+                document.getElementById('offerDescription').value = '';
+                document.getElementById('offerExpiry').value = '';
+            } catch (error) {
+                showAdminMessage('❌ Ошибка: ' + error.message, 'error');
+            }
+        });
+
+        // Админ: назначение встречи
+        document.getElementById('scheduleMeetingBtn').addEventListener('click', async () => {
+            const partnerId = document.getElementById('meetingPartnerSelect').value;
+            const dateTime = document.getElementById('meetingDate').value;
+            const location = document.getElementById('meetingLocation').value;
+            const topic = document.getElementById('meetingTopic').value;
+            
+            if (!partnerId || !dateTime || !location || !topic) {
+                showAdminMessage('Пожалуйста, заполните все поля', 'error');
+                return;
+            }
+            
+            try {
+                const meetingRef = push(ref(database, 'meetings'));
+                await set(meetingRef, {
+                    partnerId: partnerId,
+                    dateTime: dateTime,
+                    location: location,
+                    topic: topic,
+                    status: 'pending',
+                    createdDate: new Date().toISOString(),
+                    createdBy: currentUser.uid
+                });
+                
+                showAdminMessage('✅ Встреча назначена', 'success');
+                
+                document.getElementById('meetingDate').value = '';
+                document.getElementById('meetingLocation').value = '';
+                document.getElementById('meetingTopic').value = '';
+            } catch (error) {
+                showAdminMessage('❌ Ошибка: ' + error.message, 'error');
+            }
+        });
+
+        // Функции сообщений
+        function showMessage(message, type) {
+            loginMessage.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                loginMessage.innerHTML = '';
+            }, 5000);
+        }
+
+        function showAdminMessage(message, type) {
+            const adminMessage = document.getElementById('adminMessage');
+            adminMessage.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                adminMessage.innerHTML = '';
+            }, 5000);
+        }
+
+        // Навигация
+        document.querySelectorAll('.sidebar nav a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                document.querySelectorAll('.sidebar nav a').forEach(a => {
+                    a.classList.remove('active');
+                });
+                
+                link.classList.add('active');
+                
+                document.querySelectorAll('.content > div').forEach(page => {
+                    page.classList.add('hidden');
+                    page.classList.remove('animate__fadeIn');
+                });
+                
+                const pageId = link.getAttribute('data-page') + 'Page';
+                const page = document.getElementById(pageId);
+                page.classList.remove('hidden');
+                page.classList.add('animate__animated', 'animate__fadeIn');
+            });
+        });
+
+        // Инициализация демо-данных
+        async function initializeDemoData() {
+            try {
+                const usersRef = ref(database, 'users');
+                const snapshot = await get(usersRef);
+                
+                if (!snapshot.exists() || Object.keys(snapshot.val()).length === 0) {
+                    // Создаем демо-администратора
+                    const adminId = 'admin-demo-2026';
+                    await set(ref(database, 'users/' + adminId), {
+                        name: 'Администратор 2026',
+                        email: 'admin@admin.com',
+                        phone: '+79999999999',
+                        balance: 0,
+                        totalEarned: 0,
+                        role: 'admin',
+                        registrationDate: new Date().toISOString()
+                    });
+                    
+                    // Создаем демо-партнера
+                    const partnerId = 'partner-demo-2026';
+                    await set(ref(database, 'users/' + partnerId), {
+                        name: 'Александр Новиков',
+                        email: 'partner@example.com',
+                        phone: '+78888888888',
+                        balance: 25000,
+                        totalEarned: 125000,
+                        role: 'partner',
+                        registrationDate: new Date().toISOString()
+                    });
+                    
+                    // Демо-предложение
+                    const offerRef = push(ref(database, 'offers'));
+                    const expiryDate = new Date('2026-12-31');
+                    
+                    await set(offerRef, {
+                        title: 'Премиум бонус 2026',
+                        description: 'Эксклюзивное предложение для топ-партнеров. Увеличьте доход на 30% с нашей новой программой.',
+                        expiry: expiryDate.toISOString().split('T')[0],
+                        createdDate: new Date().toISOString(),
+                        createdBy: adminId
+                    });
+                    
+                    // Демо-встреча
+                    const meetingRef = push(ref(database, 'meetings'));
+                    const meetingDate = new Date();
+                    meetingDate.setDate(meetingDate.getDate() + 5);
+                    meetingDate.setHours(11, 0, 0, 0);
+                    
+                    await set(meetingRef, {
+                        partnerId: partnerId,
+                        dateTime: meetingDate.toISOString(),
+                        location: 'Бизнес-центр "Сколково", офис 1501',
+                        topic: 'Стратегия развития на 2027 год',
+                        status: 'confirmed',
+                        createdDate: new Date().toISOString(),
+                        createdBy: adminId
+                    });
+                    
+                    // Демо-транзакции
+                    const transactions = [
+                        { amount: 25000, description: 'Премия за Q4 2025', date: '2025-12-30' },
+                        { amount: 50000, description: 'Выполнение мега-проекта', date: '2026-01-15' },
+                        { amount: 10000, description: 'Реферальный бонус', date: '2026-02-01' }
+                    ];
+                    
+                    for (const transaction of transactions) {
+                        const transactionRef = push(ref(database, 'transactions'));
+                        await set(transactionRef, {
+                            userId: partnerId,
+                            amount: transaction.amount,
+                            description: transaction.description,
+                            type: 'deposit',
+                            date: transaction.date,
+                            status: 'confirmed',
+                            adminId: adminId
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка создания демо-данных:', error);
+            }
+        }
+
+        // Оптимизация для Android
+        function optimizeForAndroid() {
+            // Предотвращение стандартных жестов
+            document.addEventListener('touchmove', function(e) {
+                if (e.scale !== 1) e.preventDefault();
+            }, { passive: false });
+            
+            // Улучшение отзывчивости
+            document.addEventListener('touchstart', function() {}, {passive: true});
+            
+            // Адаптация viewport для Android
+            if (/Android/.test(navigator.userAgent)) {
+                document.body.style.minHeight = window.innerHeight + 'px';
+                
+                window.addEventListener('resize', function() {
+                    document.body.style.minHeight = window.innerHeight + 'px';
+                });
+            }
+        }
+
+        // Инициализация
+        initializeDemoData();
+        optimizeForAndroid();
+
+        // Параллакс эффект
+        window.addEventListener('scroll', function() {
+            const parallaxBg = document.querySelector('.parallax-bg');
+            const scrolled = window.pageYOffset;
+            parallaxBg.style.transform = `translateY(${scrolled * 0.5}px)`;
+        });
+
+        // Swipe навигация для мобильных
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const swipeDistance = touchEndX - touchStartX;
+            
+            if (Math.abs(swipeDistance) < swipeThreshold) return;
+            
+            if (swipeDistance > 0) {
+                // Swipe right - open sidebar on mobile
+                if (window.innerWidth <= 768) {
+                    document.querySelector('.sidebar').style.transform = 'translateX(0)';
+                }
+            } else {
+                // Swipe left - close sidebar on mobile
+                if (window.innerWidth <= 768) {
+                    document.querySelector('.sidebar').style.transform = 'translateX(-100%)';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
