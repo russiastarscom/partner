@@ -2451,6 +2451,9 @@
                                 startBackgroundChecks();
                                 trackUserStatus();
                                 subscribeToPushNotifications();
+await loadLastTimestamps();
+startMessageChecking();
+                                
                             } else {
                                 localStorage.removeItem('messenger_user');
                                 requestUsername();
@@ -3076,137 +3079,220 @@
             backgroundCheckIntervals.push(setInterval(checkForGroupInvites, 10000));
             backgroundCheckIntervals.push(setInterval(checkForChannelUpdates, 15000));
         }
+        // Исправленная функция проверки новых сообщений
+async function checkForNewMessages() {
+    if (!currentUser || !isOnline) {
+        return;
+    }
 
-        async function checkForNewMessages() {
-            if (!currentUser || !isOnline) {
-                console.log('[CheckMessages] Skipping: no user or offline');
-                return;
-            }
+    try {
+        const snapshot = await database.ref('messages').once('value');
+        const allChats = snapshot.val();
+        if (!allChats) return;
 
-            try {
-                console.log('[CheckMessages] Checking for new messages...');
-                const snapshot = await database.ref('messages').once('value');
-                const allChats = snapshot.val();
-                if (!allChats) {
-                    console.log('[CheckMessages] No chats found');
-                    return;
-                }
+        const now = Date.now();
+        
+        // Инициализируем lastMessageTimestamp если нужно
+        if (lastMessageTimestamp === 0) {
+            lastMessageTimestamp = now - 5000;
+        }
 
-                const now = Date.now();
-                // Initialize lastMessageTimestamp on first run to current time to avoid showing old messages
-                if (lastMessageTimestamp === 0) {
-                    lastMessageTimestamp = now - 5000; // Allow messages from last 5 seconds
-                    console.log('[CheckMessages] Initialized timestamp:', lastMessageTimestamp);
-                }
+        // Проходим по всем чатам
+        Object.keys(allChats).forEach(chatId => {
+            // Проверяем, относится ли чат к текущему пользователю
+            const isUserChat = chatId.includes(currentUser) && !chatId.startsWith('group_') && !chatId.startsWith('channel_');
+            const isGroupChat = chatId.startsWith('group_') && groups.some(g => g.id === chatId);
+            const isChannelChat = chatId.startsWith('channel_') && subscribedChannels.includes(chatId);
+            
+            if (isUserChat || isGroupChat || isChannelChat) {
+                const messages = allChats[chatId];
+                const messagesArray = Object.keys(messages).map(key => ({
+                    id: key,
+                    ...messages[key]
+                }));
 
-                Object.keys(allChats).forEach(chatId => {
-                    if (chatId.includes(currentUser) || (chatId.startsWith('group_') && groups.some(g => g.id === chatId)) ||
-                        (chatId.startsWith('channel_') && subscribedChannels.includes(chatId))) {
-                        const messages = allChats[chatId];
-                        const messagesArray = Object.keys(messages).map(key => ({
-                            id: key,
-                            ...messages[key]
-                        }));
+                // Получаем все новые сообщения (с timestamp больше lastMessageTimestamp)
+                const newMessages = messagesArray
+                    .filter(msg => msg.text && msg.sender && msg.timestamp && 
+                                  msg.timestamp > lastMessageTimestamp &&
+                                  msg.sender !== currentUser) // Не показываем свои сообщения
+                    .sort((a, b) => a.timestamp - b.timestamp);
 
-                        const latestMessage = messagesArray
-                            .filter(msg => msg.text && msg.sender && msg.timestamp)
-                            .sort((a, b) => b.timestamp - a.timestamp)[0];
-
-                        // Проверяем, есть ли новое сообщение
-                        if (!latestMessage) return;
-
-                        // Check if we've already notified about this specific message
-                        const messageId = latestMessage.id;
-                        const isNewMessage = latestMessage.timestamp > lastMessageTimestamp;
-                        const isNotFromMe = latestMessage.sender !== currentUser;
-                        const notAlreadyNotified = !notifiedMessageIds.has(messageId);
-
-                        if (isNewMessage && isNotFromMe && notAlreadyNotified) {
-                            console.log('[CheckMessages] New message found:', latestMessage.text, 'from:', latestMessage.sender);
-
-                            // Mark this message as notified
-                            notifiedMessageIds.add(messageId);
-
-                            // Limit the size of the set to prevent memory leaks
+                if (newMessages.length > 0) {
+                    console.log(`[CheckMessages] Найдено ${newMessages.length} новых сообщений в чате ${chatId}`);
+                    
+                    newMessages.forEach(message => {
+                        // Проверяем, не показывали ли уже это сообщение
+                        if (!notifiedMessageIds.has(message.id)) {
+                            notifiedMessageIds.add(message.id);
+                            
+                            // Ограничиваем размер Set
                             if (notifiedMessageIds.size > 100) {
                                 const firstId = notifiedMessageIds.values().next().value;
                                 notifiedMessageIds.delete(firstId);
                             }
 
-                            let senderName = latestMessage.sender;
                             let chatName = '';
                             let notificationType = 'message';
 
                             if (chatId.startsWith('group_')) {
                                 const group = groups.find(g => g.id === chatId);
-                                if (group) {
-                                    chatName = group.name;
-                                    senderName = `${group.name}`;
-                                    notificationType = 'group_message';
-                                }
+                                chatName = group ? group.name : 'Группа';
+                                notificationType = 'group_message';
                             } else if (chatId.startsWith('channel_')) {
                                 const channel = channels.find(c => c.id === chatId);
-                                if (channel) {
-                                    chatName = channel.name;
-                                    senderName = `${channel.name}`;
-                                    notificationType = 'channel_message';
-                                }
+                                chatName = channel ? channel.name : 'Канал';
+                                notificationType = 'channel_message';
                             } else {
-                                // Личный чат
-                                chatName = latestMessage.sender;
+                                // Личный чат - получаем имя собеседника
+                                const otherUser = chatId.replace(currentUser, '').replace('_', '');
+                                chatName = otherUser;
                             }
 
-                            // Показываем уведомления ВСЕГДА, если:
-                            // 1. Вкладка не активна (document.hidden) ИЛИ
-                            // 2. Чат не открыт (currentChat !== chatId)
-                            const shouldNotify = document.hidden || currentChat !== chatId;
-                            console.log('[CheckMessages] Should notify:', shouldNotify, 'hidden:', document.hidden, 'currentChat:', currentChat, 'chatId:', chatId);
-
-                            if (shouldNotify) {
-                                // Show browser notification (system level)
-                                showBrowserNotification(
-                                    `Новое сообщение от ${chatName}`,
-                                    latestMessage.text
-                                );
-
-                                // Show Telegram-style toast notification (in-app)
-                                let toastType = 'message';
-                                let toastTitle = chatName;
-                                let toastAvatar = null;
-
-                                if (chatId.startsWith('group_')) {
-                                    toastType = 'group';
-                                    toastAvatar = '👥';
-                                } else if (chatId.startsWith('channel_')) {
-                                    toastType = 'channel';
-                                    toastAvatar = '📢';
-                                } else {
-                                    // Personal chat - get first letter of sender name
-                                    toastAvatar = chatName.charAt(0).toUpperCase();
-                                }
-
+                            // Показываем уведомление если не в этом чате
+                            if (document.hidden || currentChat !== chatId) {
                                 showToastNotification({
-                                    title: toastTitle,
-                                    message: latestMessage.text,
-                                    type: toastType,
+                                    title: chatName,
+                                    message: message.text,
+                                    type: notificationType,
                                     chatId: chatId,
-                                    avatar: toastAvatar,
+                                    avatar: notificationType === 'group_message' ? '👥' : 
+                                           notificationType === 'channel_message' ? '📢' : 
+                                           message.sender.charAt(0).toUpperCase(),
                                     duration: 6000
                                 });
+
+                                // Также показываем браузерное уведомление
+                                if (Notification.permission === 'granted') {
+                                    new Notification(`Новое сообщение от ${chatName}`, {
+                                        body: message.text,
+                                        icon: 'icon-192x192.png',
+                                        badge: 'icon-192x192.png',
+                                        silent: false
+                                    });
+                                }
                             }
+                        }
+                    });
 
-                            // Создаем уведомление в Firebase для гарантированной доставки
-                            createFirebaseNotification(latestMessage, chatName, notificationType);
+                    // Обновляем lastMessageTimestamp до самого нового сообщения
+                    const latestMessage = newMessages[newMessages.length - 1];
+                    if (latestMessage.timestamp > lastMessageTimestamp) {
+                        lastMessageTimestamp = latestMessage.timestamp;
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('[CheckMessages] Error:', error);
+    }
+}
 
-                            // Обновляем таймстамп
-                            lastMessageTimestamp = latestMessage.timestamp;
+// Исправленная функция отправки сообщения
+async function sendMessage() {
+    const text = messageText.value.trim();
+    if (!text || !currentChat) return;
+
+    // ... (ваш существующий код для AI и других проверок) ...
+
+    let chatId;
+    if (currentChatType === 'group' || currentChatType === 'channel') {
+        chatId = currentChat;
+    } else {
+        chatId = getChatId(currentUser, currentChat);
+    }
+
+    // Сохраняем сообщение
+    const message = {
+        sender: currentUser,
+        text: text,
+        timestamp: Date.now()
+    };
+
+    try {
+        await database.ref('messages/' + chatId).push(message);
+        
+        // Обновляем lastMessageTimestamp для этого чата
+        // Важно: сохраняем отдельно для каждого чата
+        const chatLastTimestamp = localStorage.getItem(`last_timestamp_${chatId}`);
+        if (!chatLastTimestamp || message.timestamp > parseInt(chatLastTimestamp)) {
+            localStorage.setItem(`last_timestamp_${chatId}`, message.timestamp.toString());
+        }
+        
+        // Обновляем глобальный timestamp
+        if (message.timestamp > lastMessageTimestamp) {
+            lastMessageTimestamp = message.timestamp;
+        }
+
+        messageText.value = '';
+        loadMessages();
+        
+        if (activeTab === 'chats') {
+            loadRecentChats();
+        }
+
+    } catch (error) {
+        showNotification('Ошибка: ' + error.message);
+    }
+}
+
+// Функция для загрузки последних timestamp'ов при запуске
+async function loadLastTimestamps() {
+    if (!currentUser) return;
+    
+    try {
+        const snapshot = await database.ref('messages').once('value');
+        const allChats = snapshot.val();
+        
+        let maxTimestamp = 0;
+        
+        if (allChats) {
+            Object.keys(allChats).forEach(chatId => {
+                if (chatId.includes(currentUser) || 
+                    (chatId.startsWith('group_') && groups.some(g => g.id === chatId)) ||
+                    (chatId.startsWith('channel_') && subscribedChannels.includes(chatId))) {
+                    
+                    const messages = allChats[chatId];
+                    const messagesArray = Object.keys(messages).map(key => ({
+                        id: key,
+                        ...messages[key]
+                    }));
+                    
+                    const chatMessages = messagesArray.filter(msg => msg.timestamp);
+                    if (chatMessages.length > 0) {
+                        const maxChatTimestamp = Math.max(...chatMessages.map(m => m.timestamp));
+                        if (maxChatTimestamp > maxTimestamp) {
+                            maxTimestamp = maxChatTimestamp;
                         }
                     }
-                });
-            } catch (error) {
-                console.error('[CheckMessages] Error:', error);
-            }
+                }
+            });
         }
+        
+        lastMessageTimestamp = maxTimestamp;
+        console.log('[Init] Last message timestamp:', new Date(lastMessageTimestamp).toLocaleString());
+        
+    } catch (error) {
+        console.error('Ошибка загрузки timestamp\'ов:', error);
+    }
+}
+
+// Добавьте эту функцию для периодической проверки
+function startMessageChecking() {
+    // Проверяем каждые 3 секунды
+    setInterval(checkForNewMessages, 3000);
+    
+    // Также проверяем при возвращении на вкладку
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            checkForNewMessages();
+        }
+    });
+}
+
+// Добавьте в функцию initApp() после загрузки пользователя:
+// 
+        
 
         // Создание уведомления в Firebase для гарантированной доставки
         async function createFirebaseNotification(message, chatName, type) {
