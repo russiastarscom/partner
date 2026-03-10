@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#6c5ce7">
+    <title>Ваш ключ шифрования</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .key-box {
+            background: #f8f9fa;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            line-height: 1.8;
+            color: #333;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .key-box.empty {
+            color: #999;
+            font-style: italic;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .info {
+            color: #666;
+            margin-top: 20px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .success {
+            margin-top: 15px;
+            padding: 10px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .status.generated {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Ваш ключ шифрования</h1>
+        
+        <div id="status" class="status" style="display: none;"></div>
+
+        <div class="key-box empty" id="keyDisplay">
+            Нажмите кнопку ниже
+        </div>
+
+        <div style="margin: 20px 0;">
+            <button onclick="showKey()">📂 Загрузить ключ</button>
+            <button onclick="copyKey()" id="copyBtn" disabled>📋 Копировать</button>
+        </div>
+
+        <div class="success" id="successMsg">
+            ✓ Ключ скопирован в буфер обмена!
+        </div>
+
+        <div class="info">
+            <p><strong>🔑 Информация:</strong></p>
+            <p>Это ваш приватный ключ шифрования AES-256.</p>
+            <p>Все ваши сообщения шифруются именно этим ключом.</p>
+            <p style="margin-top: 10px; color: #e74c3c; font-weight: bold;">
+                ⚠️ Никому не показывайте этот ключ!
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Загружаем encryption.js функции локально
+        
+        function showKey() {
+            const key = localStorage.getItem('messageEncryptionKey');
+            const keyDisplay = document.getElementById('keyDisplay');
+            const status = document.getElementById('status');
+            
+            if (key) {
+                keyDisplay.textContent = key;
+                keyDisplay.classList.remove('empty');
+                document.getElementById('copyBtn').disabled = false;
+                
+                status.className = 'status generated';
+                status.textContent = '✓ Ключ найден в браузере';
+                status.style.display = 'block';
+            } else {
+                // Генерируем новый ключ
+                generateNewKey();
+            }
+        }
+
+        async function generateNewKey() {
+            try {
+                const keyDisplay = document.getElementById('keyDisplay');
+                const status = document.getElementById('status');
+                
+                status.textContent = '⏳ Генерирование нового ключа...';
+                status.className = 'status generated';
+                status.style.display = 'block';
+                
+                const key = await window.crypto.subtle.generateKey(
+                    { name: 'AES-GCM', length: 256 },
+                    true,
+                    ['encrypt', 'decrypt']
+                );
+                
+                const exportedKey = await window.crypto.subtle.exportKey('raw', key);
+                const base64Key = bufferToBase64(exportedKey);
+                
+                localStorage.setItem('messageEncryptionKey', base64Key);
+                
+                keyDisplay.textContent = base64Key;
+                keyDisplay.classList.remove('empty');
+                document.getElementById('copyBtn').disabled = false;
+                
+                status.textContent = '✓ Новый ключ сгенерирован и сохранен';
+                status.className = 'status generated';
+            } catch (error) {
+                document.getElementById('status').className = 'status error';
+                document.getElementById('status').textContent = 'Ошибка: ' + error.message;
+                document.getElementById('status').style.display = 'block';
+            }
+        }
+
+        function copyKey() {
+            const key = document.getElementById('keyDisplay').textContent;
+            
+            if (key === 'Нажмите кнопку ниже' || key === '') {
+                alert('Сначала загрузите или создайте ключ');
+                return;
+            }
+            
+            navigator.clipboard.writeText(key).then(() => {
+                const successMsg = document.getElementById('successMsg');
+                successMsg.style.display = 'block';
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 3000);
+            }).catch(err => {
+                alert('Ошибка при копировании: ' + err.message);
+            });
+        }
+
+        function bufferToBase64(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        }
+
+        // При загрузке страницы проверяем наличие ключа
+        window.addEventListener('load', () => {
+            const key = localStorage.getItem('messageEncryptionKey');
+            if (key) {
+                showKey();
+            }
+        });
+    </script>
+    
+    <!-- PWA Install Button -->
+    <script>
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            const installMsg = document.createElement('div');
+            installMsg.textContent = '📲 Установить как приложение';
+            installMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #667eea; color: white; padding: 15px 20px; border-radius: 8px; cursor: pointer; z-index: 9999; font-weight: bold;';
+            
+            installMsg.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        console.log('Приложение установлено');
+                    }
+                    deferredPrompt = null;
+                    installMsg.remove();
+                }
+            });
+            
+            document.body.appendChild(installMsg);
+        });
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(registration => {
+                    console.log('Service Worker зарегистрирован:', registration);
+                })
+                .catch(error => {
+                    console.log('Регистрация Service Worker ошибка:', error);
+                });
+        }
+    </script>
+</body>
+</html>

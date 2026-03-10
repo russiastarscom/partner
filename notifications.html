@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Уведомления Twin</title>
+    <meta name="theme-color" content="#6c5ce7">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .status-box {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #95a5a6;
+        }
+
+        .dot.active {
+            background: #2ecc71;
+            box-shadow: 0 0 10px #2ecc71;
+        }
+
+        .dot.waiting {
+            background: #f39c12;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            color: white;
+        }
+
+        .user-info p {
+            margin: 5px 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .user-info .username {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .button.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .button.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .button.success {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .button.success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(46, 204, 113, 0.4);
+        }
+
+        .button.danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .button.danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(231, 76, 60, 0.4);
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .features {
+            text-align: left;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            color: #555;
+        }
+
+        .feature-item span {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+
+        .device-list {
+            margin-top: 20px;
+            text-align: left;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .device-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .device-item:last-child {
+            border-bottom: none;
+        }
+
+        .device-name {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .device-active {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #2ecc71;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+
+        .back-link {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Уведомления Twin</h1>
+        <p class="subtitle">Настройте получение уведомлений в реальном времени</p>
+
+        <!-- Статус подключения -->
+        <div class="status-box">
+            <div class="status-indicator">
+                <span class="dot" id="statusDot"></span>
+                <span id="statusText">Проверка подключения...</span>
+            </div>
+            <div id="userInfo" class="user-info" style="display: none;">
+                <div class="username" id="displayUsername"></div>
+                <p id="displayName"></p>
+                <p id="displayEmail"></p>
+            </div>
+        </div>
+
+        <!-- Основные кнопки -->
+        <button class="button primary" id="loginBtn" style="display: none;">
+            🔑 Войти в аккаунт
+        </button>
+
+        <button class="button success" id="enableNotificationsBtn" style="display: none;">
+            🔔 Включить уведомления
+        </button>
+
+        <button class="button danger" id="disableNotificationsBtn" style="display: none;">
+            🔕 Отключить уведомления
+        </button>
+
+        <button class="button" id="testNotificationBtn" style="display: none;">
+            📱 Отправить тестовое уведомление
+        </button>
+
+        <!-- Сообщения -->
+        <div id="message" class="message"></div>
+
+        <!-- Преимущества -->
+        <div class="features">
+            <div class="feature-item">
+                <span>✓</span> Мгновенные уведомления о новых сообщениях
+            </div>
+            <div class="feature-item">
+                <span>✓</span> Уведомления в группах и каналах
+            </div>
+            <div class="feature-item">
+                <span>✓</span> Работает даже когда сайт закрыт
+            </div>
+            <div class="feature-item">
+                <span>✓</span> Экономия заряда батареи
+            </div>
+        </div>
+
+        <!-- Список устройств -->
+        <div id="devicesSection" style="display: none;">
+            <h3 style="margin-bottom: 10px; color: #333;">Подключенные устройства</h3>
+            <div class="device-list" id="deviceList"></div>
+        </div>
+
+        <!-- Ссылка назад -->
+        <div class="back-link">
+            <a href="index.html" id="backToApp">← Вернуться в мессенджер</a>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+    <script>
+        // Конфигурация Firebase (такая же как в мессенджере)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAhO3JsDI61pkpGla045EfEXq6h7EuGHoQ",
+            authDomain: "ukraine-52ad4.firebaseapp.com",
+            databaseURL: "https://ukraine-52ad4-default-rtdb.firebaseio.com",
+            projectId: "ukraine-52ad4",
+            storageBucket: "ukraine-52ad4.firebasestorage.app",
+            messagingSenderId: "63107581219",
+            appId: "1:63107581219:web:074b8e692a8a8b04737896"
+        };
+
+        // Инициализация Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Элементы DOM
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const userInfo = document.getElementById('userInfo');
+        const displayUsername = document.getElementById('displayUsername');
+        const displayName = document.getElementById('displayName');
+        const displayEmail = document.getElementById('displayEmail');
+        const loginBtn = document.getElementById('loginBtn');
+        const enableBtn = document.getElementById('enableNotificationsBtn');
+        const disableBtn = document.getElementById('disableNotificationsBtn');
+        const testBtn = document.getElementById('testNotificationBtn');
+        const messageEl = document.getElementById('message');
+        const devicesSection = document.getElementById('devicesSection');
+        const deviceList = document.getElementById('deviceList');
+        const backToApp = document.getElementById('backToApp');
+
+        // Состояние
+        let currentUser = null;
+        let currentUserData = null;
+        let swRegistration = null;
+        let deviceId = null;
+
+        // Генерируем уникальный ID для этого устройства
+        function generateDeviceId() {
+            const userAgent = navigator.userAgent;
+            const platform = navigator.platform;
+            const languages = navigator.languages ? navigator.languages.join(',') : '';
+            const hash = btoa(userAgent + platform + languages + Date.now()).substring(0, 20);
+            return hash.replace(/[^a-zA-Z0-9]/g, '');
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', async () => {
+            deviceId = generateDeviceId();
+            await checkSavedUser();
+            await registerServiceWorker();
+            updateUI();
+        });
+
+        // Проверка сохраненного пользователя
+        async function checkSavedUser() {
+            const savedUser = localStorage.getItem('messenger_user');
+            if (savedUser) {
+                try {
+                    const userData = JSON.parse(savedUser);
+                    if (userData && userData.username) {
+                        const snapshot = await database.ref('users/' + encodeURIComponent(userData.username)).once('value');
+                        if (snapshot.exists()) {
+                            currentUser = userData.username;
+                            currentUserData = snapshot.val();
+                            displayUsername.textContent = '@' + currentUser;
+                            displayName.textContent = currentUserData.name || currentUser;
+                            userInfo.style.display = 'block';
+                            
+                            // Сохраняем информацию об этом устройстве
+                            await saveDeviceInfo();
+                        }
+                    }
+                } catch (e) {
+                    console.error('Ошибка загрузки пользователя:', e);
+                }
+            }
+        }
+
+        // Сохранение информации об устройстве
+        async function saveDeviceInfo() {
+            if (!currentUser) return;
+            
+            try {
+                const userAgent = navigator.userAgent;
+                const deviceName = getDeviceName();
+                
+                await database.ref('users/' + encodeURIComponent(currentUser) + '/devices/' + deviceId).set({
+                    name: deviceName,
+                    userAgent: userAgent,
+                    lastActive: Date.now(),
+                    notifications: false
+                });
+                
+                await loadDevices();
+            } catch (error) {
+                console.error('Ошибка сохранения устройства:', error);
+            }
+        }
+
+        // Получение понятного имени устройства
+        function getDeviceName() {
+            const ua = navigator.userAgent;
+            let deviceName = 'Неизвестное устройство';
+            
+            if (ua.includes('iPhone')) deviceName = 'iPhone';
+            else if (ua.includes('iPad')) deviceName = 'iPad';
+            else if (ua.includes('Android')) deviceName = 'Android';
+            else if (ua.includes('Windows')) deviceName = 'Windows';
+            else if (ua.includes('Mac')) deviceName = 'Mac';
+            else if (ua.includes('Linux')) deviceName = 'Linux';
+            
+            if (ua.includes('Chrome')) deviceName += ' (Chrome)';
+            else if (ua.includes('Firefox')) deviceName += ' (Firefox)';
+            else if (ua.includes('Safari')) deviceName += ' (Safari)';
+            else if (ua.includes('Edge')) deviceName += ' (Edge)';
+            
+            return deviceName;
+        }
+
+        // Загрузка списка устройств
+        async function loadDevices() {
+            if (!currentUser) return;
+            
+            try {
+                const snapshot = await database.ref('users/' + encodeURIComponent(currentUser) + '/devices').once('value');
+                const devices = snapshot.val() || {};
+                
+                deviceList.innerHTML = '';
+                let hasDevices = false;
+                
+                for (const [id, device] of Object.entries(devices)) {
+                    hasDevices = true;
+                    const item = document.createElement('div');
+                    item.className = 'device-item';
+                    
+                    const isCurrent = id === deviceId;
+                    const activeClass = isCurrent ? 'device-active' : '';
+                    
+                    item.innerHTML = `
+                        <div>
+                            <div style="font-weight: 500; font-size: 14px;">${device.name || 'Устройство'}</div>
+                            <div class="device-name">${new Date(device.lastActive).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            ${device.notifications ? '🔔' : '🔕'}
+                            <span class="${activeClass}"></span>
+                        </div>
+                    `;
+                    
+                    deviceList.appendChild(item);
+                }
+                
+                devicesSection.style.display = hasDevices ? 'block' : 'none';
+            } catch (error) {
+                console.error('Ошибка загрузки устройств:', error);
+            }
+        }
+
+        // Регистрация Service Worker
+        async function registerServiceWorker() {
+            try {
+                statusDot.className = 'dot waiting';
+                statusText.textContent = 'Регистрация Service Worker...';
+                
+                if (!('serviceWorker' in navigator)) {
+                    showMessage('Ваш браузер не поддерживает Service Worker', 'error');
+                    statusDot.className = 'dot';
+                    statusText.textContent = 'Service Worker не поддерживается';
+                    return;
+                }
+                
+                swRegistration = await navigator.serviceWorker.register('notification-sw.js', {
+                    scope: './'
+                });
+                
+                console.log('Service Worker зарегистрирован:', swRegistration);
+                
+                // Ждем активации
+                const registration = await navigator.serviceWorker.ready;
+                console.log('Service Worker активирован');
+                
+                // Проверяем разрешения
+                await checkNotificationPermission();
+                
+            } catch (error) {
+                console.error('Ошибка регистрации Service Worker:', error);
+                showMessage('Ошибка регистрации: ' + error.message, 'error');
+                statusDot.className = 'dot';
+                statusText.textContent = 'Ошибка регистрации';
+            }
+        }
+
+        // Проверка разрешений на уведомления
+        async function checkNotificationPermission() {
+            if (!('Notification' in window)) {
+                statusDot.className = 'dot';
+                statusText.textContent = 'Уведомления не поддерживаются';
+                return;
+            }
+            
+            if (Notification.permission === 'granted') {
+                statusDot.className = 'dot active';
+                statusText.textContent = 'Уведомления включены';
+                
+                // Проверяем, включены ли уведомления для этого устройства
+                if (currentUser) {
+                    await checkDeviceNotificationStatus();
+                }
+            } else if (Notification.permission === 'denied') {
+                statusDot.className = 'dot';
+                statusText.textContent = 'Уведомления заблокированы';
+            } else {
+                statusDot.className = 'dot waiting';
+                statusText.textContent = 'Разрешение не запрошено';
+            }
+            
+            updateUI();
+        }
+
+        // Проверка статуса уведомлений для этого устройства
+        async function checkDeviceNotificationStatus() {
+            if (!currentUser) return;
+            
+            try {
+                const snapshot = await database.ref('users/' + encodeURIComponent(currentUser) + '/devices/' + deviceId).once('value');
+                const device = snapshot.val();
+                
+                if (device && device.notifications) {
+                    // Уведомления уже включены
+                }
+            } catch (error) {
+                console.error('Ошибка проверки статуса:', error);
+            }
+        }
+
+        // Запрос разрешения на уведомления
+        async function requestNotificationPermission() {
+            try {
+                const permission = await Notification.requestPermission();
+                
+                if (permission === 'granted') {
+                    showMessage('✅ Разрешение на уведомления получено!', 'success');
+                    await enableNotifications();
+                } else {
+                    showMessage('❌ Разрешение на уведомления отклонено', 'error');
+                }
+                
+                await checkNotificationPermission();
+                
+            } catch (error) {
+                console.error('Ошибка запроса разрешения:', error);
+                showMessage('Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        // Включение уведомлений
+        async function enableNotifications() {
+            if (!currentUser) {
+                showMessage('Сначала войдите в аккаунт', 'error');
+                return;
+            }
+            
+            if (Notification.permission !== 'granted') {
+                await requestNotificationPermission();
+                return;
+            }
+            
+            try {
+                showMessage('⏳ Включение уведомлений...', 'info');
+                
+                // Сохраняем информацию об устройстве
+                await database.ref('users/' + encodeURIComponent(currentUser) + '/devices/' + deviceId).update({
+                    notifications: true,
+                    lastActive: Date.now()
+                });
+                
+                // Сохраняем глобальную настройку
+                await database.ref('users/' + encodeURIComponent(currentUser)).update({
+                    notificationsEnabled: true,
+                    lastNotificationUpdate: Date.now()
+                });
+                
+                showMessage('✅ Уведомления успешно включены!', 'success');
+                
+                // Отправляем тестовое уведомление
+                setTimeout(() => sendTestNotification(), 1000);
+                
+                await loadDevices();
+                await checkNotificationPermission();
+                
+            } catch (error) {
+                console.error('Ошибка включения уведомлений:', error);
+                showMessage('Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        // Отключение уведомлений
+        async function disableNotifications() {
+            if (!currentUser) return;
+            
+            try {
+                showMessage('⏳ Отключение уведомлений...', 'info');
+                
+                // Отключаем уведомления для этого устройства
+                await database.ref('users/' + encodeURIComponent(currentUser) + '/devices/' + deviceId).update({
+                    notifications: false,
+                    lastActive: Date.now()
+                });
+                
+                // Проверяем, есть ли другие устройства с уведомлениями
+                const snapshot = await database.ref('users/' + encodeURIComponent(currentUser) + '/devices').once('value');
+                const devices = snapshot.val() || {};
+                
+                let hasActiveNotifications = false;
+                for (const [id, device] of Object.entries(devices)) {
+                    if (device.notifications && id !== deviceId) {
+                        hasActiveNotifications = true;
+                        break;
+                    }
+                }
+                
+                // Если нет других устройств с уведомлениями, отключаем глобально
+                if (!hasActiveNotifications) {
+                    await database.ref('users/' + encodeURIComponent(currentUser)).update({
+                        notificationsEnabled: false,
+                        lastNotificationUpdate: Date.now()
+                    });
+                }
+                
+                showMessage('✅ Уведомления отключены', 'success');
+                
+                await loadDevices();
+                await checkNotificationPermission();
+                
+            } catch (error) {
+                console.error('Ошибка отключения уведомлений:', error);
+                showMessage('Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        // Отправка тестового уведомления
+        async function sendTestNotification() {
+            if (!swRegistration) {
+                showMessage('Service Worker не готов', 'error');
+                return;
+            }
+            
+            try {
+                // Создаем тестовое уведомление
+                const options = {
+                    body: 'Это тестовое уведомление! Если вы это видите, всё работает правильно.',
+                    icon: 'icon-192x192.png',
+                    badge: 'icon-192x192.png',
+                    vibrate: [200, 100, 200],
+                    tag: 'test-notification',
+                    renotify: true,
+                    requireInteraction: false,
+                    data: {
+                        timestamp: Date.now(),
+                        type: 'test',
+                        url: 'index.html'
+                    },
+                    actions: [
+                        {
+                            action: 'open',
+                            title: 'Открыть мессенджер'
+                        }
+                    ]
+                };
+                
+                await swRegistration.showNotification('🔔 Тестовое уведомление', options);
+                showMessage('✅ Тестовое уведомление отправлено!', 'success');
+                
+            } catch (error) {
+                console.error('Ошибка отправки тестового уведомления:', error);
+                showMessage('Ошибка: ' + error.message, 'error');
+            }
+        }
+
+        // Обновление UI
+        function updateUI() {
+            const hasUser = !!currentUser;
+            const notificationsGranted = Notification.permission === 'granted';
+            
+            loginBtn.style.display = hasUser ? 'none' : 'block';
+            enableBtn.style.display = hasUser && !notificationsGranted ? 'block' : 'none';
+            disableBtn.style.display = hasUser && notificationsGranted ? 'block' : 'none';
+            testBtn.style.display = hasUser && notificationsGranted ? 'block' : 'none';
+            
+            // Обновляем ссылку назад
+            backToApp.href = 'index.html' + (currentUser ? '?user=' + encodeURIComponent(currentUser) : '');
+        }
+
+        // Показ сообщений
+        function showMessage(text, type) {
+            messageEl.className = 'message ' + type;
+            messageEl.textContent = text;
+            messageEl.style.display = 'block';
+            
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 5000);
+        }
+
+        // Обработчики кнопок
+        loginBtn.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        enableBtn.addEventListener('click', enableNotifications);
+        disableBtn.addEventListener('click', disableNotifications);
+        testBtn.addEventListener('click', sendTestNotification);
+
+        // Слушаем изменения в Firebase
+        if (database) {
+            database.ref('users').on('child_changed', (snapshot) => {
+                if (currentUser && snapshot.key === currentUser) {
+                    currentUserData = snapshot.val();
+                    updateUI();
+                }
+            });
+        }
+
+        // При загрузке проверяем параметры URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const userParam = urlParams.get('user');
+        if (userParam && !currentUser) {
+            // Можно автоматически загрузить пользователя из URL
+            localStorage.setItem('temp_user', userParam);
+        }
+    </script>
+</body>
+</html>
