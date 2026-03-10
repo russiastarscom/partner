@@ -8484,6 +8484,17 @@ function addNotificationSettingsButton() {
     // Добавляем кнопку в начало блока действий
     profileSettingsActions.insertBefore(notifBtn, profileSettingsActions.firstChild);
 }
+// В index.html добавьте:
+function sendOneSignalNotification(toUser, message) {
+    OneSignal.User.addTag('username', currentUser);
+    
+    OneSignal.Notifications.send({
+        include_external_user_ids: [toUser],
+        headings: { en: `Новое сообщение от ${currentUser}` },
+        contents: { en: message.text },
+        data: { chatId: getChatId(currentUser, toUser) }
+    });
+}
 
 </script>
         
