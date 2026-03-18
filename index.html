@@ -2,6 +2,40 @@
 <html lang="ru">
 
 <head>
+    <!-- === НАЧАЛО БЛОКА SEO ДЛЯ ПОИСКОВИКОВ === -->
+    
+    <!-- Основная кодировка (обязательно должна быть первой) -->
+    <meta charset="UTF-8">
+    
+    <!-- Заголовок вкладки в браузере (то, что написано на вкладке) -->
+    <title>Twin — Современный мессенджер с подарками и AI</title>
+    
+    <!-- Описание сайта для Google и Яндекс (сниппет в поиске) -->
+    <meta name="description" content="Twin — бесплатный веб-мессенджер. Общайтесь с друзьями, отправляйте подарки, создавайте группы и каналы. Встроенный AI-ассистент, темная тема и установка на телефон.">
+    
+    <!-- Ключевые слова (помогают понять тематику) -->
+    <meta name="keywords" content="мессенджер, чат, twin, общение, веб-чат, ai ассистент, подарки, группы, каналы, бесплатный чат">
+    
+    <!-- Инструкция для роботов: индексировать сайт и переходить по ссылкам -->
+    <meta name="robots" content="index, follow">
+    
+    <!-- Автор проекта -->
+    <meta name="author" content="Russia Stars">
+    
+    <!-- Настройка для красивого отображения ссылки в соцсетях (Open Graph) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Twin — Твой новый мессенджер">
+    <meta property="og:description" content="Общайся, дарить подарки и используй AI прямо в браузере. Быстро, удобно и бесплатно.">
+    <meta property="og:image" content="icon-192x192.png"> <!-- Убедись, что эта картинка существует -->
+    <meta property="og:url" content="https://russiastarscom.github.io/partner/index.html"> <!-- Замени на свою ссылку позже -->
+    
+    <!-- Настройка для Twitter карточек -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Twin Messenger">
+    <meta name="twitter:description" content="Современный чат с уникальными функциями.">
+    
+    <!-- === КОНЕЦ БЛОКА SEO === -->
+    
     <!-- Добавьте эти мета-теги для PWA -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -25,7 +59,7 @@
     <!-- Для Windows -->
     <meta name="msapplication-TileColor" content="#6c5ce7">
     <meta name="msapplication-TileImage" content="icon-192x192.png">
-    <meta charset="UTF-8">
+    
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, height=device-height">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2391,826 +2425,96 @@
         // Инициализация
         document.addEventListener('DOMContentLoaded', initApp);
 
-        // ==================== ПОЛНАЯ ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ ====================
+        async function initApp() {
+            setupEventListeners();
+            setupNetworkStatus();
 
-async function initApp() {
-    console.log('🚀 Инициализация приложения Twin...');
-    
-    try {
-        // ========== 1. БАЗОВАЯ НАСТРОЙКА ==========
-        setupEventListeners();
-        setupNetworkStatus();
-        
-        // ========== 2. SERVICE WORKER ДЛЯ УВЕДОМЛЕНИЙ ==========
-        await registerServiceWorker();
-        
-        // ========== 3. НАСТРОЙКА УВЕДОМЛЕНИЙ ==========
-        setupAutoNotificationRequest();
-        initializeNotificationSettings();
-        
-        // ========== 4. ТЕМНАЯ ТЕМА ==========
-        if (localStorage.getItem('dark_theme') === 'true') {
-            document.body.classList.add('dark-theme');
-            if (themeToggle) themeToggle.checked = true;
-        } else {
-            document.body.classList.remove('dark-theme');
-            if (themeToggle) themeToggle.checked = false;
-        }
-        
-        // ========== 5. СИСТЕМА ПОДАРКОВ ==========
-        initGiftSystem();
-        
-        // ========== 6. ПРОВЕРКА СОХРАНЕННОГО ПОЛЬЗОВАТЕЛЯ ==========
-        const savedUser = localStorage.getItem('messenger_user');
-        if (savedUser) {
-            try {
-                const userData = JSON.parse(savedUser);
-                if (userData && userData.username && userData.password) {
-                    // Автоматический вход
-                    const userRef = database.ref('users/' + encodeURIComponent(userData.username));
-                    const snapshot = await userRef.once('value');
-                    
-                    if (snapshot.exists()) {
-                        const dbUserData = snapshot.val();
-                        if (dbUserData.password === userData.password) {
-                            currentUser = userData.username;
-                            currentUserData = dbUserData;
-                            userEmoji = dbUserData.emoji || '😊';
-                            blockedUsers = dbUserData.blockedUsers || [];
-                            subscribedChannels = dbUserData.subscribedChannels || [];
+            // Регистрируем Service Worker для фоновых уведомлений
+            registerServiceWorker();
 
-                            // Обновляем UI
-                            if (currentUserEl) {
-                                const nameSpan = currentUserEl.querySelector('span:last-child');
-                                if (nameSpan) nameSpan.textContent = dbUserData.name || userData.username;
+            // Настраиваем автоматический запрос разрешения на уведомления
+            setupAutoNotificationRequest();
+
+            // Проверяем сохраненную тему
+            if (localStorage.getItem('dark_theme') === 'true') {
+                document.body.classList.add('dark-theme');
+                if (typeof themeToggle !== 'undefined' && themeToggle) themeToggle.checked = true;
+            } else {
+                document.body.classList.remove('dark-theme');
+                if (typeof themeToggle !== 'undefined' && themeToggle) themeToggle.checked = false;
+            }
+
+            // Инициализируем настройки уведомлений
+            initializeNotificationSettings();
+
+            // Инициализируем систему подарков
+            initGiftSystem();
+
+            // Проверяем, есть ли сохраненный пользователь
+            const savedUser = localStorage.getItem('messenger_user');
+            if (savedUser) {
+                try {
+                    const userData = JSON.parse(savedUser);
+                    if (userData && userData.username && userData.password) {
+                        // Автоматический вход
+                        const userRef = database.ref('users/' + encodeURIComponent(userData.username));
+                        const snapshot = await userRef.once('value');
+
+                        if (snapshot.exists()) {
+                            const dbUserData = snapshot.val();
+                            if (dbUserData.password === userData.password) {
+                                currentUser = userData.username;
+                                currentUserData = dbUserData;
+                                userEmoji = dbUserData.emoji || '😊';
+                                blockedUsers = dbUserData.blockedUsers || [];
+                                subscribedChannels = dbUserData.subscribedChannels || [];
+
+                                currentUserEl.querySelector('span:last-child').textContent = dbUserData.name || userData.username;
+                                userEmojiEl.textContent = userEmoji;
+
+                                await updateUserStatus(true);
+                                loadRecentChats();
+                                loadGroups();
+                                loadChannels();
+
+                                // Загружаем баланс подарков и полученные подарки
+                                await loadUserBalance();
+                                await loadUserGifts();
+                                await loadReceivedGifts();
+
+                                startBackgroundChecks();
+                                trackUserStatus();
+                                subscribeToPushNotifications();
+                            } else {
+                                localStorage.removeItem('messenger_user');
+                                requestUsername();
                             }
-                            if (userEmojiEl) userEmojiEl.textContent = userEmoji;
-
-                            // Обновляем статус онлайн
-                            await updateUserStatus(true);
-                            
-                            // Загружаем данные
-                            await loadRecentChats();
-                            await loadGroups();
-                            await loadChannels();
-                            await loadUserBalance();
-                            await loadUserGifts();
-                            await loadReceivedGifts();
-                            await loadLastTimestamps();
-                            
-                            // ========== 7. ЗАПУСК СЛУЖБ УВЕДОМЛЕНИЙ ==========
-                            startBackgroundChecks();
-                            trackUserStatus();
-                            setupNotificationListener();
-                            await registerDeviceForPush();
-                            startMessageChecking();
-                            setupPushListener();
-                            
-                            console.log('✅ Пользователь загружен:', currentUser);
-                            showNotification('🟢 Добро пожаловать, ' + (dbUserData.name || userData.username));
                         } else {
-                            console.log('❌ Неверный пароль');
                             localStorage.removeItem('messenger_user');
                             requestUsername();
                         }
                     } else {
-                        console.log('❌ Пользователь не найден');
                         localStorage.removeItem('messenger_user');
                         requestUsername();
                     }
-                } else {
-                    console.log('❌ Неверные данные пользователя');
+                } catch (e) {
                     localStorage.removeItem('messenger_user');
                     requestUsername();
                 }
-            } catch (e) {
-                console.error('❌ Ошибка загрузки пользователя:', e);
-                localStorage.removeItem('messenger_user');
+            } else {
+                // Если пользователя нет, запрашиваем вход/регистрацию
                 requestUsername();
             }
-        } else {
-            // Если пользователя нет, запрашиваем вход
-            requestUsername();
-        }
-        
-        // ========== 8. МОБИЛЬНАЯ АДАПТАЦИЯ ==========
-        if (window.innerWidth <= 768) {
-            mobileTitle.textContent = 'Twin';
-        }
-        
-        optimizeForAndroid();
-        setupSwipeGestures();
-        
-        // ========== 9. ПРОВЕРКА СТАТУСА УВЕДОМЛЕНИЙ ==========
-        await checkNotificationPermission();
-        
-        console.log('✅ Приложение Twin инициализировано успешно');
-        
-    } catch (error) {
-        console.error('❌ Критическая ошибка инициализации:', error);
-        showNotification('Ошибка загрузки приложения: ' + error.message);
-    }
-}
 
-// ==================== SERVICE WORKER ====================
-
-async function registerServiceWorker() {
-    if (!('serviceWorker' in navigator)) {
-        console.log('❌ Service Worker не поддерживается');
-        showNotification('Ваш браузер не поддерживает фоновые уведомления');
-        return null;
-    }
-    
-    try {
-        // Проверяем протокол
-        if (window.location.protocol === 'file:') {
-            console.log('⚠️ Service Worker не работает на file:// протоколе');
-            console.log('📌 Используйте локальный сервер (Live Server) или HTTPS');
-            return null;
-        }
-        
-        // Регистрируем Service Worker
-        const registration = await navigator.serviceWorker.register('service-worker.js', {
-            scope: './'
-        });
-        
-        console.log('✅ Service Worker зарегистрирован:', registration);
-        
-        // Ждем активации
-        const ready = await navigator.serviceWorker.ready;
-        console.log('✅ Service Worker активирован:', ready);
-        
-        // Сохраняем registration в глобальной переменной
-        window.swRegistration = registration;
-        
-        return registration;
-        
-    } catch (error) {
-        console.error('❌ Ошибка регистрации Service Worker:', error);
-        showNotification('Ошибка регистрации уведомлений');
-        return null;
-    }
-}
-
-// ==================== РЕГИСТРАЦИЯ УСТРОЙСТВА ====================
-
-async function registerDeviceForPush() {
-    if (!currentUser) return null;
-    
-    try {
-        // Генерируем уникальный ID устройства
-        const deviceId = generateDeviceId();
-        
-        // Получаем информацию об устройстве
-        const deviceInfo = {
-            id: deviceId,
-            name: getDeviceName(),
-            userAgent: navigator.userAgent,
-            platform: navigator.platform,
-            language: navigator.language,
-            lastActive: Date.now(),
-            notifications: Notification.permission === 'granted',
-            timestamp: Date.now(),
-            browser: getBrowserInfo(),
-            screen: `${window.screen.width}x${window.screen.height}`,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-        };
-        
-        // Сохраняем в Firebase
-        await database.ref('users/' + encodeURIComponent(currentUser) + '/devices/' + deviceId).set(deviceInfo);
-        
-        // Сохраняем ID устройства в localStorage
-        localStorage.setItem('device_id', deviceId);
-        
-        console.log('✅ Устройство зарегистрировано для push:', deviceInfo);
-        
-        return deviceId;
-        
-    } catch (error) {
-        console.error('❌ Ошибка регистрации устройства:', error);
-        return null;
-    }
-}
-
-function generateDeviceId() {
-    const existingId = localStorage.getItem('device_id');
-    if (existingId) return existingId;
-    
-    const userAgent = navigator.userAgent;
-    const platform = navigator.platform;
-    const languages = navigator.languages ? navigator.languages.join(',') : '';
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2, 15);
-    const screen = `${window.screen.width}x${window.screen.height}`;
-    
-    const hash = btoa(userAgent + platform + languages + timestamp + random + screen)
-        .replace(/[^a-zA-Z0-9]/g, '')
-        .substring(0, 32);
-    
-    return hash;
-}
-
-function getDeviceName() {
-    const ua = navigator.userAgent;
-    let deviceName = 'Неизвестное устройство';
-    
-    if (ua.includes('iPhone')) deviceName = 'iPhone';
-    else if (ua.includes('iPad')) deviceName = 'iPad';
-    else if (ua.includes('Android')) deviceName = 'Android';
-    else if (ua.includes('Windows')) deviceName = 'Windows';
-    else if (ua.includes('Mac')) deviceName = 'Mac';
-    else if (ua.includes('Linux')) deviceName = 'Linux';
-    
-    if (ua.includes('Chrome')) deviceName += ' (Chrome)';
-    else if (ua.includes('Firefox')) deviceName += ' (Firefox)';
-    else if (ua.includes('Safari')) deviceName += ' (Safari)';
-    else if (ua.includes('Edge')) deviceName += ' (Edge)';
-    
-    return deviceName;
-}
-
-function getBrowserInfo() {
-    const ua = navigator.userAgent;
-    let browser = "Unknown";
-    
-    if (ua.indexOf("Firefox") > -1) browser = "Firefox";
-    else if (ua.indexOf("SamsungBrowser") > -1) browser = "Samsung";
-    else if (ua.indexOf("Opera") > -1 || ua.indexOf("OPR") > -1) browser = "Opera";
-    else if (ua.indexOf("Trident") > -1) browser = "Internet Explorer";
-    else if (ua.indexOf("Edge") > -1) browser = "Edge";
-    else if (ua.indexOf("Chrome") > -1) browser = "Chrome";
-    else if (ua.indexOf("Safari") > -1) browser = "Safari";
-    
-    return browser;
-}
-
-// ==================== СЛУШАТЕЛЬ УВЕДОМЛЕНИЙ ====================
-
-function setupNotificationListener() {
-    if (!currentUser) return;
-    
-    console.log('🔔 Настройка слушателя уведомлений для:', currentUser);
-    
-    // Удаляем старый слушатель если есть
-    if (window.notificationListener) {
-        database.ref('users/' + encodeURIComponent(currentUser) + '/notifications').off('child_added', window.notificationListener);
-    }
-    
-    const notificationsRef = database.ref('users/' + encodeURIComponent(currentUser) + '/notifications');
-    
-    // Слушаем новые уведомления
-    window.notificationListener = notificationsRef.limitToLast(1).on('child_added', async (snapshot) => {
-        const notification = snapshot.val();
-        
-        // Не показываем свои уведомления
-        if (notification.from === currentUser) return;
-        
-        // Проверяем, не показывали ли уже
-        if (notification.shown) return;
-        
-        // Проверяем, нужно ли показывать уведомление
-        const shouldShow = shouldShowNotification(notification);
-        
-        if (shouldShow) {
-            console.log('🔔 Новое уведомление:', notification);
-            await showPushNotification(notification, snapshot.key);
-        }
-    });
-    
-    console.log('✅ Слушатель уведомлений настроен');
-}
-
-function shouldShowNotification(notification) {
-    // Не показываем, если уведомления отключены
-    if (localStorage.getItem('notifications_enabled') !== 'true') return false;
-    
-    // Не показываем, если документ активен
-    if (!document.hidden) {
-        // Если документ активен, но чат не открыт - показываем toast
-        if (notification.chatId && notification.chatId !== currentChat) {
-            return true; // Покажем как toast
-        }
-        return false;
-    }
-    
-    // Не показываем, если текущий чат совпадает
-    if (notification.chatId && notification.chatId === currentChat) return false;
-    
-    return true;
-}
-
-// ==================== ПОКАЗ УВЕДОМЛЕНИЙ ====================
-
-async function showPushNotification(notification, notificationKey) {
-    try {
-        const registration = await navigator.serviceWorker.ready;
-        
-        if (!registration) {
-            console.log('❌ Service Worker не готов');
-            showToastNotification({
-                title: getNotificationTitle(notification),
-                message: getNotificationBody(notification),
-                type: notification.type || 'message',
-                chatId: notification.chatId,
-                duration: 6000
-            });
-            return;
-        }
-        
-        const title = getNotificationTitle(notification);
-        const body = getNotificationBody(notification);
-        
-        // Создаем опции уведомления
-        const options = {
-            body: body,
-            icon: 'icon-192x192.png',
-            badge: 'icon-192x192.png',
-            vibrate: [200, 100, 200],
-            tag: `notif_${notification.timestamp || Date.now()}`,
-            renotify: true,
-            requireInteraction: false,
-            silent: false,
-            data: {
-                ...notification,
-                notificationKey: notificationKey,
-                timestamp: Date.now()
-            },
-            actions: [
-                {
-                    action: 'open',
-                    title: '📱 Открыть'
-                },
-                {
-                    action: 'close',
-                    title: '✕ Закрыть'
-                }
-            ]
-        };
-        
-        // Показываем уведомление
-        await registration.showNotification(title, options);
-        console.log('✅ Push-уведомление показано:', title);
-        
-        // Помечаем уведомление как показанное
-        await markNotificationAsShown(notificationKey);
-        
-        // Также показываем toast уведомление в приложении
-        showToastNotification({
-            title: title,
-            message: body,
-            type: notification.type || 'message',
-            chatId: notification.chatId,
-            avatar: getNotificationAvatar(notification),
-            duration: 5000
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка показа уведомления:', error);
-        
-        // Fallback - показываем toast
-        showToastNotification({
-            title: getNotificationTitle(notification),
-            message: getNotificationBody(notification),
-            type: notification.type || 'message',
-            chatId: notification.chatId,
-            duration: 6000
-        });
-    }
-}
-
-async function markNotificationAsShown(notificationKey) {
-    if (!notificationKey || !currentUser) return;
-    
-    try {
-        await database.ref('users/' + encodeURIComponent(currentUser) + '/notifications/' + notificationKey)
-            .update({ 
-                shown: true, 
-                shownAt: Date.now() 
-            });
-    } catch (error) {
-        console.error('❌ Ошибка пометки уведомления:', error);
-    }
-}
-
-// ==================== ЗАГОЛОВКИ УВЕДОМЛЕНИЙ ====================
-
-function getNotificationTitle(notification) {
-    switch (notification.type) {
-        case 'message':
-            return `💬 ${notification.from || 'Новое сообщение'}`;
-        case 'group_message':
-            return `👥 ${notification.groupName || 'Группа'}`;
-        case 'channel_message':
-            return `📢 ${notification.channelName || 'Канал'}`;
-        case 'group_invite':
-            return '🎉 Приглашение в группу';
-        case 'group_remove':
-            return '🚫 Удаление из группы';
-        case 'new_subscriber':
-            return '👤 Новый подписчик';
-        case 'gift_received':
-            return '🎁 Вам подарок!';
-        default:
-            return 'Twin Messenger';
-    }
-}
-
-function getNotificationBody(notification) {
-    switch (notification.type) {
-        case 'message':
-            return notification.text || 'Новое сообщение';
-        case 'group_message':
-            return `${notification.from}: ${notification.text || 'Новое сообщение'}`;
-        case 'channel_message':
-            return notification.text || 'Новое сообщение в канале';
-        case 'group_invite':
-            return `${notification.from} добавил вас в группу "${notification.groupName}"`;
-        case 'group_remove':
-            return `Вы удалены из группы "${notification.groupName}"`;
-        case 'new_subscriber':
-            return `${notification.from} подписался на ваш канал "${notification.channelName}"`;
-        case 'gift_received':
-            return `${notification.from} отправил вам ${notification.giftName || 'подарок'}!`;
-        default:
-            return notification.text || 'Новое уведомление';
-    }
-}
-
-function getNotificationAvatar(notification) {
-    switch (notification.type) {
-        case 'message': return '💬';
-        case 'group_message': return '👥';
-        case 'channel_message': return '📢';
-        case 'group_invite': return '🎉';
-        case 'gift_received': return '🎁';
-        default: return '🔔';
-    }
-}
-
-// ==================== СЛУШАТЕЛЬ PUSH-СООБЩЕНИЙ ====================
-
-function setupPushListener() {
-    if (!currentUser) return;
-    
-    console.log('📡 Настройка слушателя push-сообщений');
-    
-    // Слушаем push-очередь
-    const pushQueueRef = database.ref('pushQueue');
-    
-    pushQueueRef.limitToLast(5).on('child_added', async (snapshot) => {
-        const pushData = snapshot.val();
-        
-        // Проверяем, предназначено ли сообщение текущему пользователю
-        if (pushData.to === currentUser) {
-            console.log('📬 Получено push-сообщение:', pushData);
-            
-            // Показываем уведомление
-            const registration = await navigator.serviceWorker.ready;
-            if (registration) {
-                await registration.showNotification(pushData.title || 'Twin', {
-                    body: pushData.body || 'Новое сообщение',
-                    icon: 'icon-192x192.png',
-                    badge: 'icon-192x192.png',
-                    data: pushData.data || {},
-                    vibrate: [200, 100, 200]
-                });
+            // Адаптация для мобильных
+            if (window.innerWidth <= 768) {
+                mobileTitle.textContent = 'Twin';
             }
-            
-            // Удаляем из очереди
-            snapshot.ref.remove();
+
+            // Оптимизация для Android
+            optimizeForAndroid();
         }
-    });
-}
-
-// ==================== ПРОВЕРКА РАЗРЕШЕНИЙ ====================
-
-async function checkNotificationPermission() {
-    if (!('Notification' in window)) {
-        console.log('❌ Уведомления не поддерживаются');
-        return false;
-    }
-    
-    const status = document.getElementById('notification-status');
-    
-    if (Notification.permission === 'granted') {
-        console.log('✅ Уведомления разрешены');
-        if (status) {
-            status.textContent = '✅ Уведомления включены';
-            status.style.color = '#2ecc71';
-        }
-        return true;
-    } else if (Notification.permission === 'denied') {
-        console.log('❌ Уведомления запрещены');
-        if (status) {
-            status.textContent = '❌ Уведомления заблокированы в браузере';
-            status.style.color = '#e74c3c';
-        }
-        return false;
-    } else {
-        console.log('⚠️ Разрешение не запрошено');
-        if (status) {
-            status.textContent = '⚠️ Разрешение на уведомления не запрошено';
-            status.style.color = '#f39c12';
-        }
-        return false;
-    }
-}
-
-async function requestNotificationPermission() {
-    if (!('Notification' in window)) {
-        showNotification('Ваш браузер не поддерживает уведомления');
-        return false;
-    }
-    
-    try {
-        const permission = await Notification.requestPermission();
-        
-        if (permission === 'granted') {
-            localStorage.setItem('notifications_enabled', 'true');
-            showNotification('✅ Уведомления включены!');
-            
-            // Обновляем статус устройства
-            if (currentUser) {
-                const deviceId = localStorage.getItem('device_id');
-                if (deviceId) {
-                    await database.ref('users/' + encodeURIComponent(currentUser) + '/devices/' + deviceId)
-                        .update({ 
-                            notifications: true, 
-                            lastActive: Date.now() 
-                        });
-                }
-            }
-            
-            // Отправляем тестовое уведомление
-            setTimeout(() => {
-                sendTestNotification();
-            }, 1000);
-            
-            return true;
-        } else {
-            localStorage.setItem('notifications_enabled', 'false');
-            showNotification('❌ Уведомления отключены');
-            return false;
-        }
-    } catch (error) {
-        console.error('❌ Ошибка запроса разрешения:', error);
-        showNotification('Ошибка: ' + error.message);
-        return false;
-    }
-}
-
-function setupAutoNotificationRequest() {
-    if (!('Notification' in window)) return;
-    if (Notification.permission !== 'default') return;
-    
-    const autoRequest = async () => {
-        const alreadyRequested = sessionStorage.getItem('notification_requested');
-        if (alreadyRequested) return;
-        
-        sessionStorage.setItem('notification_requested', 'true');
-        
-        // Ждем немного после загрузки
-        setTimeout(async () => {
-            await requestNotificationPermission();
-        }, 2000);
-    };
-    
-    // Запрашиваем при первом взаимодействии
-    document.addEventListener('click', autoRequest, { once: true });
-    document.addEventListener('keypress', autoRequest, { once: true });
-    document.addEventListener('touchstart', autoRequest, { once: true });
-}
-
-function initializeNotificationSettings() {
-    if (!('Notification' in window)) {
-        localStorage.setItem('notifications_enabled', 'false');
-        return;
-    }
-    
-    if (Notification.permission === 'granted') {
-        if (localStorage.getItem('notifications_enabled') === null) {
-            localStorage.setItem('notifications_enabled', 'true');
-        }
-    } else if (Notification.permission === 'denied') {
-        localStorage.setItem('notifications_enabled', 'false');
-    }
-    
-    // Обновляем UI переключателя
-    const notificationToggle = document.getElementById('notification-toggle');
-    if (notificationToggle) {
-        notificationToggle.checked = localStorage.getItem('notifications_enabled') === 'true';
-    }
-}
-
-// ==================== ТЕСТОВОЕ УВЕДОМЛЕНИЕ ====================
-
-async function sendTestNotification() {
-    try {
-        const registration = await navigator.serviceWorker.ready;
-        
-        if (!registration) {
-            showNotification('Service Worker не готов');
-            return;
-        }
-        
-        await registration.showNotification('🔔 Тестовое уведомление', {
-            body: 'Если вы это видите, уведомления работают правильно!',
-            icon: 'icon-192x192.png',
-            badge: 'icon-192x192.png',
-            vibrate: [200, 100, 200],
-            tag: 'test-notification',
-            requireInteraction: false,
-            data: {
-                type: 'test',
-                timestamp: Date.now()
-            },
-            actions: [
-                {
-                    action: 'open',
-                    title: '📱 Открыть'
-                }
-            ]
-        });
-        
-        showNotification('✅ Тестовое уведомление отправлено');
-        
-    } catch (error) {
-        console.error('❌ Ошибка тестового уведомления:', error);
-        showNotification('Ошибка: ' + error.message);
-    }
-}
-
-// ==================== ОБНОВЛЕНИЕ ФУНКЦИИ СОЗДАНИЯ УВЕДОМЛЕНИЙ ====================
-
-async function createNotificationForReceiver(text) {
-    if (!currentChat) return;
-
-    try {
-        if (currentChatType === 'user') {
-            // Личное сообщение
-            const receiverNotificationsRef = database.ref('users/' + encodeURIComponent(currentChat) + '/notifications');
-            const notificationKey = await receiverNotificationsRef.push({
-                type: 'message',
-                from: currentUser,
-                text: text,
-                chatId: getChatId(currentUser, currentChat),
-                timestamp: Date.now(),
-                read: false,
-                shown: false
-            });
-            
-            console.log('📨 Уведомление создано для:', currentChat, notificationKey.key);
-            
-        } else if (currentChatType === 'group') {
-            // Групповое сообщение
-            if (currentGroup && currentGroup.participants) {
-                for (const participant of currentGroup.participants) {
-                    if (participant !== currentUser) {
-                        const participantNotificationsRef = database.ref('users/' + encodeURIComponent(participant) + '/notifications');
-                        await participantNotificationsRef.push({
-                            type: 'group_message',
-                            from: currentUser,
-                            groupName: currentGroup.name,
-                            text: text,
-                            chatId: currentChat,
-                            timestamp: Date.now(),
-                            read: false,
-                            shown: false
-                        });
-                    }
-                }
-            }
-        } else if (currentChatType === 'channel') {
-            // Канал
-            if (currentChannel && currentChannel.subscribers) {
-                for (const subscriber of currentChannel.subscribers) {
-                    if (subscriber !== currentUser) {
-                        const subscriberNotificationsRef = database.ref('users/' + encodeURIComponent(subscriber) + '/notifications');
-                        await subscriberNotificationsRef.push({
-                            type: 'channel_message',
-                            from: currentUser,
-                            channelName: currentChannel.name,
-                            text: text,
-                            chatId: currentChat,
-                            timestamp: Date.now(),
-                            read: false,
-                            shown: false
-                        });
-                    }
-                }
-            }
-        }
-    } catch (error) {
-        console.error('❌ Ошибка создания уведомления:', error);
-    }
-}
-
-// ==================== ОБНОВЛЕНИЕ ФУНКЦИИ ОТПРАВКИ СООБЩЕНИЯ ====================
-
-async function sendMessage() {
-    const text = messageText.value.trim();
-    if (!text || !currentChat) return;
-
-    // Обработка сообщений для AI ассистента
-    if (currentChatType === 'ai') {
-        const chatId = getChatId(currentUser, 'ai_assistant');
-
-        const message = {
-            sender: currentUser,
-            text: text,
-            timestamp: Date.now()
-        };
-
-        try {
-            await database.ref('messages/' + chatId).push(message);
-            messageText.value = '';
-            loadAIMessages();
-            await sendMessageToAI(text);
-            messageText.focus();
-            lastMessageTimestamp = message.timestamp;
-        } catch (error) {
-            showNotification('Ошибка: ' + error.message);
-        }
-        return;
-    }
-
-    let chatId;
-    if (currentChatType === 'group' || currentChatType === 'channel') {
-        chatId = currentChat;
-    } else {
-        chatId = getChatId(currentUser, currentChat);
-    }
-
-    if (currentChatType === 'channel') {
-        const channel = channels.find(c => c.id === chatId);
-        if (!channel || channel.creator !== currentUser) {
-            showNotification('Только создатель канала может отправлять сообщения');
-            return;
-        }
-    }
-
-    // Проверка на команду повтора #povtors
-    const povtorsMatch = text.match(/^#povtors\s+(\d+)\s+(.+)$/i);
-    if (povtorsMatch) {
-        const count = parseInt(povtorsMatch[1]);
-        const messageToRepeat = povtorsMatch[2].trim();
-
-        if (count < 1 || count > 100) {
-            showNotification('Количество повторов должно быть от 1 до 100');
-            return;
-        }
-
-        if (!messageToRepeat) {
-            showNotification('Введите сообщение для повтора');
-            return;
-        }
-
-        messageText.value = '';
-        await sendRepeatedMessages(chatId, messageToRepeat, count);
-        return;
-    }
-
-    // Создаем сообщение
-    const message = {
-        sender: currentUser,
-        text: text,
-        timestamp: Date.now()
-    };
-
-    if (currentChatType === 'user') {
-        message.receiver = currentChat;
-    }
-
-    try {
-        // Сохраняем сообщение
-        await database.ref('messages/' + chatId).push(message);
-
-        // 🔥 ВАЖНО: СОЗДАЕМ УВЕДОМЛЕНИЕ ДЛЯ ПОЛУЧАТЕЛЯ
-        await createNotificationForReceiver(text);
-
-        // Обновляем lastMessageTimestamp
-        const chatLastTimestamp = localStorage.getItem(`last_timestamp_${chatId}`);
-        if (!chatLastTimestamp || message.timestamp > parseInt(chatLastTimestamp)) {
-            localStorage.setItem(`last_timestamp_${chatId}`, message.timestamp.toString());
-        }
-        
-        if (message.timestamp > lastMessageTimestamp) {
-            lastMessageTimestamp = message.timestamp;
-        }
-
-        messageText.value = '';
-        loadMessages();
-        
-        if (activeTab === 'chats') {
-            loadRecentChats();
-        }
-
-        messageText.focus();
-
-    } catch (error) {
-        showNotification('Ошибка: ' + error.message);
-    }
-}
+        // Функция запроса разрешения на уведомления
         function requestNotificationPermission() {
             if (!("Notification" in window)) {
                 console.log("Браузер не поддерживает уведомления");
@@ -3434,9 +2738,6 @@ async function sendMessage() {
                 // Загружаем баланс и подарки
                 loadUserBalance();
                 loadUserGifts();
-            addNotificationSettingsButton();
-                
-                
             }
         }
 
@@ -3806,220 +3107,137 @@ async function sendMessage() {
             backgroundCheckIntervals.push(setInterval(checkForGroupInvites, 10000));
             backgroundCheckIntervals.push(setInterval(checkForChannelUpdates, 15000));
         }
-        // Исправленная функция проверки новых сообщений
-async function checkForNewMessages() {
-    if (!currentUser || !isOnline) {
-        return;
-    }
 
-    try {
-        const snapshot = await database.ref('messages').once('value');
-        const allChats = snapshot.val();
-        if (!allChats) return;
+        async function checkForNewMessages() {
+            if (!currentUser || !isOnline) {
+                console.log('[CheckMessages] Skipping: no user or offline');
+                return;
+            }
 
-        const now = Date.now();
-        
-        // Инициализируем lastMessageTimestamp если нужно
-        if (lastMessageTimestamp === 0) {
-            lastMessageTimestamp = now - 5000;
-        }
+            try {
+                console.log('[CheckMessages] Checking for new messages...');
+                const snapshot = await database.ref('messages').once('value');
+                const allChats = snapshot.val();
+                if (!allChats) {
+                    console.log('[CheckMessages] No chats found');
+                    return;
+                }
 
-        // Проходим по всем чатам
-        Object.keys(allChats).forEach(chatId => {
-            // Проверяем, относится ли чат к текущему пользователю
-            const isUserChat = chatId.includes(currentUser) && !chatId.startsWith('group_') && !chatId.startsWith('channel_');
-            const isGroupChat = chatId.startsWith('group_') && groups.some(g => g.id === chatId);
-            const isChannelChat = chatId.startsWith('channel_') && subscribedChannels.includes(chatId);
-            
-            if (isUserChat || isGroupChat || isChannelChat) {
-                const messages = allChats[chatId];
-                const messagesArray = Object.keys(messages).map(key => ({
-                    id: key,
-                    ...messages[key]
-                }));
+                const now = Date.now();
+                // Initialize lastMessageTimestamp on first run to current time to avoid showing old messages
+                if (lastMessageTimestamp === 0) {
+                    lastMessageTimestamp = now - 5000; // Allow messages from last 5 seconds
+                    console.log('[CheckMessages] Initialized timestamp:', lastMessageTimestamp);
+                }
 
-                // Получаем все новые сообщения (с timestamp больше lastMessageTimestamp)
-                const newMessages = messagesArray
-                    .filter(msg => msg.text && msg.sender && msg.timestamp && 
-                                  msg.timestamp > lastMessageTimestamp &&
-                                  msg.sender !== currentUser) // Не показываем свои сообщения
-                    .sort((a, b) => a.timestamp - b.timestamp);
+                Object.keys(allChats).forEach(chatId => {
+                    if (chatId.includes(currentUser) || (chatId.startsWith('group_') && groups.some(g => g.id === chatId)) ||
+                        (chatId.startsWith('channel_') && subscribedChannels.includes(chatId))) {
+                        const messages = allChats[chatId];
+                        const messagesArray = Object.keys(messages).map(key => ({
+                            id: key,
+                            ...messages[key]
+                        }));
 
-                if (newMessages.length > 0) {
-                    console.log(`[CheckMessages] Найдено ${newMessages.length} новых сообщений в чате ${chatId}`);
-                    
-                    newMessages.forEach(message => {
-                        // Проверяем, не показывали ли уже это сообщение
-                        if (!notifiedMessageIds.has(message.id)) {
-                            notifiedMessageIds.add(message.id);
-                            
-                            // Ограничиваем размер Set
+                        const latestMessage = messagesArray
+                            .filter(msg => msg.text && msg.sender && msg.timestamp)
+                            .sort((a, b) => b.timestamp - a.timestamp)[0];
+
+                        // Проверяем, есть ли новое сообщение
+                        if (!latestMessage) return;
+
+                        // Check if we've already notified about this specific message
+                        const messageId = latestMessage.id;
+                        const isNewMessage = latestMessage.timestamp > lastMessageTimestamp;
+                        const isNotFromMe = latestMessage.sender !== currentUser;
+                        const notAlreadyNotified = !notifiedMessageIds.has(messageId);
+
+                        if (isNewMessage && isNotFromMe && notAlreadyNotified) {
+                            console.log('[CheckMessages] New message found:', latestMessage.text, 'from:', latestMessage.sender);
+
+                            // Mark this message as notified
+                            notifiedMessageIds.add(messageId);
+
+                            // Limit the size of the set to prevent memory leaks
                             if (notifiedMessageIds.size > 100) {
                                 const firstId = notifiedMessageIds.values().next().value;
                                 notifiedMessageIds.delete(firstId);
                             }
 
+                            let senderName = latestMessage.sender;
                             let chatName = '';
                             let notificationType = 'message';
 
                             if (chatId.startsWith('group_')) {
                                 const group = groups.find(g => g.id === chatId);
-                                chatName = group ? group.name : 'Группа';
-                                notificationType = 'group_message';
+                                if (group) {
+                                    chatName = group.name;
+                                    senderName = `${group.name}`;
+                                    notificationType = 'group_message';
+                                }
                             } else if (chatId.startsWith('channel_')) {
                                 const channel = channels.find(c => c.id === chatId);
-                                chatName = channel ? channel.name : 'Канал';
-                                notificationType = 'channel_message';
+                                if (channel) {
+                                    chatName = channel.name;
+                                    senderName = `${channel.name}`;
+                                    notificationType = 'channel_message';
+                                }
                             } else {
-                                // Личный чат - получаем имя собеседника
-                                const otherUser = chatId.replace(currentUser, '').replace('_', '');
-                                chatName = otherUser;
+                                // Личный чат
+                                chatName = latestMessage.sender;
                             }
 
-                            // Показываем уведомление если не в этом чате
-                            if (document.hidden || currentChat !== chatId) {
+                            // Показываем уведомления ВСЕГДА, если:
+                            // 1. Вкладка не активна (document.hidden) ИЛИ
+                            // 2. Чат не открыт (currentChat !== chatId)
+                            const shouldNotify = document.hidden || currentChat !== chatId;
+                            console.log('[CheckMessages] Should notify:', shouldNotify, 'hidden:', document.hidden, 'currentChat:', currentChat, 'chatId:', chatId);
+
+                            if (shouldNotify) {
+                                // Show browser notification (system level)
+                                showBrowserNotification(
+                                    `Новое сообщение от ${chatName}`,
+                                    latestMessage.text
+                                );
+
+                                // Show Telegram-style toast notification (in-app)
+                                let toastType = 'message';
+                                let toastTitle = chatName;
+                                let toastAvatar = null;
+
+                                if (chatId.startsWith('group_')) {
+                                    toastType = 'group';
+                                    toastAvatar = '👥';
+                                } else if (chatId.startsWith('channel_')) {
+                                    toastType = 'channel';
+                                    toastAvatar = '📢';
+                                } else {
+                                    // Personal chat - get first letter of sender name
+                                    toastAvatar = chatName.charAt(0).toUpperCase();
+                                }
+
                                 showToastNotification({
-                                    title: chatName,
-                                    message: message.text,
-                                    type: notificationType,
+                                    title: toastTitle,
+                                    message: latestMessage.text,
+                                    type: toastType,
                                     chatId: chatId,
-                                    avatar: notificationType === 'group_message' ? '👥' : 
-                                           notificationType === 'channel_message' ? '📢' : 
-                                           message.sender.charAt(0).toUpperCase(),
+                                    avatar: toastAvatar,
                                     duration: 6000
                                 });
-
-                                // Также показываем браузерное уведомление
-                                if (Notification.permission === 'granted') {
-                                    new Notification(`Новое сообщение от ${chatName}`, {
-                                        body: message.text,
-                                        icon: 'icon-192x192.png',
-                                        badge: 'icon-192x192.png',
-                                        silent: false
-                                    });
-                                }
                             }
-                        }
-                    });
 
-                    // Обновляем lastMessageTimestamp до самого нового сообщения
-                    const latestMessage = newMessages[newMessages.length - 1];
-                    if (latestMessage.timestamp > lastMessageTimestamp) {
-                        lastMessageTimestamp = latestMessage.timestamp;
+                            // Создаем уведомление в Firebase для гарантированной доставки
+                            createFirebaseNotification(latestMessage, chatName, notificationType);
+
+                            // Обновляем таймстамп
+                            lastMessageTimestamp = latestMessage.timestamp;
+                        }
                     }
-                }
+                });
+            } catch (error) {
+                console.error('[CheckMessages] Error:', error);
             }
-        });
-    } catch (error) {
-        console.error('[CheckMessages] Error:', error);
-    }
-}
-
-// Исправленная функция отправки сообщения
-async function sendMessage() {
-    const text = messageText.value.trim();
-    if (!text || !currentChat) return;
-
-    // ... (ваш существующий код для AI и других проверок) ...
-
-    let chatId;
-    if (currentChatType === 'group' || currentChatType === 'channel') {
-        chatId = currentChat;
-    } else {
-        chatId = getChatId(currentUser, currentChat);
-    }
-
-    // Сохраняем сообщение
-    const message = {
-        sender: currentUser,
-        text: text,
-        timestamp: Date.now()
-    };
-
-    try {
-        await database.ref('messages/' + chatId).push(message);
-        
-        // Обновляем lastMessageTimestamp для этого чата
-        // Важно: сохраняем отдельно для каждого чата
-        const chatLastTimestamp = localStorage.getItem(`last_timestamp_${chatId}`);
-        if (!chatLastTimestamp || message.timestamp > parseInt(chatLastTimestamp)) {
-            localStorage.setItem(`last_timestamp_${chatId}`, message.timestamp.toString());
         }
-        
-        // Обновляем глобальный timestamp
-        if (message.timestamp > lastMessageTimestamp) {
-            lastMessageTimestamp = message.timestamp;
-        }
-
-        messageText.value = '';
-        loadMessages();
-        
-        if (activeTab === 'chats') {
-            loadRecentChats();
-        }
-
-    } catch (error) {
-        showNotification('Ошибка: ' + error.message);
-    }
-}
-
-// Функция для загрузки последних timestamp'ов при запуске
-async function loadLastTimestamps() {
-    if (!currentUser) return;
-    
-    try {
-        const snapshot = await database.ref('messages').once('value');
-        const allChats = snapshot.val();
-        
-        let maxTimestamp = 0;
-        
-        if (allChats) {
-            Object.keys(allChats).forEach(chatId => {
-                if (chatId.includes(currentUser) || 
-                    (chatId.startsWith('group_') && groups.some(g => g.id === chatId)) ||
-                    (chatId.startsWith('channel_') && subscribedChannels.includes(chatId))) {
-                    
-                    const messages = allChats[chatId];
-                    const messagesArray = Object.keys(messages).map(key => ({
-                        id: key,
-                        ...messages[key]
-                    }));
-                    
-                    const chatMessages = messagesArray.filter(msg => msg.timestamp);
-                    if (chatMessages.length > 0) {
-                        const maxChatTimestamp = Math.max(...chatMessages.map(m => m.timestamp));
-                        if (maxChatTimestamp > maxTimestamp) {
-                            maxTimestamp = maxChatTimestamp;
-                        }
-                    }
-                }
-            });
-        }
-        
-        lastMessageTimestamp = maxTimestamp;
-        console.log('[Init] Last message timestamp:', new Date(lastMessageTimestamp).toLocaleString());
-        
-    } catch (error) {
-        console.error('Ошибка загрузки timestamp\'ов:', error);
-    }
-}
-
-// Добавьте эту функцию для периодической проверки
-function startMessageChecking() {
-    // Проверяем каждые 3 секунды
-    setInterval(checkForNewMessages, 3000);
-    
-    // Также проверяем при возвращении на вкладку
-    document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-            checkForNewMessages();
-        }
-    });
-}
-
-// Добавьте в функцию initApp() после загрузки пользователя:
-// 
-        
 
         // Создание уведомления в Firebase для гарантированной доставки
         async function createFirebaseNotification(message, chatName, type) {
@@ -5650,99 +4868,59 @@ function startMessageChecking() {
         }
 
         // Создание уведомления для получателя
-        // Создание уведомления для получателя (исправленная версия)
-async function createNotificationForReceiver(text) {
-    if (!currentChat) return;
+        async function createNotificationForReceiver(text) {
+            if (!currentChat) return;
 
-    try {
-        if (currentChatType === 'user') {
-            // Личное сообщение
-            const receiverNotificationsRef = database.ref('users/' + encodeURIComponent(currentChat) + '/notifications');
-            await receiverNotificationsRef.push({
-                type: 'message',
-                from: currentUser,
-                text: text,
-                timestamp: Date.now(),
-                read: false
-            });
-            
-            // 🔥 ВАЖНО: Отправляем push-уведомление через Service Worker
-            await sendPushNotification(currentChat, {
-                title: `Сообщение от ${currentUser}`,
-                body: text,
-                tag: `msg_${Date.now()}`,
-                data: { 
-                    chatId: getChatId(currentUser, currentChat),
-                    sender: currentUser,
-                    type: 'message'
-                }
-            });
-            
-        } else if (currentChatType === 'group') {
-            // Групповое сообщение
-            if (currentGroup && currentGroup.participants) {
-                for (const participant of currentGroup.participants) {
-                    if (participant !== currentUser) {
-                        const participantNotificationsRef = database.ref('users/' + encodeURIComponent(participant) + '/notifications');
-                        await participantNotificationsRef.push({
-                            type: 'group_message',
-                            from: currentUser,
-                            groupName: currentGroup.name,
-                            text: text,
-                            timestamp: Date.now(),
-                            read: false
-                        });
-                        
-                        // 🔥 Отправляем push каждому участнику
-                        await sendPushNotification(participant, {
-                            title: `Группа ${currentGroup.name}`,
-                            body: `${currentUser}: ${text}`,
-                            tag: `group_${Date.now()}`,
-                            data: { 
-                                chatId: currentChat,
-                                sender: currentUser,
-                                groupName: currentGroup.name,
-                                type: 'group'
+            try {
+                if (currentChatType === 'user') {
+                    // Личное сообщение - создаем уведомление для собеседника
+                    const receiverNotificationsRef = database.ref('users/' + encodeURIComponent(currentChat) + '/notifications');
+                    await receiverNotificationsRef.push({
+                        type: 'message',
+                        from: currentUser,
+                        text: text,
+                        timestamp: Date.now(),
+                        read: false
+                    });
+                } else if (currentChatType === 'group') {
+                    // Групповое сообщение - создаем уведомление для всех участников
+                    if (currentGroup && currentGroup.participants) {
+                        for (const participant of currentGroup.participants) {
+                            if (participant !== currentUser) {
+                                const participantNotificationsRef = database.ref('users/' + encodeURIComponent(participant) + '/notifications');
+                                await participantNotificationsRef.push({
+                                    type: 'message',
+                                    from: currentUser,
+                                    groupName: currentGroup.name,
+                                    text: text,
+                                    timestamp: Date.now(),
+                                    read: false
+                                });
                             }
-                        });
+                        }
+                    }
+                } else if (currentChatType === 'channel') {
+                    // Канал - создаем уведомление для всех подписчиков
+                    if (currentChannel && currentChannel.subscribers) {
+                        for (const subscriber of currentChannel.subscribers) {
+                            if (subscriber !== currentUser) {
+                                const subscriberNotificationsRef = database.ref('users/' + encodeURIComponent(subscriber) + '/notifications');
+                                await subscriberNotificationsRef.push({
+                                    type: 'message',
+                                    from: currentUser,
+                                    channelName: currentChannel.name,
+                                    text: text,
+                                    timestamp: Date.now(),
+                                    read: false
+                                });
+                            }
+                        }
                     }
                 }
-            }
-        } else if (currentChatType === 'channel') {
-            // Канал
-            if (currentChannel && currentChannel.subscribers) {
-                for (const subscriber of currentChannel.subscribers) {
-                    if (subscriber !== currentUser) {
-                        const subscriberNotificationsRef = database.ref('users/' + encodeURIComponent(subscriber) + '/notifications');
-                        await subscriberNotificationsRef.push({
-                            type: 'channel_message',
-                            from: currentUser,
-                            channelName: currentChannel.name,
-                            text: text,
-                            timestamp: Date.now(),
-                            read: false
-                        });
-                        
-                        // 🔥 Отправляем push каждому подписчику
-                        await sendPushNotification(subscriber, {
-                            title: `Канал ${currentChannel.name}`,
-                            body: text,
-                            tag: `channel_${Date.now()}`,
-                            data: { 
-                                chatId: currentChat,
-                                sender: currentUser,
-                                channelName: currentChannel.name,
-                                type: 'channel'
-                            }
-                        });
-                    }
-                }
+            } catch (error) {
+                console.error('Ошибка создания уведомления:', error);
             }
         }
-    } catch (error) {
-        console.error('Ошибка создания уведомления:', error);
-    }
-}
 
         function getChatId(user1, user2) {
             return [user1, user2].sort().join('_');
@@ -8987,7 +8165,21 @@ async function createNotificationForReceiver(text) {
             }
             lastScrollTop = currentScroll;
         }, { passive: false });
-        <!-- ==================== 
+        <!-- ==================== PUSH-УВЕДОМЛЕНИЯ ONESIGNAL ==================== -->
+</script> src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+    // Инициализация OneSignal после загрузки страницы
+    window.addEventListener('load', function() {
+        // Проверяем, что OneSignal загрузился
+        if (window.OneSignal) {
+            initOneSignal();
+        } else {
+            // Если еще не загрузился, ждем
+            window.OneSignal = window.OneSignal || [];
+            window.OneSignal.push(initOneSignal);
+        }
+    });
+
     async function initOneSignal() {
         console.log('🔄 Инициализация OneSignal...');
 
@@ -9091,231 +8283,6 @@ async function createNotificationForReceiver(text) {
 
     // Добавляем кнопку после загрузки профиля
     setTimeout(addNotificationSubscribeButton, 2000);
-    // Добавление кнопки настроек уведомлений в профиль
-function addNotificationSettingsButton() {
-    const profileSettingsActions = document.querySelector('#profile-settings-modal .modal-actions');
-    if (!profileSettingsActions) return;
-    
-    // Проверяем, не добавлена ли уже кнопка
-    if (document.getElementById('notification-settings-btn')) return;
-    
-    const notifBtn = document.createElement('button');
-    notifBtn.id = 'notification-settings-btn';
-    notifBtn.className = 'modal-btn';
-    notifBtn.innerHTML = '🔔 Настройки уведомлений';
-    notifBtn.style.background = 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)';
-    notifBtn.style.color = 'white';
-    notifBtn.style.marginRight = '5px';
-    notifBtn.style.marginBottom = '5px';
-    
-    notifBtn.addEventListener('click', () => {
-        // Сохраняем текущего пользователя в localStorage для быстрого доступа
-        if (currentUser) {
-            localStorage.setItem('temp_user', currentUser);
-        }
-        // Открываем страницу уведомлений
-        window.location.href = 'notifications.html' + (currentUser ? '?user=' + encodeURIComponent(currentUser) : '');
-    });
-    
-    // Добавляем кнопку в начало блока действий
-    profileSettingsActions.insertBefore(notifBtn, profileSettingsActions.firstChild);
-}
-// Создание уведомления для получателя (обновленная версия)
-// Создание уведомления для получателя (обновленная версия)
-async function createNotificationForReceiver(text) {
-    if (!currentChat) return;
-
-    try {
-        if (currentChatType === 'user') {
-            // Личное сообщение
-            const receiverNotificationsRef = database.ref('users/' + encodeURIComponent(currentChat) + '/notifications');
-            await receiverNotificationsRef.push({
-                type: 'message',
-                from: currentUser,
-                text: text,
-                timestamp: Date.now(),
-                read: false
-            });
-            
-            // Проверяем, включены ли уведомления у получателя
-            const receiverSnapshot = await database.ref('users/' + encodeURIComponent(currentChat)).once('value');
-            const receiverData = receiverSnapshot.val();
-            
-            if (receiverData && receiverData.notificationsEnabled) {
-                // Уведомления включены, отправляем push через Firebase
-                // Firebase автоматически отправит push всем устройствам
-                await database.ref('pushQueue').push({
-                    to: currentChat,
-                    title: 'Новое сообщение',
-                    body: text.length > 50 ? text.substring(0, 50) + '...' : text,
-                    from: currentUser,
-                    timestamp: Date.now()
-                });
-            }
-            
-        } else if (currentChatType === 'group') {
-            // Групповое сообщение
-            if (currentGroup && currentGroup.participants) {
-                for (const participant of currentGroup.participants) {
-                    if (participant !== currentUser) {
-                        const participantNotificationsRef = database.ref('users/' + encodeURIComponent(participant) + '/notifications');
-                        await participantNotificationsRef.push({
-                            type: 'group_message',
-                            from: currentUser,
-                            groupName: currentGroup.name,
-                            text: text,
-                            timestamp: Date.now(),
-                            read: false
-                        });
-                        
-                        // Проверяем уведомления для участника
-                        const participantSnapshot = await database.ref('users/' + encodeURIComponent(participant)).once('value');
-                        const participantData = participantSnapshot.val();
-                        
-                        if (participantData && participantData.notificationsEnabled) {
-                            await database.ref('pushQueue').push({
-                                to: participant,
-                                title: `Группа ${currentGroup.name}`,
-                                body: `${currentUser}: ${text.length > 50 ? text.substring(0, 50) + '...' : text}`,
-                                from: currentUser,
-                                group: currentGroup.name,
-                                timestamp: Date.now()
-                            });
-                        }
-                    }
-                }
-            }
-        } else if (currentChatType === 'channel') {
-            // Канал
-            if (currentChannel && currentChannel.subscribers) {
-                for (const subscriber of currentChannel.subscribers) {
-                    if (subscriber !== currentUser) {
-                        const subscriberNotificationsRef = database.ref('users/' + encodeURIComponent(subscriber) + '/notifications');
-                        await subscriberNotificationsRef.push({
-                            type: 'channel_message',
-                            from: currentUser,
-                            channelName: currentChannel.name,
-                            text: text,
-                            timestamp: Date.now(),
-                            read: false
-                        });
-                        
-                        // Проверяем уведомления для подписчика
-                        const subscriberSnapshot = await database.ref('users/' + encodeURIComponent(subscriber)).once('value');
-                        const subscriberData = subscriberSnapshot.val();
-                        
-                        if (subscriberData && subscriberData.notificationsEnabled) {
-                            await database.ref('pushQueue').push({
-                                to: subscriber,
-                                title: `Канал ${currentChannel.name}`,
-                                body: text.length > 50 ? text.substring(0, 50) + '...' : text,
-                                from: currentUser,
-                                channel: currentChannel.name,
-                                timestamp: Date.now()
-                            });
-                        }
-                    }
-                }
-            }
-        }
-    } catch (error) {
-        console.error('Ошибка создания уведомления:', error);
-    }
-}
-// Добавление кнопки настроек уведомлений в профиль
-function addNotificationSettingsButton() {
-    const profileSettingsActions = document.querySelector('#profile-settings-modal .modal-actions');
-    if (!profileSettingsActions) return;
-    
-    // Проверяем, не добавлена ли уже кнопка
-    if (document.getElementById('notification-settings-btn')) return;
-    
-    const notifBtn = document.createElement('button');
-    notifBtn.id = 'notification-settings-btn';
-    notifBtn.className = 'modal-btn';
-    notifBtn.innerHTML = '🔔 Настройки уведомлений';
-    notifBtn.style.background = 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)';
-    notifBtn.style.color = 'white';
-    notifBtn.style.marginRight = '5px';
-    notifBtn.style.marginBottom = '5px';
-    
-    notifBtn.addEventListener('click', () => {
-        // Сохраняем текущего пользователя в localStorage для быстрого доступа
-        if (currentUser) {
-            localStorage.setItem('temp_user', currentUser);
-        }
-        // Открываем страницу уведомлений
-        window.location.href = 'notifications.html' + (currentUser ? '?user=' + encodeURIComponent(currentUser) : '');
-    });
-    
-    // Добавляем кнопку в начало блока действий
-    profileSettingsActions.insertBefore(notifBtn, profileSettingsActions.firstChild);
-}
-// В index.html добавьте:
-function sendOneSignalNotification(toUser, message) {
-    OneSignal.User.addTag('username', currentUser);
-    
-    OneSignal.Notifications.send({
-        include_external_user_ids: [toUser],
-        headings: { en: `Новое сообщение от ${currentUser}` },
-        contents: { en: message.text },
-        data: { chatId: getChatId(currentUser, toUser) }
-    });
-}
-// Функция для отправки push-уведомлений через Service Worker
-async function sendPushNotification(recipientUsername, notificationData) {
-    try {
-        // Проверяем, есть ли у получателя активные Service Worker
-        const registration = await navigator.serviceWorker.ready;
-        
-        if (!registration) {
-            console.log('Service Worker не готов');
-            return;
-        }
-        
-        // Получаем все активные клиенты (окна) получателя
-        const clients = await self.clients.matchAll({
-            type: 'window',
-            includeUncontrolled: true
-        });
-        
-        // Проверяем, открыт ли чат у получателя
-        const isChatOpen = clients.some(client => {
-            return client.url.includes('index.html') && 
-                   !client.focused && 
-                   client.visibilityState === 'hidden';
-        });
-        
-        // Отправляем уведомление через Service Worker
-        await registration.showNotification(notificationData.title, {
-            body: notificationData.body,
-            icon: 'icon-192x192.png',
-            badge: 'icon-192x192.png',
-            vibrate: [200, 100, 200],
-            tag: notificationData.tag,
-            renotify: true,
-            requireInteraction: false,
-            silent: false,
-            data: notificationData.data,
-            actions: [
-                {
-                    action: 'open',
-                    title: '📱 Открыть чат'
-                },
-                {
-                    action: 'close',
-                    title: '✕ Закрыть'
-                }
-            ]
-        });
-        
-        console.log(`✅ Push-уведомление отправлено пользователю ${recipientUsername}`);
-        
-    } catch (error) {
-        console.error('❌ Ошибка отправки push-уведомления:', error);
-    }
-}
-
 </script>
         
     </script>
