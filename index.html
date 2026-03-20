@@ -2724,34 +2724,75 @@
 
         // Регистрация Service Worker
         function registerServiceWorker() {
-            // Service Worker не работает на file:// протоколе (локальные файлы)
-            // И не может быть зарегистрирован из blob:// URL на HTTPS
-            // Используем альтернативный метод уведомлений
-            if ('serviceWorker' in navigator) {
-                // Проверяем, что страница не открыта с file:// протокола
-                if (window.location.protocol === 'file:') {
-                    console.log('Service Worker не поддерживается при открытии файла локально (file://). Используйте локальный сервер (Live Server) или разместите на хостинге.');
-                    return;
-                }
-
-                // Проверяем, что страница не открыта через blob:// протокол
-                if (window.location.protocol === 'blob:') {
-                    console.log('Service Worker не поддерживается при открытии через blob:// протокол.');
-                    return;
-                }
-
-                // Service Worker не может быть зарегистрирован из blob URL при HTTPS
-                // Пропускаем регистрацию, так как это одностраничное приложение
-                // Уведомления будут работать через Firebase и Notification API напрямую
-                console.log('Service Worker пропущен: встроенный SW не поддерживается на HTTPS. Используем стандартные уведомления.');
+            if (!('serviceWorker' in navigator)) {
+                console.warn('[SW] Service Worker не поддерживается браузером');
+                return;
             }
+            if (window.location.protocol === 'file:' || window.location.protocol === 'blob:') {
+                console.warn('[SW] Service Worker не работает на file:// или blob://');
+                return;
+            }
+
+            // Регистрируем SW — он нужен для фоновых уведомлений через OneSignal
+            navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
+                .then((reg) => {
+                    console.log('[SW] Зарегистрирован, scope:', reg.scope);
+
+                    // Если есть обновление — применяем его
+                    reg.onupdatefound = () => {
+                        const installing = reg.installing;
+                        if (installing) {
+                            installing.onstatechange = () => {
+                                if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+                                    installing.postMessage({ type: 'SKIP_WAITING' });
+                                }
+                            };
+                        }
+                    };
+                })
+                .catch((err) => {
+                    console.error('[SW] Ошибка регистрации:', err);
+                });
+
+            // Слушаем сообщения от SW (например, переход по клику на уведомление)
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'NOTIFICATION_CLICK') {
+                    console.log('[SW] Клик по уведомлению, url:', event.data.url);
+                }
+            });
         }
 
         // Подписка на push-уведомления через Firebase
+        // Работает ТОЛЬКО пока страница открыта.
+        // Для фоновых уведомлений (браузер закрыт) используется OneSignal (см. initOneSignal).
         function subscribeToPushNotifications() {
             if (!currentUser) return;
 
-            // Создаем слушатель для уведомлений в Firebase
+            // Сохраняем OneSignal Player ID сразу при логине, если ещё не сохранён
+            // Это позволяет серверу отправлять push даже когда браузер закрыт
+            setTimeout(async () => {
+                try {
+                    if (window.OneSignal) {
+                        const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
+                        if (isOptedIn) {
+                            const playerId = await OneSignal.User.PushSubscription.id;
+                            if (playerId) {
+                                await database.ref('users/' + encodeURIComponent(currentUser) + '/onesignal').set({
+                                    playerId: playerId,
+                                    subscribed: true,
+                                    subscribedAt: Date.now(),
+                                    userAgent: navigator.userAgent
+                                });
+                                console.log('[Push] Player ID сохранён в Firebase:', playerId);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.warn('[Push] Не удалось сохранить Player ID:', e);
+                }
+            }, 2000);
+
+            // Слушатель для уведомлений пока страница ОТКРЫТА
             const notificationsRef = database.ref('users/' + encodeURIComponent(currentUser) + '/notifications');
 
             notificationsRef.on('child_added', (snapshot) => {
@@ -8595,8 +8636,8 @@
                     message: "Уведомления включены! 🔔",
                 },
                 // Указываем правильные пути для service worker
-                serviceWorkerParam: { scope: '/mesenger/' },
-                serviceWorkerPath: '/mesenger/OneSignalSDKWorker.js',
+                serviceWorkerParam: { scope: '/' },
+                serviceWorkerPath: '/OneSignalSDKWorker.js',
             });
 
             console.log('✅ OneSignal инициализирован успешно');
