@@ -1882,6 +1882,122 @@
             }
         }
 
+        /* ===== СТИЛИ ДЛЯ ЗВОНКОВ JaaS ===== */
+        .call-btn-audio {
+            background: none;
+            border: none;
+            color: #2ecc71;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        .call-btn-video {
+            background: none;
+            border: none;
+            color: #6c5ce7;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        .call-btn-audio:hover { background: rgba(46,204,113,0.12); }
+        .call-btn-video:hover { background: rgba(108,92,231,0.12); }
+
+        /* Overlay для звонка */
+        #call-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: #1a1a2e;
+            flex-direction: column;
+        }
+        #call-overlay.active { display: flex; }
+
+        #call-overlay-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(0,0,0,0.4);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 500;
+            z-index: 2;
+        }
+        #call-overlay-title { flex: 1; }
+        #call-end-btn {
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        #call-end-btn:hover { background: #c0392b; }
+
+        #jitsi-container {
+            flex: 1;
+            width: 100%;
+            overflow: hidden;
+        }
+        #jitsi-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Входящий звонок */
+        #incoming-call-modal {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100000;
+            background: #2d2d2d;
+            color: #fff;
+            border-radius: 16px;
+            padding: 18px 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+            min-width: 280px;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+        #incoming-call-modal.active { display: block; }
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(40px); opacity: 0; }
+            to   { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        #incoming-call-modal .ic-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        #incoming-call-modal .ic-type {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-bottom: 16px;
+        }
+        .ic-actions { display: flex; gap: 12px; justify-content: center; }
+        .ic-accept {
+            background: #2ecc71; color: #fff; border: none;
+            border-radius: 50px; padding: 10px 24px;
+            font-size: 1rem; cursor: pointer; font-weight: bold;
+        }
+        .ic-decline {
+            background: #e74c3c; color: #fff; border: none;
+            border-radius: 50px; padding: 10px 24px;
+            font-size: 1rem; cursor: pointer; font-weight: bold;
+        }
+        /* ===== КОНЕЦ СТИЛЕЙ ДЛЯ ЗВОНКОВ ===== */
+
         /* Ensure modal action buttons wrap on small screens */
         .modal-actions {
             display: flex;
@@ -1984,7 +2100,10 @@
                     </div>
                     <div class="chat-header-actions">
                         <button class="chat-header-btn" id="close-chat-btn" title="Вернуться к списку чатов">←</button>
-
+                        <!-- ===== КНОПКИ ЗВОНКОВ (добавлены для JaaS) ===== -->
+                        <button class="call-btn-audio" id="audio-call-btn" title="Аудио звонок" style="display:none;">📞</button>
+                        <button class="call-btn-video" id="video-call-btn" title="Видео звонок" style="display:none;">📹</button>
+                        <!-- ===== КОНЕЦ КНОПОК ЗВОНКОВ ===== -->
                         <button class="chat-header-btn" id="block-user-btn"
                             title="Заблокировать пользователя">🚫</button>
                         <button class="chat-header-btn" id="delete-chat-btn" title="Удалить чат">🗑️</button>
@@ -2035,6 +2154,26 @@
 
 
 
+
+    <!-- ===== ОВЕРЛЕЙ ДЛЯ ЗВОНКА JaaS ===== -->
+    <div id="call-overlay">
+        <div id="call-overlay-header">
+            <span id="call-overlay-title">Звонок...</span>
+            <button id="call-end-btn">📵 Завершить</button>
+        </div>
+        <div id="jitsi-container"></div>
+    </div>
+
+    <!-- ===== МОДАЛКА ВХОДЯЩЕГО ЗВОНКА ===== -->
+    <div id="incoming-call-modal">
+        <div class="ic-name" id="ic-caller-name">Входящий звонок</div>
+        <div class="ic-type" id="ic-call-type">Аудио звонок</div>
+        <div class="ic-actions">
+            <button class="ic-accept" id="ic-accept-btn">✅ Принять</button>
+            <button class="ic-decline" id="ic-decline-btn">❌ Отклонить</button>
+        </div>
+    </div>
+    <!-- ===== КОНЕЦ БЛОКА ЗВОНКОВ ===== -->
 
     <!-- Модальное окно уведомлений -->
     <div class="notification" id="notification"></div>
@@ -2485,6 +2624,8 @@
                                 startBackgroundChecks();
                                 trackUserStatus();
                                 subscribeToPushNotifications();
+                                // Запускаем прослушивание входящих звонков
+                                setTimeout(() => { if (typeof listenForIncomingCalls === 'function') listenForIncomingCalls(); }, 1500);
                             } else {
                                 localStorage.removeItem('messenger_user');
                                 requestUsername();
@@ -5878,6 +6019,8 @@
             emptyState.style.display = 'none';
             chatHeader.style.display = 'flex';
             chatMessages.style.display = 'block';
+            // Скрываем кнопки звонков для каналов
+            if (typeof updateCallButtonsVisibility === 'function') updateCallButtonsVisibility('channel');
 
             if (currentChannel && currentChannel.creator === currentUser) {
                 messageInputContainer.style.display = 'flex';
@@ -6393,6 +6536,8 @@
             chatHeader.style.display = 'flex';
             chatMessages.style.display = 'block';
             messageInputContainer.style.display = 'flex';
+            // Скрываем кнопки звонков для групп
+            if (typeof updateCallButtonsVisibility === 'function') updateCallButtonsVisibility('group');
 
             chatUserEmoji.textContent = '👥';
             chatUserName.querySelector('span:last-child').textContent = groupName;
@@ -6834,6 +6979,8 @@
                     trackUserStatus();
 
                     showNotification('Регистрация успешна!');
+                    // Запускаем прослушивание входящих звонков
+                    setTimeout(() => { if (typeof listenForIncomingCalls === 'function') listenForIncomingCalls(); }, 1500);
                 } catch (error) {
                     showNotification('Ошибка: ' + error.message);
                 }
@@ -6903,6 +7050,8 @@
                     trackUserStatus();
 
                     showNotification('Вход выполнен успешно!');
+                    // Запускаем прослушивание входящих звонков
+                    setTimeout(() => { if (typeof listenForIncomingCalls === 'function') listenForIncomingCalls(); }, 1500);
                 } catch (error) {
                     showNotification('Ошибка: ' + error.message);
                 }
@@ -8165,6 +8314,254 @@
             }
             lastScrollTop = currentScroll;
         }, { passive: false });
+
+        // ==================== СИСТЕМА ЗВОНКОВ JaaS 8x8 ====================
+        // AppID из вашей учётной записи JaaS (https://jaas.8x8.vc)
+        const JAAS_APP_ID = 'vpaas-magic-cookie-65fa7e4c292f4062a95a97f5cd21d4ce';
+
+        // Ссылка на текущий экземпляр Jitsi API
+        let jitsiApi = null;
+        // Слушатель входящих звонков
+        let callListener = null;
+        // Текущая комната входящего звонка
+        let incomingCallData = null;
+
+        /**
+         * Генерирует уникальное имя комнаты для пары пользователей.
+         * Имя всегда одинаковое для одной и той же пары, независимо от порядка.
+         * Формат: <AppID>/<user1>--<user2> (символы сортируются)
+         */
+        function getCallRoomName(userA, userB) {
+            const sorted = [userA, userB].sort().join('--').replace(/[^a-zA-Z0-9\-_]/g, '_');
+            return sorted;
+        }
+
+        /**
+         * Загружает Jitsi External API скрипт (если ещё не загружен).
+         * JaaS использует ту же библиотеку что и Jitsi Meet.
+         */
+        function loadJitsiScript() {
+            return new Promise((resolve, reject) => {
+                if (window.JitsiMeetExternalAPI) {
+                    resolve();
+                    return;
+                }
+                const script = document.createElement('script');
+                // Официальный JaaS загрузчик SDK
+                script.src = 'https://8x8.vc/vpaas-magic-cookie-65fa7e4c292f4062a95a97f5cd21d4ce/external_api.js';
+                script.onload = resolve;
+                script.onerror = () => reject(new Error('Не удалось загрузить Jitsi API'));
+                document.head.appendChild(script);
+            });
+        }
+
+        /**
+         * Запускает звонок:
+         * @param {string} targetUser - юзернейм собеседника
+         * @param {string} callType   - 'audio' или 'video'
+         * @param {boolean} isIncoming - входящий ли это звонок
+         * @param {string|null} roomOverride - имя комнаты (для входящего)
+         */
+        async function startCall(targetUser, callType, isIncoming = false, roomOverride = null) {
+            try {
+                await loadJitsiScript();
+            } catch (e) {
+                showNotification('❌ Ошибка загрузки API звонков');
+                console.error(e);
+                return;
+            }
+
+            const roomName = roomOverride || getCallRoomName(currentUser, targetUser);
+            const displayName = currentUserData ? (currentUserData.name || currentUser) : currentUser;
+            const isAudioOnly = callType === 'audio';
+
+            // Показываем оверлей
+            const overlay = document.getElementById('call-overlay');
+            const titleEl = document.getElementById('call-overlay-title');
+            const container = document.getElementById('jitsi-container');
+            titleEl.textContent = `${isAudioOnly ? '📞 Аудио' : '📹 Видео'} звонок с ${targetUser}`;
+            container.innerHTML = '';
+            overlay.classList.add('active');
+
+            // Инициализируем JaaS через Jitsi External API
+            // Домен для JaaS всегда 8x8.vc
+            jitsiApi = new window.JitsiMeetExternalAPI('8x8.vc', {
+                roomName: `${JAAS_APP_ID}/${roomName}`,
+                parentNode: container,
+                width: '100%',
+                height: '100%',
+                userInfo: {
+                    displayName: displayName,
+                    email: `${currentUser}@twin.app`
+                },
+                configOverwrite: {
+                    startWithAudioMuted: false,
+                    startWithVideoMuted: isAudioOnly,      // Для аудио - видео выключено
+                    prejoinPageEnabled: false,              // Без страницы предпросмотра
+                    disableDeepLinking: true,
+                    enableClosePage: false,
+                    toolbarButtons: isAudioOnly
+                        ? ['microphone', 'hangup', 'chat', 'raisehand']
+                        : ['microphone', 'camera', 'hangup', 'chat', 'raisehand', 'tileview'],
+                },
+                interfaceConfigOverwrite: {
+                    SHOW_JITSI_WATERMARK: false,
+                    SHOW_WATERMARK_FOR_GUESTS: false,
+                    MOBILE_APP_PROMO: false,
+                    HIDE_INVITE_MORE_HEADER: true,
+                }
+            });
+
+            // Когда звонок завершён через кнопку внутри Jitsi
+            jitsiApi.addEventListener('readyToClose', () => {
+                endCall();
+            });
+
+            // Если это ИСХОДЯЩИЙ звонок — создаём запись в Firebase,
+            // чтобы другой пользователь увидел входящий звонок
+            if (!isIncoming) {
+                const callRef = database.ref(`calls/${encodeURIComponent(targetUser)}/incoming`);
+                await callRef.set({
+                    from: currentUser,
+                    fromName: displayName,
+                    callType: callType,
+                    room: roomName,
+                    timestamp: Date.now(),
+                    status: 'ringing'
+                });
+                // Через 60 секунд убираем запись (не принят)
+                setTimeout(async () => {
+                    const snap = await callRef.once('value');
+                    if (snap.val() && snap.val().status === 'ringing') {
+                        await callRef.remove();
+                    }
+                }, 60000);
+            } else {
+                // Принятый звонок — обновляем статус
+                await database.ref(`calls/${encodeURIComponent(currentUser)}/incoming`).remove();
+            }
+        }
+
+        /**
+         * Завершает текущий звонок.
+         */
+        function endCall() {
+            if (jitsiApi) {
+                try { jitsiApi.dispose(); } catch (e) { /* игнорируем */ }
+                jitsiApi = null;
+            }
+            document.getElementById('jitsi-container').innerHTML = '';
+            document.getElementById('call-overlay').classList.remove('active');
+        }
+
+        /**
+         * Показывает уведомление о входящем звонке.
+         */
+        function showIncomingCallModal(data) {
+            incomingCallData = data;
+            const modal = document.getElementById('incoming-call-modal');
+            document.getElementById('ic-caller-name').textContent =
+                `📲 ${data.fromName || data.from}`;
+            document.getElementById('ic-call-type').textContent =
+                data.callType === 'audio' ? '🔊 Аудио звонок' : '📹 Видео звонок';
+            modal.classList.add('active');
+        }
+
+        /**
+         * Скрывает уведомление о входящем звонке.
+         */
+        function hideIncomingCallModal() {
+            document.getElementById('incoming-call-modal').classList.remove('active');
+            incomingCallData = null;
+        }
+
+        /**
+         * Запускает прослушивание входящих звонков из Firebase.
+         */
+        function listenForIncomingCalls() {
+            if (!currentUser) return;
+            if (callListener) callListener.off();
+
+            const callRef = database.ref(`calls/${encodeURIComponent(currentUser)}/incoming`);
+            callListener = callRef;
+
+            callRef.on('value', async (snapshot) => {
+                const data = snapshot.val();
+                if (!data) {
+                    hideIncomingCallModal();
+                    return;
+                }
+                if (data.status === 'ringing' && !jitsiApi) {
+                    showIncomingCallModal(data);
+                }
+            });
+        }
+
+        // ---- Обработчики кнопок звонка в шапке чата ----
+        document.getElementById('audio-call-btn').addEventListener('click', () => {
+            if (!currentChat || currentChatType !== 'user') return;
+            startCall(currentChat, 'audio');
+        });
+
+        document.getElementById('video-call-btn').addEventListener('click', () => {
+            if (!currentChat || currentChatType !== 'user') return;
+            startCall(currentChat, 'video');
+        });
+
+        // ---- Кнопка завершения в оверлее ----
+        document.getElementById('call-end-btn').addEventListener('click', endCall);
+
+        // ---- Принять входящий звонок ----
+        document.getElementById('ic-accept-btn').addEventListener('click', () => {
+            if (!incomingCallData) return;
+            const d = incomingCallData;
+            hideIncomingCallModal();
+            startCall(d.from, d.callType, true, d.room);
+        });
+
+        // ---- Отклонить входящий звонок ----
+        document.getElementById('ic-decline-btn').addEventListener('click', async () => {
+            if (incomingCallData) {
+                await database.ref(`calls/${encodeURIComponent(currentUser)}/incoming`).remove();
+            }
+            hideIncomingCallModal();
+        });
+
+        /**
+         * Показываем кнопки звонков только для личных чатов (не групп/каналов).
+         * Вызывается из openChat / openGroupChat / openChannelChat.
+         */
+        function updateCallButtonsVisibility(chatType) {
+            const audioBtn = document.getElementById('audio-call-btn');
+            const videoBtn = document.getElementById('video-call-btn');
+            if (chatType === 'user') {
+                audioBtn.style.display = 'inline-flex';
+                videoBtn.style.display = 'inline-flex';
+            } else {
+                audioBtn.style.display = 'none';
+                videoBtn.style.display = 'none';
+            }
+        }
+
+        // ---- Патчим openChat чтобы показывать кнопки и запускать слушателя ----
+        const _origOpenChat = openChat;
+        openChat = function(username, emoji, displayName) {
+            _origOpenChat(username, emoji, displayName);
+            updateCallButtonsVisibility('user');
+            // Запускаем прослушивание входящих, если не запущено
+            if (!callListener) listenForIncomingCalls();
+        };
+
+        // Запускаем слушателя входящих звонков при загрузке
+        // (будет вызван снова после логина через openChat)
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (currentUser) listenForIncomingCalls();
+            }, 3000);
+        });
+
+        // ==================== КОНЕЦ СИСТЕМЫ ЗВОНКОВ ====================
+
         <!-- ==================== PUSH-УВЕДОМЛЕНИЯ ONESIGNAL ==================== -->
 </script> src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
