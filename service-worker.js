@@ -1,26 +1,21 @@
-// =====================================================================
-//  Twin — Service Worker
-//  Фоновые уведомления через Firebase Realtime Database
-//  Работает когда браузер ЗАКРЫТ или страница не активна
-// =====================================================================
+// ═══════════════════════════════════════════════════════════
+//  Twin — Service Worker v3
+//  Фоновые пуши через Firebase Realtime DB
+//  Работает когда браузер закрыт / вкладка не активна
+// ═══════════════════════════════════════════════════════════
 
+// OneSignal ПЕРВЫМ — обязательное требование SDK
 importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
+
+// Firebase SDK для прямого слушания БД из SW
 importScripts('https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js');
 
-const CACHE_NAME = 'twin-app-v3';
-const URLS_TO_CACHE = [
-    '/',
-    '/index.html',
-    '/get-key.html',
-    '/encryption.js',
-    '/gift_animations.css',
-    '/manifest.json',
-    '/icon-192x192.png',
-    '/icon-512x512.png'
-];
+const CACHE_NAME = 'twin-v3';
+const CACHE_URLS = ['/', '/index.html', '/get-key.html', '/encryption.js',
+    '/gift_animations.css', '/manifest.json', '/icon-192x192.png', '/icon-512x512.png'];
 
-const FIREBASE_CONFIG = {
+const FB_CONFIG = {
     apiKey: 'AIzaSyAhO3JsDI61pkpGla045EfEXq6h7EuGHoQ',
     authDomain: 'ukraine-52ad4.firebaseapp.com',
     databaseURL: 'https://ukraine-52ad4-default-rtdb.firebaseio.com',
@@ -30,271 +25,159 @@ const FIREBASE_CONFIG = {
     appId: '1:63107581219:web:074b8e692a8a8b04737896'
 };
 
-// ── Состояние SW ─────────────────────────────────────────────────────
-let firebaseApp = null;
-let firebaseDB  = null;
-let activeListeners = {};   // username → Firebase unsubscribe ref
-let knownNotifIds   = new Set();  // уже показанные ID
+// ── Состояние ────────────────────────────────────────────
+let _db = null;
+const _listeners = {};   // username → { ref, fn }
+const _seen = new Set(); // уже показанные notifId
 
-// ── Инициализация Firebase внутри SW ─────────────────────────────────
-function initFirebase() {
-    if (firebaseDB) return true;
+function getDB() {
+    if (_db) return _db;
     try {
-        if (!self.firebase.apps.length) {
-            firebaseApp = self.firebase.initializeApp(FIREBASE_CONFIG, 'sw-app');
-        } else {
-            firebaseApp = self.firebase.app('sw-app');
-        }
-        firebaseDB = self.firebase.database(firebaseApp);
-        console.log('[SW] Firebase инициализирован');
-        return true;
-    } catch (e) {
-        console.error('[SW] Firebase ошибка:', e);
-        return false;
-    }
+        const apps = self.firebase.apps;
+        const app = apps.find(a => a.name === 'twin-sw')
+            || self.firebase.initializeApp(FB_CONFIG, 'twin-sw');
+        _db = self.firebase.database(app);
+        return _db;
+    } catch(e) { console.error('[SW] Firebase init error:', e); return null; }
 }
 
-// ── Установка ────────────────────────────────────────────────────────
-self.addEventListener('install', (event) => {
-    console.log('[SW] Установка v3');
+// ── Установка ────────────────────────────────────────────
+self.addEventListener('install', e => {
     self.skipWaiting();
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) =>
-            cache.addAll(URLS_TO_CACHE).catch((e) =>
-                console.warn('[SW] Не все файлы закешированы:', e)
-            )
-        )
+    e.waitUntil(
+        caches.open(CACHE_NAME)
+            .then(c => c.addAll(CACHE_URLS).catch(err => console.warn('[SW] cache partial:', err)))
     );
 });
 
-// ── Активация ────────────────────────────────────────────────────────
-self.addEventListener('activate', (event) => {
-    console.log('[SW] Активация v3');
-    event.waitUntil(
+// ── Активация ────────────────────────────────────────────
+self.addEventListener('activate', e => {
+    e.waitUntil(
         caches.keys()
-            .then((keys) =>
-                Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-            )
+            .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
             .then(() => clients.claim())
     );
 });
 
-// ── Сообщения от страницы ────────────────────────────────────────────
-self.addEventListener('message', (event) => {
-    const data = event.data;
-    if (!data) return;
-
-    switch (data.type) {
-
-        // Страница открылась и говорит: "Я жива, слушай Firebase для этого юзера"
-        case 'SUBSCRIBE_BACKGROUND':
-            if (data.user) {
-                console.log('[SW] Подписка на фоновые уведомления для:', data.user);
-                subscribeUserNotifications(data.user);
-            }
-            break;
-
-        // Страница закрылась или пользователь вышел
-        case 'UNSUBSCRIBE_BACKGROUND':
-            if (data.user) {
-                unsubscribeUserNotifications(data.user);
-            }
-            break;
-
-        // Обновление SW
-        case 'SKIP_WAITING':
-            self.skipWaiting();
-            break;
-    }
+// ── Сообщения от страницы ────────────────────────────────
+self.addEventListener('message', e => {
+    const d = e.data;
+    if (!d) return;
+    if (d.type === 'SUBSCRIBE_BACKGROUND' && d.user) startListening(d.user);
+    else if (d.type === 'UNSUBSCRIBE_BACKGROUND' && d.user) stopListening(d.user);
+    else if (d.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
-// ── Подписка на /users/{user}/notifications в Firebase ───────────────
-function subscribeUserNotifications(username) {
-    if (!initFirebase()) return;
+// ── Подписка на /users/{user}/notifications ──────────────
+function startListening(username) {
+    if (_listeners[username]) return;
+    const db = getDB();
+    if (!db) return;
 
-    // Не создаём дублирующий слушатель
-    if (activeListeners[username]) {
-        console.log('[SW] Уже подписан на:', username);
-        return;
-    }
+    const t0 = Date.now();
+    const ref = db.ref('users/' + encodeURIComponent(username) + '/notifications');
 
-    const subscribeTime = Date.now();
-    const ref = firebaseDB.ref('users/' + encodeURIComponent(username) + '/notifications');
+    const fn = ref.on('child_added', async snap => {
+        const n = snap.val(), id = snap.key;
+        if (!n || n.read) return;
+        if (n.timestamp < t0 - 10000) { snap.ref.update({ read: true }); return; }
+        if (_seen.has(id)) return;
+        _seen.add(id);
 
-    const handler = ref.on('child_added', async (snapshot) => {
-        const notif  = snapshot.val();
-        const notifId = snapshot.key;
-
-        if (!notif || notif.read) return;
-        if (notif.timestamp < subscribeTime - 5000) {
-            // Старое уведомление — просто помечаем прочитанным, не показываем
-            snapshot.ref.update({ read: true });
-            return;
-        }
-        if (knownNotifIds.has(notifId)) return;
-        knownNotifIds.add(notifId);
-
-        // Проверяем: есть ли открытая вкладка Twin?
-        // Если есть — страница сама покажет уведомление, SW не дублирует
-        const clientList = await clients.matchAll({ type: 'window', includeUncontrolled: true });
-        const twinOpen = clientList.some((c) => c.visibilityState === 'visible');
-        if (twinOpen) {
-            snapshot.ref.update({ read: true });
+        // Не показываем если вкладка Twin видима прямо сейчас
+        const list = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+        if (list.some(c => c.visibilityState === 'visible')) {
+            snap.ref.update({ read: true });
             return;
         }
 
-        // Браузер свёрнут или закрыт → показываем системное уведомление
-        const title = buildTitle(notif);
-        const body  = buildBody(notif);
-
-        await self.registration.showNotification(title, {
-            body:               body,
-            icon:               'icon-192x192.png',
-            badge:              'icon-192x192.png',
-            vibrate:            [200, 100, 200],
-            tag:                'twin-' + notifId,
-            renotify:           true,
+        await self.registration.showNotification(title(n), {
+            body: body(n),
+            icon: 'icon-192x192.png',
+            badge: 'icon-192x192.png',
+            vibrate: [200, 100, 200],
+            tag: 'twin-' + id,
+            renotify: true,
             requireInteraction: false,
-            data: {
-                url:      '/',
-                username: username,
-                notifId:  notifId
-            },
+            data: { url: '/', username, notifId: id },
             actions: [
-                { action: 'open',  title: '💬 Открыть' },
-                { action: 'close', title: 'Закрыть'   }
+                { action: 'open', title: '💬 Открыть' },
+                { action: 'dismiss', title: 'Закрыть' }
             ]
         });
-
-        // Помечаем прочитанным
-        snapshot.ref.update({ read: true });
+        snap.ref.update({ read: true });
     });
 
-    // Сохраняем для возможной отписки
-    activeListeners[username] = { ref, handler };
-    console.log('[SW] Firebase слушатель активен для:', username);
+    _listeners[username] = { ref, fn };
+    console.log('[SW] 👂 Слушаю уведомления для:', username);
 }
 
-// ── Отписка ──────────────────────────────────────────────────────────
-function unsubscribeUserNotifications(username) {
-    const entry = activeListeners[username];
-    if (!entry) return;
-    entry.ref.off('child_added', entry.handler);
-    delete activeListeners[username];
-    console.log('[SW] Отписан от:', username);
+function stopListening(username) {
+    const e = _listeners[username];
+    if (!e) return;
+    e.ref.off('child_added', e.fn);
+    delete _listeners[username];
+    console.log('[SW] 🔕 Отписан:', username);
 }
 
-// ── Заголовок уведомления ────────────────────────────────────────────
-function buildTitle(notif) {
-    switch (notif.type) {
-        case 'message':         return '💬 Новое сообщение';
-        case 'group_message':   return `👥 ${notif.groupName || 'Группа'}`;
-        case 'channel_message': return `📢 ${notif.channelName || 'Канал'}`;
-        case 'group_invite':    return '👥 Приглашение в группу';
-        case 'group_remove':    return '👥 Вы удалены из группы';
-        case 'new_subscriber':  return '📢 Новый подписчик';
-        case 'gift':            return '🎁 Подарок!';
-        default:                return 'Twin';
-    }
+// ── Текст уведомлений ────────────────────────────────────
+function title(n) {
+    return { message: '💬 Новое сообщение', group_message: `👥 ${n.groupName||'Группа'}`,
+        channel_message: `📢 ${n.channelName||'Канал'}`, group_invite: '👥 Приглашение',
+        group_remove: '👥 Вы удалены', new_subscriber: '📢 Новый подписчик',
+        gift: '🎁 Подарок!' }[n.type] || 'Twin';
+}
+function body(n) {
+    return { message: `${n.from}: ${n.text||'…'}`, group_message: `${n.from}: ${n.text||'…'}`,
+        channel_message: n.text||'…', group_invite: `${n.from} добавил вас в «${n.groupName}»`,
+        group_remove: `Вы удалены из «${n.groupName}»`,
+        new_subscriber: `${n.from} подписался на ваш канал`,
+        gift: `${n.from} прислал подарок 🎁` }[n.type] || n.text || 'Новое уведомление';
 }
 
-// ── Текст уведомления ─────────────────────────────────────────────────
-function buildBody(notif) {
-    switch (notif.type) {
-        case 'message':
-            return `${notif.from}: ${notif.text || 'Новое сообщение'}`;
-        case 'group_message':
-            return `${notif.from}: ${notif.text || 'Новое сообщение'}`;
-        case 'channel_message':
-            return notif.text || 'Новое сообщение';
-        case 'group_invite':
-            return `${notif.from} добавил вас в группу "${notif.groupName}"`;
-        case 'group_remove':
-            return `Вы удалены из группы "${notif.groupName}"`;
-        case 'new_subscriber':
-            return `${notif.from} подписался на ваш канал`;
-        case 'gift':
-            return `${notif.from} прислал вам подарок 🎁`;
-        default:
-            return notif.text || 'Новое уведомление';
-    }
-}
-
-// ── Клик по уведомлению ──────────────────────────────────────────────
-self.addEventListener('notificationclick', (event) => {
-    event.notification.close();
-    if (event.action === 'close') return;
-
-    const targetUrl = event.notification.data?.url || '/';
-
-    event.waitUntil(
-        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
-            // Найти открытую вкладку Twin и сфокусироваться
-            for (const client of list) {
-                if (client.url.includes(self.registration.scope) && 'focus' in client) {
-                    client.postMessage({
-                        type: 'NOTIFICATION_CLICK',
-                        url:  targetUrl,
-                        data: event.notification.data
-                    });
-                    return client.focus();
+// ── Клик по уведомлению ──────────────────────────────────
+self.addEventListener('notificationclick', e => {
+    e.notification.close();
+    if (e.action === 'dismiss') return;
+    const url = e.notification.data?.url || '/';
+    e.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+            for (const c of list) {
+                if (c.url.includes(self.registration.scope) && 'focus' in c) {
+                    c.postMessage({ type: 'NOTIFICATION_CLICK', data: e.notification.data });
+                    return c.focus();
                 }
             }
-            // Нет открытой вкладки — открываем новую
-            return clients.openWindow(targetUrl);
+            return clients.openWindow(url);
         })
     );
 });
 
-// ── Push от OneSignal (резервный канал) ──────────────────────────────
-self.addEventListener('push', (event) => {
-    // OneSignal SDK обрабатывает свои пуши сам.
-    // Этот блок — fallback для кастомных серверных пушей.
-    if (!event.data) return;
+// ── Push от OneSignal (резерв) ───────────────────────────
+self.addEventListener('push', e => {
+    if (!e.data) return;
+    let t = 'Twin', b = 'Новое уведомление';
+    try { const d = e.data.json(); t = d.headings?.en||d.title||t; b = d.contents?.en||d.body||b; }
+    catch { b = e.data.text(); }
+    e.waitUntil(self.registration.showNotification(t, {
+        body: b, icon: 'icon-192x192.png', badge: 'icon-192x192.png',
+        vibrate: [200, 100, 200], tag: 'twin-push', renotify: true, data: { url: '/' }
+    }));
+});
 
-    let payload = { title: 'Twin', body: 'Новое сообщение' };
-    try {
-        const raw = event.data.json();
-        if (raw.headings?.en)  payload.title = raw.headings.en;
-        if (raw.contents?.en)  payload.body  = raw.contents.en;
-        if (raw.title)         payload.title = raw.title;
-        if (raw.body)          payload.body  = raw.body;
-    } catch (e) {
-        payload.body = event.data.text();
-    }
-
-    event.waitUntil(
-        self.registration.showNotification(payload.title, {
-            body:    payload.body,
-            icon:    'icon-192x192.png',
-            badge:   'icon-192x192.png',
-            vibrate: [200, 100, 200],
-            tag:     'twin-push-' + Date.now(),
-            data:    { url: '/' }
-        })
+// ── Fetch — кэш для статики ──────────────────────────────
+self.addEventListener('fetch', e => {
+    if (e.request.method !== 'GET') return;
+    const u = e.request.url;
+    if (u.includes('firebaseio.com') || u.includes('googleapis.com') ||
+        u.includes('onesignal.com') || u.includes('8x8.vc')) return;
+    e.respondWith(
+        caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
+            if (res?.status === 200 && res.type !== 'opaque')
+                caches.open(CACHE_NAME).then(c => c.put(e.request, res.clone()));
+            return res;
+        })).catch(() => caches.match('/index.html'))
     );
 });
 
-// ── Fetch (кеш-первый) ───────────────────────────────────────────────
-self.addEventListener('fetch', (event) => {
-    if (event.request.method !== 'GET') return;
-    const url = event.request.url;
-    if (
-        url.includes('firebaseio.com') ||
-        url.includes('googleapis.com') ||
-        url.includes('onesignal.com')
-    ) return;
-
-    event.respondWith(
-        caches.match(event.request).then((cached) => {
-            if (cached) return cached;
-            return fetch(event.request).then((res) => {
-                if (!res || res.status !== 200 || res.type === 'opaque') return res;
-                caches.open(CACHE_NAME).then((c) => c.put(event.request, res.clone()));
-                return res;
-            });
-        }).catch(() => caches.match('/index.html'))
-    );
-});
-
-console.log('[SW] Twin v3 загружен — фоновые уведомления через Firebase');
+console.log('[SW] Twin v3 готов');

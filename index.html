@@ -2723,26 +2723,20 @@
         }
 
         // Регистрация Service Worker
-        // ── Service Worker ─────────────────────────────────────
-        // SW необходим для фоновых уведомлений (браузер закрыт).
-        // Без него Notification API работает только пока вкладка открыта.
+        // Service Worker — обязателен для фоновых пушей и OneSignal на мобильных
         let swRegistration = null;
 
         function registerServiceWorker() {
-            if (!('serviceWorker' in navigator)) {
-                console.warn('[SW] Не поддерживается браузером');
-                return;
-            }
+            if (!('serviceWorker' in navigator)) return;
             if (window.location.protocol === 'file:' || window.location.protocol === 'blob:') {
-                console.warn('[SW] Не работает на file:// / blob://. Используйте HTTPS-хостинг.');
+                console.warn('[SW] Нужен HTTPS-хостинг');
                 return;
             }
-
             navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
-                .then((reg) => {
+                .then(reg => {
                     swRegistration = reg;
-                    console.log('[SW] Зарегистрирован:', reg.scope);
-                    // Применяем обновление немедленно, если оно есть
+                    console.log('[SW] ✅ Зарегистрирован:', reg.scope);
+                    // Применяем обновление сразу
                     reg.onupdatefound = () => {
                         const sw = reg.installing;
                         if (sw) sw.onstatechange = () => {
@@ -2751,129 +2745,65 @@
                         };
                     };
                 })
-                .catch((err) => console.error('[SW] Ошибка регистрации:', err));
+                .catch(err => console.error('[SW] ❌ Ошибка:', err));
 
-            // Переход по клику на уведомление (SW → страница)
-            navigator.serviceWorker.addEventListener('message', (event) => {
+            // Обработка кликов по уведомлениям от SW
+            navigator.serviceWorker.addEventListener('message', event => {
                 if (event.data?.type === 'NOTIFICATION_CLICK') {
-                    const url = event.data.url || '/';
-                    window.location.href = url;
+                    console.log('[SW→Page] Клик по уведомлению');
                 }
             });
         }
 
-        // ══════════════════════════════════════════════════════════
-        //  СИСТЕМА ФОНОВЫХ УВЕДОМЛЕНИЙ ЧЕРЕЗ FIREBASE REALTIME DB
-        //  Работает в 3 режимах:
-        //   1. Страница открыта    → Firebase listener → Notification API
-        //   2. Страница скрыта     → Firebase listener → Notification API (через SW)
-        //   3. Браузер закрыт      → SW слушает Firebase → Notification API
-        // ══════════════════════════════════════════════════════════
-
-        // Слушатель уведомлений (активен пока страница открыта)
-        let notificationListener = null;
-        // ID уведомлений, которые уже показали (защита от дубликатов)
-        const shownNotificationIds = new Set();
+        // ── Уведомления: Firebase listener + показ через SW ──────────────
+        let _notifListener = null;
+        const _seenNotifIds = new Set();
 
         function subscribeToPushNotifications() {
             if (!currentUser) return;
-
-            // Отписываем старый слушатель если был
-            if (notificationListener) {
+            if (_notifListener) {
                 database.ref('users/' + encodeURIComponent(currentUser) + '/notifications')
-                    .off('child_added', notificationListener);
+                    .off('child_added', _notifListener);
             }
-
-            const notificationsRef = database.ref(
-                'users/' + encodeURIComponent(currentUser) + '/notifications'
-            );
-
-            // Запоминаем время подписки — показываем только новые уведомления
-            const subscribeTime = Date.now();
-
-            notificationListener = notificationsRef.on('child_added', async (snapshot) => {
-                const notif = snapshot.val();
-                const notifId = snapshot.key;
-
+            const ref = database.ref('users/' + encodeURIComponent(currentUser) + '/notifications');
+            const t0 = Date.now();
+            _notifListener = ref.on('child_added', async snap => {
+                const notif = snap.val();
+                const id = snap.key;
                 if (!notif || notif.read) return;
-                // Пропускаем уведомления старше момента подписки
-                if (notif.timestamp < subscribeTime - 5000) {
-                    snapshot.ref.update({ read: true });
-                    return;
-                }
-                // Защита от дублей
-                if (shownNotificationIds.has(notifId)) return;
-                shownNotificationIds.add(notifId);
-
-                // Показываем уведомление
-                await showBrowserNotification(
-                    getNotificationTitle(notif),
-                    getNotificationBody(notif),
-                    notif
-                );
-
-                // Помечаем как прочитанное
-                snapshot.ref.update({ read: true });
+                if (notif.timestamp < t0 - 10000) { snap.ref.update({ read: true }); return; }
+                if (_seenNotifIds.has(id)) return;
+                _seenNotifIds.add(id);
+                await showBrowserNotification(getNotificationTitle(notif), getNotificationBody(notif), notif);
+                snap.ref.update({ read: true });
             });
-
-            // ── Регистрируем SW как фоновый слушатель Firebase ────
-            // Передаём SW информацию о пользователе, чтобы он мог
-            // самостоятельно слушать Firebase когда страница закрыта
-            registerBackgroundListener();
-        }
-
-        // Передаём Service Worker конфигурацию для фонового режима
-        function registerBackgroundListener() {
-            if (!currentUser) return;
-
-            navigator.serviceWorker.ready.then((reg) => {
-                reg.active && reg.active.postMessage({
-                    type: 'SUBSCRIBE_BACKGROUND',
-                    user: currentUser,
-                    firebaseConfig: {
-                        databaseURL: 'https://ukraine-52ad4-default-rtdb.firebaseio.com'
-                    }
-                });
-            }).catch(() => {});
-        }
-
-        // ── Показ браузерного уведомления ─────────────────────────
-        async function showBrowserNotification(title, body, notifData = {}) {
-            if (!('Notification' in window)) return;
-            if (Notification.permission !== 'granted') return;
-
-            // Если страница активна и не скрыта — показываем toast внутри приложения
-            // Браузерное уведомление всё равно показываем (пользователь мог переключить вкладку)
-            if (!document.hidden && notifData) {
-                // toast уже показывается в checkForNewMessages — здесь только системное
+            // Сообщаем SW кого слушать когда страница закроется
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(reg => {
+                    reg.active && reg.active.postMessage({ type: 'SUBSCRIBE_BACKGROUND', user: currentUser });
+                }).catch(() => {});
             }
+        }
 
-            const options = {
-                body: body,
+        // Показ системного уведомления — работает в фоне через SW
+        async function showBrowserNotification(title, body, notifData) {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            const opts = {
+                body: body || '',
                 icon: 'icon-192x192.png',
                 badge: 'icon-192x192.png',
                 vibrate: [200, 100, 200],
-                tag: 'twin-' + (notifData.from || 'msg') + '-' + (notifData.timestamp || Date.now()),
+                tag: 'twin-' + ((notifData && notifData.from) || 'msg') + '-' + Date.now(),
                 renotify: true,
                 requireInteraction: false,
-                silent: false,
-                data: {
-                    url: '/',
-                    notifData: notifData
-                }
+                data: { url: '/' }
             };
-
             try {
-                // Через SW — работает и в фоне
-                if (swRegistration) {
-                    await swRegistration.showNotification(title, options);
-                } else {
-                    // Fallback — напрямую (только пока вкладка открыта)
-                    new Notification(title, options);
-                }
-            } catch (e) {
-                console.warn('[Notif] Ошибка показа:', e);
-                try { new Notification(title, options); } catch (_) {}
+                const reg = swRegistration || (navigator.serviceWorker.controller && await navigator.serviceWorker.ready);
+                if (reg) await reg.showNotification(title, opts);
+                else new Notification(title, opts);
+            } catch(e) {
+                try { new Notification(title, opts); } catch(_) {}
             }
         }
 
@@ -5257,12 +5187,11 @@
 
         async function handleLogout() {
             if (confirm('Вы уверены, что хотите выйти?')) {
-                // Отписываем SW от фоновых уведомлений
+                // Останавливаем фоновый слушатель SW
                 if (currentUser && 'serviceWorker' in navigator) {
-                    navigator.serviceWorker.ready.then((reg) => {
+                    navigator.serviceWorker.ready.then(reg => {
                         reg.active && reg.active.postMessage({
-                            type: 'UNSUBSCRIBE_BACKGROUND',
-                            user: currentUser
+                            type: 'UNSUBSCRIBE_BACKGROUND', user: currentUser
                         });
                     }).catch(() => {});
                 }
@@ -5625,7 +5554,7 @@
             });
         })();
 
-        // showBrowserNotification определена выше в блоке СИСТЕМА ФОНОВЫХ УВЕДОМЛЕНИЙ
+        // showBrowserNotification определена выше в subscribeToPushNotifications
 
 
         // Debug function to test notifications manually
@@ -8513,19 +8442,30 @@
                 },
                 configOverwrite: {
                     startWithAudioMuted: false,
-                    startWithVideoMuted: isAudioOnly,      // Для аудио - видео выключено
-                    prejoinPageEnabled: false,              // Без страницы предпросмотра
+                    startWithVideoMuted: isAudioOnly,
+                    prejoinPageEnabled: false,
+                    // Критично для мобильных: запрещаем редирект в native-приложение
                     disableDeepLinking: true,
+                    disableThirdPartyRequests: false,
                     enableClosePage: false,
+                    // P2P быстрее на мобильных (меньше задержка)
+                    p2p: { enabled: true, preferH264: true },
+                    // Отключаем детектор шума (на мобильных часто ложные срабатывания)
+                    enableNoisyMicDetection: false,
+                    // Упрощённый тулбар для мобильных
                     toolbarButtons: isAudioOnly
-                        ? ['microphone', 'hangup', 'chat', 'raisehand']
-                        : ['microphone', 'camera', 'hangup', 'chat', 'raisehand', 'tileview'],
+                        ? ['microphone', 'hangup', 'raisehand']
+                        : ['microphone', 'camera', 'hangup', 'raisehand', 'tileview'],
                 },
                 interfaceConfigOverwrite: {
                     SHOW_JITSI_WATERMARK: false,
                     SHOW_WATERMARK_FOR_GUESTS: false,
+                    // Скрываем промо мобильного приложения (иначе предлагает открыть app)
                     MOBILE_APP_PROMO: false,
                     HIDE_INVITE_MORE_HEADER: true,
+                    DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,
+                    // Без анимации — быстрее на слабых телефонах
+                    DISABLE_FOCUS_INDICATOR: true,
                 }
             });
 
@@ -8680,31 +8620,25 @@
         // ==================== КОНЕЦ СИСТЕМЫ ЗВОНКОВ ====================
 
         <!-- ==================== PUSH-УВЕДОМЛЕНИЯ ONESIGNAL ==================== -->
-</script> src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+</script>
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
-    // Инициализация OneSignal после загрузки страницы
-    window.addEventListener('load', function() {
-        // Проверяем, что OneSignal загрузился
-        if (window.OneSignal) {
-            initOneSignal();
-        } else {
-            // Если еще не загрузился, ждем
-            window.OneSignal = window.OneSignal || [];
-            window.OneSignal.push(initOneSignal);
-        }
+    // Инициализация OneSignal — официальный способ через OneSignalDeferred
+    // Работает надёжно на iOS Safari, Android Chrome и всех мобильных браузерах
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+        await initOneSignal(OneSignal);
     });
 
-    async function initOneSignal() {
+    async function initOneSignal(OS) {
+        if (!OS) OS = window.OneSignal;
+        if (!OS) { console.warn('[OneSignal] SDK не загружен'); return; }
         console.log('🔄 Инициализация OneSignal...');
-
         try {
-            await OneSignal.init({
+            await OS.init({
                 appId: "3ffd17da-2e0f-4504-ab59-47e15e39f5d2",
                 safari_web_id: "web.onesignal.auto.6a13c381-7602-4e1d-b2a0-1098f769d9cc",
-                notifyButton: {
-                    enable: false, // Отключаем стандартную кнопку, используем свою
-                },
-                autoRegister: false, // Не регистрировать автоматически
+                notifyButton: { enable: false },
                 autoResubscribe: true,
                 persistNotification: true,
                 welcomeNotification: {
@@ -8798,6 +8732,4 @@
     // Добавляем кнопку после загрузки профиля
     setTimeout(addNotificationSubscribeButton, 2000);
 </script>
-        
-    </script>
 </html>
