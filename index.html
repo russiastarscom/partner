@@ -3137,7 +3137,8 @@
                 console.warn('[SW] Нужен HTTPS-хостинг');
                 return;
             }
-            navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
+            const swBase = location.pathname.startsWith('/partner') ? '/partner/' : '/';
+            navigator.serviceWorker.register(swBase + 'service-worker.js', { scope: swBase })
                 .then(reg => {
                     swRegistration = reg;
                     console.log('[SW] ✅ Зарегистрирован:', reg.scope);
@@ -9527,10 +9528,8 @@
     async function initOneSignal(OS) {
         if (!OS) OS = window.OneSignal;
         if (!OS) { console.warn('[OneSignal] SDK не загружен'); return; }
-        // ВАЖНО: OneSignal требует ПОЛНЫЙ URL (с origin), иначе SecurityError на subpath-сайтах
-        // https://russiastarscom.github.io + /OneSignalSDKWorker.js
-        const swWorkerUrl = location.origin + '/OneSignalSDKWorker.js';
-        console.log('🔄 Инициализация OneSignal, workerUrl:', swWorkerUrl);
+        const swBase = location.pathname.startsWith('/partner') ? '/partner/' : '/';
+        console.log('🔄 Инициализация OneSignal, swBase:', swBase);
         try {
             await OS.init({
                 appId: "3ffd17da-2e0f-4504-ab59-47e15e39f5d2",
@@ -9542,8 +9541,9 @@
                     title: "Twin",
                     message: "Уведомления включены! 🔔",
                 },
-                serviceWorkerParam: { scope: '/' },
-                serviceWorkerPath: swWorkerUrl,
+                // serviceWorkerPath — относительный путь (без origin!), OneSignal сам добавит домен
+                serviceWorkerParam: { scope: swBase },
+                serviceWorkerPath: swBase + 'OneSignalSDKWorker.js',
             });
 
             console.log('✅ OneSignal инициализирован успешно');

@@ -241,9 +241,7 @@ self.addEventListener('push', e => {
 // ── Fetch — кэш для статики ──────────────────────────────
 self.addEventListener('fetch', e => {
     if (e.request.method !== 'GET') return;
-
     const u = e.request.url;
-
     // Внешние API — не перехватываем (НЕ вызываем respondWith)
     if (
         u.includes('firebaseio.com') ||
@@ -252,7 +250,6 @@ self.addEventListener('fetch', e => {
         u.includes('8x8.vc')         ||
         u.includes('firebaseapp.com')
     ) return;
-
     e.respondWith(
         caches.match(e.request).then(cached => {
             if (cached) return cached;
