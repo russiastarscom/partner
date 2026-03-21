@@ -2837,6 +2837,12 @@
         try {
             firebase.initializeApp(firebaseConfig);
             database = firebase.database();
+            // GitHub Pages блокирует WebSocket/long-polling — принудительно используем REST
+            if (typeof database.INTERNAL !== 'undefined') {
+                try { database.INTERNAL.forceWebSockets(); } catch(e) {}
+            }
+            // Отключаем long-polling, оставляем только WebSocket
+            firebase.database.enableLogging(false);
             console.log('Firebase инициализирован успешно');
         } catch (error) {
             console.error('Ошибка инициализации Firebase:', error);
@@ -3131,7 +3137,8 @@
                 console.warn('[SW] Нужен HTTPS-хостинг');
                 return;
             }
-            navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
+            const swBase = location.pathname.startsWith('/partner') ? '/partner/' : '/';
+            navigator.serviceWorker.register(swBase + 'service-worker.js', { scope: swBase })
                 .then(reg => {
                     swRegistration = reg;
                     console.log('[SW] ✅ Зарегистрирован:', reg.scope);
@@ -9521,6 +9528,7 @@
     async function initOneSignal(OS) {
         if (!OS) OS = window.OneSignal;
         if (!OS) { console.warn('[OneSignal] SDK не загружен'); return; }
+        const swBase = location.pathname.startsWith('/partner') ? '/partner/' : '/';
         console.log('🔄 Инициализация OneSignal...');
         try {
             await OS.init({
@@ -9534,8 +9542,8 @@
                     message: "Уведомления включены! 🔔",
                 },
                 // Указываем правильные пути для service worker
-                serviceWorkerParam: { scope: '/' },
-                serviceWorkerPath: '/OneSignalSDKWorker.js',
+                serviceWorkerParam: { scope: swBase },
+                serviceWorkerPath: swBase + 'OneSignalSDKWorker.js',
             });
 
             console.log('✅ OneSignal инициализирован успешно');
