@@ -27,7 +27,7 @@
     <meta property="og:title" content="Twin — Твой новый мессенджер">
     <meta property="og:description" content="Общайся, дарить подарки и используй AI прямо в браузере. Быстро, удобно и бесплатно.">
     <meta property="og:image" content="icon-192x192.png"> <!-- Убедись, что эта картинка существует -->
-    <meta property="og:url" content="https://russiastarscom.github.io/partner/index.html"> <!-- Замени на свою ссылку позже -->
+    <meta property="og:url" content="https://russiastarscom.github.io/index.html">
     
     <!-- Настройка для Twitter карточек -->
     <meta name="twitter:card" content="summary_large_image">
@@ -3137,8 +3137,8 @@
                 console.warn('[SW] Нужен HTTPS-хостинг');
                 return;
             }
-            const swBase = location.pathname.startsWith('/partner') ? '/partner/' : '/';
-            navigator.serviceWorker.register(swBase + 'service-worker.js', { scope: swBase })
+            // Всё лежит в корне репозитория — scope всегда '/'
+            navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
                 .then(reg => {
                     swRegistration = reg;
                     console.log('[SW] ✅ Зарегистрирован:', reg.scope);
@@ -9135,16 +9135,6 @@
             installBtnHeader.style.display = 'none';
         });
 
-        // Service Worker регистрация
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then(registration => {
-                    console.log('Service Worker зарегистрирован:', registration);
-                })
-                .catch(error => {
-                    console.log('Регистрация Service Worker ошибка:', error);
-                });
-        }
         // Скрываем адресную строку на мобильных устройствах
         if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
             // Уже в режиме PWA - ничего не делаем
@@ -9542,8 +9532,8 @@
             return;
         }
         try {
-            // Ждём нашего SW — он уже зарегистрирован в /partner/
-            // Передаём его явно, чтобы Pusher не пытался найти /service-worker.js в корне
+            // Ждём нашего SW — он зарегистрирован в корне (/service-worker.js)
+            // Передаём его явно в Pusher Beams Client
             const reg = swRegistration || await navigator.serviceWorker.ready;
             beamsClient = new PusherPushNotifications.Client({
                 instanceId: PUSHER_INSTANCE_ID,

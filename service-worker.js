@@ -1,24 +1,26 @@
-// ═══════════════════════════════════════════════════════════
-//  Twin — Service Worker v6  (Pusher Beams + Firebase Polling)
+// ════════════════════════════════════════════════════════════
+//  Twin — Service Worker v7
+//  Файл: /service-worker.js (корень репозитория)
+//  URL:  https://russiastarscom.github.io/service-worker.js
 //
-//  Фоновые уведомления когда браузер ЗАКРЫТ:
-//  → Pusher Beams (Web Push / VAPID) — работает даже без браузера
+//  Уведомления при ЗАКРЫТОМ браузере:
+//    → Pusher Beams (Web Push / VAPID) — importScripts ниже
 //
-//  Фоновые уведомления когда браузер открыт но вкладка свёрнута:
-//  → Firebase polling каждые 15 секунд
-// ═══════════════════════════════════════════════════════════
+//  Уведомления когда браузер открыт, вкладка свёрнута:
+//    → Firebase polling каждые 15 секунд
+// ════════════════════════════════════════════════════════════
 
-// Импортируем Pusher Beams Service Worker
+// Pusher Beams SW — ОБЯЗАТЕЛЬНО первой строкой импорта
+// Именно этот файл Pusher Beams SDK ищет в корне сайта
 importScripts('https://js.pusher.com/beams/service-worker.js');
 
-const CACHE_NAME = 'twin-v6';
-
+const CACHE_NAME = 'twin-v7';
 const CACHE_URLS = [
-    './',
-    './index.html',
-    './manifest.json',
-    './icon-192x192.png',
-    './icon-512x512.png'
+    '/',
+    '/index.html',
+    '/manifest.json',
+    '/icon-192x192.png',
+    '/icon-512x512.png'
 ];
 
 // ── Firebase конфиг ──────────────────────────────────────
@@ -31,7 +33,7 @@ const _startTime = {};
 
 // ── Установка ────────────────────────────────────────────
 self.addEventListener('install', e => {
-    console.log('[SW] Установка v6');
+    console.log('[SW] Установка v7');
     self.skipWaiting();
     e.waitUntil(
         caches.open(CACHE_NAME)
@@ -41,7 +43,7 @@ self.addEventListener('install', e => {
 
 // ── Активация ────────────────────────────────────────────
 self.addEventListener('activate', e => {
-    console.log('[SW] Активация v6');
+    console.log('[SW] Активация v7');
     e.waitUntil(
         caches.keys()
             .then(keys => Promise.all(
@@ -55,7 +57,6 @@ self.addEventListener('activate', e => {
 self.addEventListener('message', e => {
     const d = e.data;
     if (!d) return;
-
     switch (d.type) {
         case 'SUBSCRIBE_BACKGROUND':
             if (d.user) startPolling(d.user);
@@ -70,16 +71,16 @@ self.addEventListener('message', e => {
 });
 
 // ═══════════════════════════════════════════════════════════
-//  FIREBASE POLLING (когда браузер открыт, вкладка свёрнута)
+//  FIREBASE POLLING (браузер открыт, вкладка свёрнута)
+//  При закрытом браузере работает только Pusher Beams выше.
 // ═══════════════════════════════════════════════════════════
 
 function startPolling(username) {
     if (_pollers[username]) return;
     _startTime[username] = Date.now();
-    console.log('[SW] 🚀 Старт polling для:', username);
+    console.log('[SW] Старт polling:', username);
     pollNotifications(username);
-    const id = setInterval(() => pollNotifications(username), 15_000);
-    _pollers[username] = id;
+    _pollers[username] = setInterval(() => pollNotifications(username), 15_000);
 }
 
 function stopPolling(username) {
@@ -87,7 +88,7 @@ function stopPolling(username) {
     clearInterval(_pollers[username]);
     delete _pollers[username];
     delete _startTime[username];
-    console.log('[SW] 🔕 Polling остановлен:', username);
+    console.log('[SW] Polling остановлен:', username);
 }
 
 async function pollNotifications(username) {
@@ -108,7 +109,6 @@ async function pollNotifications(username) {
                 markRead(username, id);
                 continue;
             }
-
             _seen.add(id);
 
             const list = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
@@ -144,33 +144,33 @@ async function markRead(username, notifId) {
     }
 }
 
-// ── Показ уведомления ────────────────────────────────────
+// ── Показ уведомления (из Firebase polling) ──────────────
 async function showTwinNotification(id, n) {
     await self.registration.showNotification(getTitle(n), {
         body:    getBody(n),
-        icon:    './icon-192x192.png',
-        badge:   './icon-192x192.png',
+        icon:    '/icon-192x192.png',
+        badge:   '/icon-192x192.png',
         vibrate: [200, 100, 200],
         tag:     'twin-' + id,
         renotify: true,
         requireInteraction: false,
-        data: { url: self.registration.scope, notifId: id },
+        data: { url: 'https://russiastarscom.github.io/', notifId: id },
         actions: [
-            { action: 'open',    title: '💬 Открыть' },
-            { action: 'dismiss', title: 'Закрыть'    }
+            { action: 'open',    title: 'Открыть' },
+            { action: 'dismiss', title: 'Закрыть'  }
         ]
     });
 }
 
 function getTitle(n) {
     const map = {
-        message:         '💬 Новое сообщение',
-        group_message:   `👥 ${n.groupName   || 'Группа'}`,
-        channel_message: `📢 ${n.channelName  || 'Канал'}`,
-        group_invite:    '👥 Приглашение в группу',
-        group_remove:    '👥 Вы удалены из группы',
-        new_subscriber:  '📢 Новый подписчик',
-        gift:            '🎁 Подарок!'
+        message:         'Новое сообщение',
+        group_message:   (n.groupName   || 'Группа'),
+        channel_message: (n.channelName || 'Канал'),
+        group_invite:    'Приглашение в группу',
+        group_remove:    'Вы удалены из группы',
+        new_subscriber:  'Новый подписчик',
+        gift:            'Подарок!'
     };
     return map[n.type] || 'Twin';
 }
@@ -183,7 +183,7 @@ function getBody(n) {
         group_invite:    `${n.from} добавил вас в «${n.groupName}»`,
         group_remove:    `Вы удалены из «${n.groupName}»`,
         new_subscriber:  `${n.from} подписался на ваш канал`,
-        gift:            `${n.from} прислал подарок 🎁`
+        gift:            `${n.from} прислал подарок`
     };
     return map[n.type] || n.text || 'Новое уведомление';
 }
@@ -193,12 +193,12 @@ self.addEventListener('notificationclick', e => {
     e.notification.close();
     if (e.action === 'dismiss') return;
 
-    const url = e.notification.data?.url || self.registration.scope;
+    const url = e.notification.data?.url || 'https://russiastarscom.github.io/';
 
     e.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
             for (const c of list) {
-                if (c.url.includes(self.registration.scope) && 'focus' in c) {
+                if (c.url.includes('russiastarscom.github.io') && 'focus' in c) {
                     c.postMessage({ type: 'NOTIFICATION_CLICK', data: e.notification.data });
                     return c.focus();
                 }
@@ -231,8 +231,8 @@ self.addEventListener('fetch', e => {
                 }
                 return res;
             });
-        }).catch(() => caches.match('./index.html'))
+        }).catch(() => caches.match('/index.html'))
     );
 });
 
-console.log('[SW] Twin v6 готов — Pusher Beams + Firebase Polling');
+console.log('[SW] Twin v7 готов — Pusher Beams + Firebase Polling');
