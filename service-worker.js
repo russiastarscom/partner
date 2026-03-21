@@ -9,7 +9,7 @@
 
 const CACHE_NAME = 'twin-v5';
 
-// Пути относительно scope SW (/)
+// Пути относительно scope SW (/partner/)
 const CACHE_URLS = [
     './',
     './index.html',
@@ -30,8 +30,10 @@ const _startTime = {};
 self.addEventListener('install', e => {
     console.log('[SW] Установка v5');
     self.skipWaiting();
-    // Не кэшируем при установке — избегаем NetworkError на GitHub Pages
-    // Файлы будут кэшироваться по мере fetch-запросов
+    e.waitUntil(
+        caches.open(CACHE_NAME)
+            .then(c => c.addAll(CACHE_URLS).catch(err => console.warn('[SW] cache partial:', err)))
+    );
 });
 
 // ── Активация ────────────────────────────────────────────
@@ -242,24 +244,19 @@ self.addEventListener('fetch', e => {
 
     const u = e.request.url;
 
-    // Внешние API и CDN всегда идут в сеть без кэша — не перехватываем
+    // Внешние API — не перехватываем (НЕ вызываем respondWith)
     if (
         u.includes('firebaseio.com') ||
         u.includes('googleapis.com') ||
         u.includes('onesignal.com')  ||
         u.includes('8x8.vc')         ||
-        u.includes('cdn.')           ||
         u.includes('firebaseapp.com')
-    ) {
-        // Важно: НЕ вызываем e.respondWith() — браузер обработает сам
-        return;
-    }
+    ) return;
 
     e.respondWith(
         caches.match(e.request).then(cached => {
             if (cached) return cached;
             return fetch(e.request).then(res => {
-                // Клонируем ДО того как используем res
                 if (res && res.status === 200 && res.type !== 'opaque') {
                     const resClone = res.clone();
                     caches.open(CACHE_NAME).then(c => c.put(e.request, resClone));
