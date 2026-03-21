@@ -1,22 +1,16 @@
 // ════════════════════════════════════════════════════════════
-//  Twin — Service Worker v7
-//  Файл: /partner/service-worker.js
-//  URL:  https://russiastarscom.github.io/partner/service-worker.js
+//  Twin — Service Worker v8 (ЕДИНЫЙ)
+//  Файл: /service-worker.js  ← КОРЕНЬ репозитория
+//  URL:  https://russiastarscom.github.io/service-worker.js
 //
-//  Уведомления при ЗАКРЫТОМ браузере:
-//    → Pusher Beams (Web Push / VAPID) — importScripts ниже
-//    → ДОПОЛНИТЕЛЬНО нужен /service-worker.js в КОРНЕ сайта!
-//      (russiastarscom.github.io/service-worker.js)
-//      Содержимое: importScripts('https://js.pusher.com/beams/service-worker.js');
-//
-//  Уведомления когда браузер открыт, вкладка свёрнута:
-//    → Firebase polling каждые 15 секунд
+//  ✅ Pusher Beams (Web Push / VAPID) — уведомления при ЗАКРЫТОМ браузере
+//  ✅ Firebase polling — уведомления когда браузер открыт, вкладка свёрнута
 // ════════════════════════════════════════════════════════════
 
 // Pusher Beams SW — ОБЯЗАТЕЛЬНО первой строкой
 importScripts('https://js.pusher.com/beams/service-worker.js');
 
-const CACHE_NAME = 'twin-v7';
+const CACHE_NAME = 'twin-v8';
 const CACHE_URLS = [
     '/partner/',
     '/partner/index.html',
@@ -35,7 +29,7 @@ const _startTime = {};
 
 // ── Установка ────────────────────────────────────────────
 self.addEventListener('install', e => {
-    console.log('[SW] Установка v7');
+    console.log('[SW] Установка v8');
     self.skipWaiting();
     e.waitUntil(
         caches.open(CACHE_NAME)
@@ -45,7 +39,7 @@ self.addEventListener('install', e => {
 
 // ── Активация ────────────────────────────────────────────
 self.addEventListener('activate', e => {
-    console.log('[SW] Активация v7');
+    console.log('[SW] Активация v8');
     e.waitUntil(
         caches.keys()
             .then(keys => Promise.all(
@@ -74,7 +68,7 @@ self.addEventListener('message', e => {
 
 // ═══════════════════════════════════════════════════════════
 //  FIREBASE POLLING (браузер открыт, вкладка свёрнута)
-//  При закрытом браузере — только Pusher Beams (VAPID).
+//  При закрытом браузере — Pusher Beams (VAPID) выше.
 // ═══════════════════════════════════════════════════════════
 
 function startPolling(username) {
@@ -237,4 +231,4 @@ self.addEventListener('fetch', e => {
     );
 });
 
-console.log('[SW] Twin v7 готов — Pusher Beams + Firebase Polling');
+console.log('[SW] Twin v8 готов — Pusher Beams + Firebase Polling (единый корневой SW)');

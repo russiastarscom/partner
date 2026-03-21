@@ -3137,8 +3137,8 @@
                 console.warn('[SW] Нужен HTTPS-хостинг');
                 return;
             }
-            // Файлы лежат в /partner/ — регистрируем SW с правильным scope
-            navigator.serviceWorker.register('/partner/service-worker.js', { scope: '/partner/' })
+            // Единый корневой SW — и Pusher Beams и Firebase polling в одном файле
+            navigator.serviceWorker.register('/service-worker.js')
                 .then(reg => {
                     swRegistration = reg;
                     console.log('[SW] ✅ Зарегистрирован:', reg.scope);
@@ -3150,6 +3150,12 @@
                                 sw.postMessage({ type: 'SKIP_WAITING' });
                         };
                     };
+                    // Как только SW готов — инициализируем Beams и переподписываемся
+                    reg.active
+                        ? onSwReady(reg)
+                        : reg.installing?.addEventListener('statechange', function() {
+                            if (this.state === 'activated') onSwReady(reg);
+                        });
                 })
                 .catch(err => console.error('[SW] ❌ Ошибка:', err));
 
@@ -3159,6 +3165,21 @@
                     console.log('[SW→Page] Клик по уведомлению');
                 }
             });
+        }
+
+        function onSwReady(reg) {
+            // SW готов — инициализируем Pusher Beams без race condition
+            if (typeof initPusherBeams === 'function') {
+                initPusherBeams().catch(console.error);
+            }
+            // Переподписываемся если уже был залогинен
+            if (typeof autoResubscribeBeams === 'function') {
+                autoResubscribeBeams();
+            }
+            // Запускаем Firebase polling
+            if (currentUser && reg.active) {
+                reg.active.postMessage({ type: 'SUBSCRIBE_BACKGROUND', user: currentUser });
+            }
         }
 
         // ── Уведомления: Firebase listener + показ через SW ──────────────
@@ -9532,14 +9553,14 @@
             return;
         }
         try {
-            // Ждём нашего SW — он зарегистрирован в корне (/service-worker.js)
-            // Передаём его явно в Pusher Beams Client
+            // Используем корневой SW (зарегистрирован как /service-worker.js)
+            // Beams его найдёт сам через navigator.serviceWorker.ready
             const reg = swRegistration || await navigator.serviceWorker.ready;
             beamsClient = new PusherPushNotifications.Client({
                 instanceId: PUSHER_INSTANCE_ID,
                 serviceWorkerRegistration: reg,
             });
-            console.log('[Beams] Клиент создан с existing SW:', reg.scope);
+            console.log('[Beams] ✅ Клиент создан, scope:', reg.scope);
         } catch (err) {
             console.error('[Beams] Ошибка инициализации:', err);
         }
@@ -9645,12 +9666,10 @@
         profileSettingsActions.insertBefore(subscribeBtn, profileSettingsActions.firstChild);
     }
 
-    // Инициализация
-    // Ждём 2 сек — к этому моменту swRegistration уже будет заполнен
-    // (SW регистрируется чуть выше в основном блоке)
-    setTimeout(() => initPusherBeams().catch(console.error), 2000);
+    // Инициализация через onSwReady() — без setTimeout и race condition
+    // (вызывается из registerServiceWorker когда SW активирован)
     setTimeout(addNotificationSubscribeButton, 2000);
-    setTimeout(autoResubscribeBeams, 4000);
+
 </script>
 <!-- ==================== КОНЕЦ PUSHER BEAMS ==================== -->
 </html>
