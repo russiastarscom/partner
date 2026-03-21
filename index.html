@@ -2837,12 +2837,8 @@
         try {
             firebase.initializeApp(firebaseConfig);
             database = firebase.database();
-            // GitHub Pages блокирует WebSocket/long-polling — принудительно используем REST
-            if (typeof database.INTERNAL !== 'undefined') {
-                try { database.INTERNAL.forceWebSockets(); } catch(e) {}
-            }
-            // Отключаем long-polling, оставляем только WebSocket
-            firebase.database.enableLogging(false);
+            // Принудительно WebSocket (отключаем long-polling который ломается на GitHub Pages)
+            try { firebase.database.enableLogging(false); } catch(e) {}
             console.log('Firebase инициализирован успешно');
         } catch (error) {
             console.error('Ошибка инициализации Firebase:', error);
@@ -3137,12 +3133,17 @@
                 console.warn('[SW] Нужен HTTPS-хостинг');
                 return;
             }
-            const swBase = location.pathname.startsWith('/partner') ? '/partner/' : '/';
-            navigator.serviceWorker.register(swBase + 'service-worker.js', { scope: swBase })
+            // Определяем base path: /partner/ или /
+            const pathParts = location.pathname.split('/').filter(Boolean);
+            const swBase = (pathParts.length > 0 && !pathParts[0].includes('.'))
+                ? '/' + pathParts[0] + '/'
+                : '/';
+            const swUrl = swBase + 'service-worker.js';
+            console.log('[SW] Регистрация:', swUrl, 'scope:', swBase);
+            navigator.serviceWorker.register(swUrl, { scope: swBase })
                 .then(reg => {
                     swRegistration = reg;
                     console.log('[SW] ✅ Зарегистрирован:', reg.scope);
-                    // Применяем обновление сразу
                     reg.onupdatefound = () => {
                         const sw = reg.installing;
                         if (sw) sw.onstatechange = () => {
@@ -3153,7 +3154,6 @@
                 })
                 .catch(err => console.error('[SW] ❌ Ошибка:', err));
 
-            // Обработка кликов по уведомлениям от SW
             navigator.serviceWorker.addEventListener('message', event => {
                 if (event.data?.type === 'NOTIFICATION_CLICK') {
                     console.log('[SW→Page] Клик по уведомлению');
@@ -9528,8 +9528,12 @@
     async function initOneSignal(OS) {
         if (!OS) OS = window.OneSignal;
         if (!OS) { console.warn('[OneSignal] SDK не загружен'); return; }
-        const swBase = location.pathname.startsWith('/partner') ? '/partner/' : '/';
-        console.log('🔄 Инициализация OneSignal...');
+        // Динамически определяем base path (работает и на /partner/ и на /)
+        const pathParts = location.pathname.split('/').filter(Boolean);
+        const swBase = (pathParts.length > 0 && !pathParts[0].includes('.'))
+            ? '/' + pathParts[0] + '/'
+            : '/';
+        console.log('🔄 Инициализация OneSignal, swBase:', swBase);
         try {
             await OS.init({
                 appId: "3ffd17da-2e0f-4504-ab59-47e15e39f5d2",
@@ -9541,7 +9545,6 @@
                     title: "Twin",
                     message: "Уведомления включены! 🔔",
                 },
-                // Указываем правильные пути для service worker
                 serviceWorkerParam: { scope: swBase },
                 serviceWorkerPath: swBase + 'OneSignalSDKWorker.js',
             });
