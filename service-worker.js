@@ -239,28 +239,32 @@ self.addEventListener('push', e => {
 });
 
 // ── Fetch — кэш для статики ──────────────────────────────
+// Внешние API не перехватываем
 self.addEventListener('fetch', e => {
     if (e.request.method !== 'GET') return;
+
     const u = e.request.url;
-    // Внешние API — не перехватываем (НЕ вызываем respondWith)
+
+    // Внешние API всегда идут в сеть без кэша
     if (
         u.includes('firebaseio.com') ||
         u.includes('googleapis.com') ||
         u.includes('onesignal.com')  ||
-        u.includes('8x8.vc')         ||
-        u.includes('firebaseapp.com')
+        u.includes('8x8.vc')
     ) return;
+
     e.respondWith(
         caches.match(e.request).then(cached => {
             if (cached) return cached;
             return fetch(e.request).then(res => {
+                // ✅ ИСПРАВЛЕНО: клонируем ДО того как используем res
                 if (res && res.status === 200 && res.type !== 'opaque') {
                     const resClone = res.clone();
                     caches.open(CACHE_NAME).then(c => c.put(e.request, resClone));
                 }
                 return res;
-            }).catch(() => caches.match('./index.html'));
-        })
+            });
+        }).catch(() => caches.match('./index.html'))
     );
 });
 
