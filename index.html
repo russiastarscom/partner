@@ -9542,10 +9542,14 @@
             return;
         }
         try {
+            // Ждём нашего SW — он уже зарегистрирован в /partner/
+            // Передаём его явно, чтобы Pusher не пытался найти /service-worker.js в корне
+            const reg = swRegistration || await navigator.serviceWorker.ready;
             beamsClient = new PusherPushNotifications.Client({
                 instanceId: PUSHER_INSTANCE_ID,
+                serviceWorkerRegistration: reg,
             });
-            console.log('[Beams] Клиент создан');
+            console.log('[Beams] Клиент создан с existing SW:', reg.scope);
         } catch (err) {
             console.error('[Beams] Ошибка инициализации:', err);
         }
@@ -9652,9 +9656,11 @@
     }
 
     // Инициализация
-    initPusherBeams().catch(console.error);
+    // Ждём 2 сек — к этому моменту swRegistration уже будет заполнен
+    // (SW регистрируется чуть выше в основном блоке)
+    setTimeout(() => initPusherBeams().catch(console.error), 2000);
     setTimeout(addNotificationSubscribeButton, 2000);
-    setTimeout(autoResubscribeBeams, 3000);
+    setTimeout(autoResubscribeBeams, 4000);
 </script>
 <!-- ==================== КОНЕЦ PUSHER BEAMS ==================== -->
 </html>
