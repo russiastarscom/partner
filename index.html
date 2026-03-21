@@ -9128,16 +9128,7 @@
             installBtnHeader.style.display = 'none';
         });
 
-        // Service Worker регистрация
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then(registration => {
-                    console.log('Service Worker зарегистрирован:', registration);
-                })
-                .catch(error => {
-                    console.log('Регистрация Service Worker ошибка:', error);
-                });
-        }
+        // Service Worker регистрация — основная в registerServiceWorker() выше
         // Скрываем адресную строку на мобильных устройствах
         if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
             // Уже в режиме PWA - ничего не делаем
@@ -9507,93 +9498,35 @@
 
         // ==================== КОНЕЦ СИСТЕМЫ ЗВОНКОВ ====================
 
-        // ==================== PUSH-УВЕДОМЛЕНИЯ ONESIGNAL ====================
+        // ==================== PUSH-УВЕДОМЛЕНИЯ (нативные) ====================
 </script>
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<!-- OneSignal SDK убран: на GitHub Pages /partner/ его SW всегда даёт 404.
+     Уведомления работают через наш service-worker.js + Firebase polling. -->
 <script>
-    // Инициализация OneSignal — официальный способ через OneSignalDeferred
-    // Работает надёжно на iOS Safari, Android Chrome и всех мобильных браузерах
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    OneSignalDeferred.push(async function(OneSignal) {
-        await initOneSignal(OneSignal);
-    });
-
-    async function initOneSignal(OS) {
-        if (!OS) OS = window.OneSignal;
-        if (!OS) { console.warn("[OneSignal] SDK не загружен"); return; }
-        console.log("🔄 Инициализация OneSignal...");
-        try {
-            await OS.init({
-                appId: "3ffd17da-2e0f-4504-ab59-47e15e39f5d2",
-                safari_web_id: "web.onesignal.auto.6a13c381-7602-4e1d-b2a0-1098f769d9cc",
-                notifyButton: { enable: false },
-                autoResubscribe: true,
-                persistNotification: true,
-                welcomeNotification: {
-                    title: "Twin",
-                    message: "Уведомления включены! 🔔",
-                },
-                serviceWorkerParam: { scope: '/' },
-                serviceWorkerPath: '/OneSignalSDKWorker.js',
-            });
-
-            console.log('✅ OneSignal инициализирован успешно');
-
-            // Если пользователь авторизован, сохраняем его ID
-            if (currentUser) {
-                setTimeout(async () => {
-                    try {
-                        const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
-                        if (isOptedIn) {
-                            const playerId = await OneSignal.User.PushSubscription.id;
-                            if (playerId) {
-                                console.log('📱 Player ID получен:', playerId);
-                                await database.ref('users/' + encodeURIComponent(currentUser) + '/onesignal').set({
-                                    playerId: playerId,
-                                    subscribed: true,
-                                    subscribedAt: Date.now(),
-                                    userAgent: navigator.userAgent
-                                });
-                            }
-                        }
-                    } catch (e) {
-                        console.error('❌ Ошибка сохранения Player ID:', e);
-                    }
-                }, 3000);
-            }
-
-        } catch (error) {
-            console.error('❌ Ошибка инициализации OneSignal:', error);
-        }
-    }
-
-    // Функция для подписки на уведомления (можно вызвать из интерфейса)
+    // Подписка на уведомления через нативный Notification API + наш SW
     window.subscribeToNotifications = async function() {
-        if (!window.OneSignal) {
-            showNotification('OneSignal еще не загружен');
+        if (!('Notification' in window)) {
+            showNotification('Ваш браузер не поддерживает уведомления');
             return;
         }
-
         try {
-            await OneSignal.Notifications.requestPermission();
-            const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
-            
-            if (isSubscribed) {
-                showNotification('✅ Вы подписаны на уведомления!');
-                
-                // Сохраняем playerId в Firebase
-                if (currentUser) {
-                    const playerId = await OneSignal.User.PushSubscription.id;
-                    await database.ref('users/' + encodeURIComponent(currentUser) + '/onesignal').set({
-                        playerId: playerId,
-                        subscribed: true,
-                        subscribedAt: Date.now()
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                showNotification('✅ Уведомления включены!');
+                localStorage.setItem('notifications_enabled', 'true');
+                // Сообщаем SW начать polling для текущего пользователя
+                if (currentUser && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({
+                        type: 'SUBSCRIBE_BACKGROUND',
+                        user: currentUser
                     });
                 }
+            } else {
+                showNotification('❌ Разрешение на уведомления отклонено');
             }
         } catch (error) {
             console.error('Ошибка подписки:', error);
-            showNotification('❌ Не удалось подписаться на уведомления');
+            showNotification('❌ Не удалось включить уведомления');
         }
     };
 
@@ -9610,13 +9543,10 @@
         subscribeBtn.style.background = '#2ecc71';
         subscribeBtn.style.color = 'white';
         subscribeBtn.style.marginRight = '5px';
-
         subscribeBtn.addEventListener('click', window.subscribeToNotifications);
-
         profileSettingsActions.insertBefore(subscribeBtn, profileSettingsActions.firstChild);
     }
 
-    // Добавляем кнопку после загрузки профиля
     setTimeout(addNotificationSubscribeButton, 2000);
 </script>
 </html>

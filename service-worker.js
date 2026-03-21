@@ -30,10 +30,8 @@ const _startTime = {};
 self.addEventListener('install', e => {
     console.log('[SW] Установка v5');
     self.skipWaiting();
-    e.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(c => c.addAll(CACHE_URLS).catch(err => console.warn('[SW] cache partial:', err)))
-    );
+    // Не кэшируем при установке — избегаем NetworkError на GitHub Pages
+    // Файлы будут кэшироваться по мере fetch-запросов
 });
 
 // ── Активация ────────────────────────────────────────────
