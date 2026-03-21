@@ -3137,8 +3137,8 @@
                 console.warn('[SW] Нужен HTTPS-хостинг');
                 return;
             }
-            // Всё лежит в корне репозитория — scope всегда '/'
-            navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
+            // Файлы лежат в /partner/ — регистрируем SW с правильным scope
+            navigator.serviceWorker.register('/partner/service-worker.js', { scope: '/partner/' })
                 .then(reg => {
                     swRegistration = reg;
                     console.log('[SW] ✅ Зарегистрирован:', reg.scope);

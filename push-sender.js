@@ -39,8 +39,8 @@ async function sendPushToInterest(interest, title, body, extra = {}) {
             notification: {
                 title,
                 body,
-                icon: 'https://russiastarscom.github.io/icon-192x192.png',
-                deep_link: extra.url || 'https://russiastarscom.github.io/index.html',
+                icon: 'https://russiastarscom.github.io/partner/icon-192x192.png',
+                deep_link: extra.url || 'https://russiastarscom.github.io/partner/index.html',
                 ...extra
             }
         }
@@ -96,7 +96,7 @@ curl -H "Content-Type: application/json" \
          "notification": {
            "title": "💬 Новое сообщение",
            "body": "alice: Привет!",
-           "icon": "https://russiastarscom.github.io/icon-192x192.png"
+           "icon": "https://russiastarscom.github.io/partner/icon-192x192.png"
          }
        }
      }'

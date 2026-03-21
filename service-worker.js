@@ -1,26 +1,28 @@
 // ════════════════════════════════════════════════════════════
 //  Twin — Service Worker v7
-//  Файл: /service-worker.js (корень репозитория)
-//  URL:  https://russiastarscom.github.io/service-worker.js
+//  Файл: /partner/service-worker.js
+//  URL:  https://russiastarscom.github.io/partner/service-worker.js
 //
 //  Уведомления при ЗАКРЫТОМ браузере:
 //    → Pusher Beams (Web Push / VAPID) — importScripts ниже
+//    → ДОПОЛНИТЕЛЬНО нужен /service-worker.js в КОРНЕ сайта!
+//      (russiastarscom.github.io/service-worker.js)
+//      Содержимое: importScripts('https://js.pusher.com/beams/service-worker.js');
 //
 //  Уведомления когда браузер открыт, вкладка свёрнута:
 //    → Firebase polling каждые 15 секунд
 // ════════════════════════════════════════════════════════════
 
-// Pusher Beams SW — ОБЯЗАТЕЛЬНО первой строкой импорта
-// Именно этот файл Pusher Beams SDK ищет в корне сайта
+// Pusher Beams SW — ОБЯЗАТЕЛЬНО первой строкой
 importScripts('https://js.pusher.com/beams/service-worker.js');
 
 const CACHE_NAME = 'twin-v7';
 const CACHE_URLS = [
-    '/',
-    '/index.html',
-    '/manifest.json',
-    '/icon-192x192.png',
-    '/icon-512x512.png'
+    '/partner/',
+    '/partner/index.html',
+    '/partner/manifest.json',
+    '/partner/icon-192x192.png',
+    '/partner/icon-512x512.png'
 ];
 
 // ── Firebase конфиг ──────────────────────────────────────
@@ -72,7 +74,7 @@ self.addEventListener('message', e => {
 
 // ═══════════════════════════════════════════════════════════
 //  FIREBASE POLLING (браузер открыт, вкладка свёрнута)
-//  При закрытом браузере работает только Pusher Beams выше.
+//  При закрытом браузере — только Pusher Beams (VAPID).
 // ═══════════════════════════════════════════════════════════
 
 function startPolling(username) {
@@ -113,7 +115,7 @@ async function pollNotifications(username) {
 
             const list = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
             const appVisible = list.some(c =>
-                c.visibilityState === 'visible' && c.url.includes(self.registration.scope)
+                c.visibilityState === 'visible' && c.url.includes('/partner/')
             );
 
             if (appVisible) {
@@ -144,17 +146,17 @@ async function markRead(username, notifId) {
     }
 }
 
-// ── Показ уведомления (из Firebase polling) ──────────────
+// ── Показ уведомления ────────────────────────────────────
 async function showTwinNotification(id, n) {
     await self.registration.showNotification(getTitle(n), {
         body:    getBody(n),
-        icon:    '/icon-192x192.png',
-        badge:   '/icon-192x192.png',
+        icon:    '/partner/icon-192x192.png',
+        badge:   '/partner/icon-192x192.png',
         vibrate: [200, 100, 200],
         tag:     'twin-' + id,
         renotify: true,
         requireInteraction: false,
-        data: { url: 'https://russiastarscom.github.io/', notifId: id },
+        data: { url: 'https://russiastarscom.github.io/partner/', notifId: id },
         actions: [
             { action: 'open',    title: 'Открыть' },
             { action: 'dismiss', title: 'Закрыть'  }
@@ -193,12 +195,12 @@ self.addEventListener('notificationclick', e => {
     e.notification.close();
     if (e.action === 'dismiss') return;
 
-    const url = e.notification.data?.url || 'https://russiastarscom.github.io/';
+    const url = e.notification.data?.url || 'https://russiastarscom.github.io/partner/';
 
     e.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
             for (const c of list) {
-                if (c.url.includes('russiastarscom.github.io') && 'focus' in c) {
+                if (c.url.includes('/partner/') && 'focus' in c) {
                     c.postMessage({ type: 'NOTIFICATION_CLICK', data: e.notification.data });
                     return c.focus();
                 }
@@ -231,7 +233,7 @@ self.addEventListener('fetch', e => {
                 }
                 return res;
             });
-        }).catch(() => caches.match('/index.html'))
+        }).catch(() => caches.match('/partner/index.html'))
     );
 });
 
