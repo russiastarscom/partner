@@ -9514,13 +9514,82 @@
 
         // ==================== КОНЕЦ СИСТЕМЫ ЗВОНКОВ ====================
 
-        // ==================== PUSH-УВЕДОМЛЕНИЯ (нативный Web Push через свой SW) ====================
+        // ==================== КОНЕЦ СИСТЕМЫ ЗВОНКОВ ====================
 </script>
-<script>
-    // OneSignal v16 не работает на subpath GitHub Pages — используем нативный Web Push
-    // Свой service-worker.js уже реализует polling и показ уведомлений
 
-    // Запрос разрешения на уведомления
+<!-- ==================== PUSHER BEAMS (фоновые уведомления при закрытом браузере) ==================== -->
+<script src="https://js.pusher.com/beams/2.1.0/push-notifications-cdn.js"></script>
+<script>
+    // ────────────────────────────────────────────────────────────────
+    //  Pusher Beams — настоящий Web Push (VAPID)
+    //  Работает даже когда браузер ПОЛНОСТЬЮ закрыт
+    //
+    //  Как отправлять уведомление пользователю user123:
+    //  curl -H "Content-Type: application/json" \
+    //       -H "Authorization: Bearer 5EA5BA7B9B9BBFF9C66834138DD02FC709985BCC6CD4FD703DD7F69B0CE164C1" \
+    //       -X POST "https://dd53d38d-8cda-49c0-b2ed-85c95ef442a1.pushnotifications.pusher.com/publish_api/v1/instances/dd53d38d-8cda-49c0-b2ed-85c95ef442a1/publishes" \
+    //       -d '{"interests":["user-user123"],"web":{"notification":{"title":"💬 Новое сообщение","body":"Привет!"}}}'
+    // ────────────────────────────────────────────────────────────────
+
+    const PUSHER_INSTANCE_ID = 'dd53d38d-8cda-49c0-b2ed-85c95ef442a1';
+
+    let beamsClient = null;
+
+    // Инициализация Pusher Beams
+    async function initPusherBeams() {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            console.warn('[Beams] Push не поддерживается этим браузером');
+            return;
+        }
+        try {
+            beamsClient = new PusherPushNotifications.Client({
+                instanceId: PUSHER_INSTANCE_ID,
+            });
+            console.log('[Beams] Клиент создан');
+        } catch (err) {
+            console.error('[Beams] Ошибка инициализации:', err);
+        }
+    }
+
+    // Подписка на уведомления для конкретного пользователя
+    // interest = 'user-<username>'  → слать через API на этот interest
+    async function subscribeToPusherBeams(username) {
+        if (!beamsClient) await initPusherBeams();
+        if (!beamsClient) return false;
+
+        try {
+            await beamsClient.start();
+
+            // Подписываемся на персональный канал пользователя
+            const interest = 'user-' + username.toLowerCase().replace(/[^a-z0-9_\-=@,.]/g, '_');
+            await beamsClient.addDeviceInterest(interest);
+            // И на общий канал Twin
+            await beamsClient.addDeviceInterest('twin-all');
+
+            console.log('[Beams] ✅ Подписан на:', interest);
+            localStorage.setItem('beams_interest', interest);
+            localStorage.setItem('beams_username', username);
+            return true;
+        } catch (err) {
+            console.error('[Beams] Ошибка подписки:', err);
+            return false;
+        }
+    }
+
+    // Отписка
+    async function unsubscribeFromPusherBeams() {
+        if (!beamsClient) return;
+        try {
+            await beamsClient.stop();
+            localStorage.removeItem('beams_interest');
+            localStorage.removeItem('beams_username');
+            console.log('[Beams] Отписан');
+        } catch (err) {
+            console.error('[Beams] Ошибка отписки:', err);
+        }
+    }
+
+    // Запрос разрешения на уведомления + подписка на Pusher Beams + Firebase polling
     window.subscribeToNotifications = async function() {
         if (!('Notification' in window)) {
             showNotification('Уведомления не поддерживаются этим браузером');
@@ -9528,20 +9597,42 @@
         }
         try {
             const permission = await Notification.requestPermission();
-            if (permission === 'granted') {
-                showNotification('✅ Уведомления включены!');
-                localStorage.setItem('notifications_enabled', 'true');
-                // Сообщаем SW начать polling для текущего пользователя
-                if (currentUser && swRegistration?.active) {
-                    swRegistration.active.postMessage({ type: 'SUBSCRIBE_BACKGROUND', user: currentUser });
-                }
-            } else {
+            if (permission !== 'granted') {
                 showNotification('❌ Разрешение на уведомления отклонено');
+                return;
             }
+
+            showNotification('⏳ Подключение уведомлений...');
+            localStorage.setItem('notifications_enabled', 'true');
+
+            // 1. Pusher Beams — уведомления при закрытом браузере
+            if (currentUser) {
+                const beamsOk = await subscribeToPusherBeams(currentUser);
+                if (beamsOk) {
+                    showNotification('✅ Уведомления включены! Работают даже при закрытом браузере.');
+                } else {
+                    showNotification('✅ Уведомления включены (только в браузере)');
+                }
+            }
+
+            // 2. Firebase polling — уведомления когда браузер открыт, вкладка свёрнута
+            if (currentUser && swRegistration?.active) {
+                swRegistration.active.postMessage({ type: 'SUBSCRIBE_BACKGROUND', user: currentUser });
+            }
+
         } catch (error) {
             console.error('Ошибка запроса уведомлений:', error);
+            showNotification('❌ Ошибка: ' + error.message);
         }
     };
+
+    // Автоматически переподписываемся при входе, если раньше была подписка
+    function autoResubscribeBeams() {
+        const savedUsername = localStorage.getItem('beams_username');
+        if (savedUsername && currentUser && savedUsername === currentUser) {
+            subscribeToPusherBeams(currentUser).catch(console.error);
+        }
+    }
 
     // Добавляем кнопку подписки в настройки профиля
     function addNotificationSubscribeButton() {
@@ -9560,6 +9651,10 @@
         profileSettingsActions.insertBefore(subscribeBtn, profileSettingsActions.firstChild);
     }
 
+    // Инициализация
+    initPusherBeams().catch(console.error);
     setTimeout(addNotificationSubscribeButton, 2000);
+    setTimeout(autoResubscribeBeams, 3000);
 </script>
+<!-- ==================== КОНЕЦ PUSHER BEAMS ==================== -->
 </html>

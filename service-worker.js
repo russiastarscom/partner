@@ -1,15 +1,18 @@
 // ═══════════════════════════════════════════════════════════
-//  Twin — Service Worker v5  (GitHub Pages fix)
-//  Исправления:
-//  1. OneSignal importScripts убран — SW должен быть чистым
-//     для работы на subpath /partner/
-//  2. CACHE_URLS исправлены на относительные пути
-//  3. Response.clone() вызывается ДО возврата res (fix TypeError)
+//  Twin — Service Worker v6  (Pusher Beams + Firebase Polling)
+//
+//  Фоновые уведомления когда браузер ЗАКРЫТ:
+//  → Pusher Beams (Web Push / VAPID) — работает даже без браузера
+//
+//  Фоновые уведомления когда браузер открыт но вкладка свёрнута:
+//  → Firebase polling каждые 15 секунд
 // ═══════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'twin-v5';
+// Импортируем Pusher Beams Service Worker
+importScripts('https://js.pusher.com/beams/service-worker.js');
 
-// Пути относительно scope SW (/partner/)
+const CACHE_NAME = 'twin-v6';
+
 const CACHE_URLS = [
     './',
     './index.html',
@@ -21,14 +24,14 @@ const CACHE_URLS = [
 // ── Firebase конфиг ──────────────────────────────────────
 const FB_DB_URL = 'https://ukraine-52ad4-default-rtdb.firebaseio.com';
 
-// ── Состояние ────────────────────────────────────────────
+// ── Состояние polling ────────────────────────────────────
 const _pollers   = {};
 const _seen      = new Set();
 const _startTime = {};
 
 // ── Установка ────────────────────────────────────────────
 self.addEventListener('install', e => {
-    console.log('[SW] Установка v5');
+    console.log('[SW] Установка v6');
     self.skipWaiting();
     e.waitUntil(
         caches.open(CACHE_NAME)
@@ -38,7 +41,7 @@ self.addEventListener('install', e => {
 
 // ── Активация ────────────────────────────────────────────
 self.addEventListener('activate', e => {
-    console.log('[SW] Активация v5');
+    console.log('[SW] Активация v6');
     e.waitUntil(
         caches.keys()
             .then(keys => Promise.all(
@@ -67,17 +70,14 @@ self.addEventListener('message', e => {
 });
 
 // ═══════════════════════════════════════════════════════════
-//  CORE: REST POLLING
+//  FIREBASE POLLING (когда браузер открыт, вкладка свёрнута)
 // ═══════════════════════════════════════════════════════════
 
 function startPolling(username) {
     if (_pollers[username]) return;
-
     _startTime[username] = Date.now();
     console.log('[SW] 🚀 Старт polling для:', username);
-
     pollNotifications(username);
-
     const id = setInterval(() => pollNotifications(username), 15_000);
     _pollers[username] = id;
 }
@@ -94,10 +94,8 @@ async function pollNotifications(username) {
     try {
         const encoded = encodeURIComponent(username);
         const url = `${FB_DB_URL}/users/${encoded}/notifications.json?orderBy="timestamp"&limitToLast=10`;
-
         const res = await fetch(url, { cache: 'no-store' });
         if (!res.ok) return;
-
         const data = await res.json();
         if (!data || typeof data !== 'object') return;
 
@@ -121,7 +119,7 @@ async function pollNotifications(username) {
             if (appVisible) {
                 markRead(username, id);
             } else {
-                await showNotification(id, n);
+                await showTwinNotification(id, n);
                 markRead(username, id);
             }
         }
@@ -147,12 +145,9 @@ async function markRead(username, notifId) {
 }
 
 // ── Показ уведомления ────────────────────────────────────
-async function showNotification(id, n) {
-    const notifTitle = getTitle(n);
-    const notifBody  = getBody(n);
-
-    await self.registration.showNotification(notifTitle, {
-        body:    notifBody,
+async function showTwinNotification(id, n) {
+    await self.registration.showNotification(getTitle(n), {
+        body:    getBody(n),
         icon:    './icon-192x192.png',
         badge:   './icon-192x192.png',
         vibrate: [200, 100, 200],
@@ -167,7 +162,6 @@ async function showNotification(id, n) {
     });
 }
 
-// ── Тексты уведомлений ───────────────────────────────────
 function getTitle(n) {
     const map = {
         message:         '💬 Новое сообщение',
@@ -214,42 +208,16 @@ self.addEventListener('notificationclick', e => {
     );
 });
 
-// ── Push уведомления (резерв) ────────────────────────────
-self.addEventListener('push', e => {
-    if (!e.data) return;
-    let t = 'Twin', b = 'Новое уведомление';
-    try {
-        const d = e.data.json();
-        t = d.headings?.en || d.title || t;
-        b = d.contents?.en || d.body   || b;
-    } catch {
-        b = e.data.text();
-    }
-    e.waitUntil(
-        self.registration.showNotification(t, {
-            body:    b,
-            icon:    './icon-192x192.png',
-            badge:   './icon-192x192.png',
-            vibrate: [200, 100, 200],
-            tag:     'twin-push',
-            renotify: true,
-            data:    { url: self.registration.scope }
-        })
-    );
-});
-
 // ── Fetch — кэш для статики ──────────────────────────────
-// Внешние API не перехватываем
 self.addEventListener('fetch', e => {
     if (e.request.method !== 'GET') return;
-
     const u = e.request.url;
 
-    // Внешние API всегда идут в сеть без кэша
     if (
         u.includes('firebaseio.com') ||
         u.includes('googleapis.com') ||
-        u.includes('onesignal.com')  ||
+        u.includes('pusher.com') ||
+        u.includes('onesignal.com') ||
         u.includes('8x8.vc')
     ) return;
 
@@ -257,7 +225,6 @@ self.addEventListener('fetch', e => {
         caches.match(e.request).then(cached => {
             if (cached) return cached;
             return fetch(e.request).then(res => {
-                // ✅ ИСПРАВЛЕНО: клонируем ДО того как используем res
                 if (res && res.status === 200 && res.type !== 'opaque') {
                     const resClone = res.clone();
                     caches.open(CACHE_NAME).then(c => c.put(e.request, resClone));
@@ -268,4 +235,4 @@ self.addEventListener('fetch', e => {
     );
 });
 
-console.log('[SW] Twin v5 готов — GitHub Pages fix applied');
+console.log('[SW] Twin v6 готов — Pusher Beams + Firebase Polling');
