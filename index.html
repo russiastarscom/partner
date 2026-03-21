@@ -50,6 +50,8 @@
 
     <!-- Для Android -->
     <link rel="manifest" href="manifest.json">
+    <!-- Pusher Beams SDK -->
+    <script src="https://js.pusher.com/beams/2.1.0/push-notifications-cdn.js"></script>
 
     <!-- Для iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2974,11 +2976,8 @@
             setupEventListeners();
             setupNetworkStatus();
 
-            // Регистрируем Service Worker для фоновых уведомлений
-            registerServiceWorker();
-
-            // Настраиваем автоматический запрос разрешения на уведомления
-            setupAutoNotificationRequest();
+            // Инициализируем Pusher Beams (регистрирует SW + создаёт клиент)
+            initPushNotifications();
 
             // Проверяем сохраненную тему
             if (localStorage.getItem('dark_theme') === 'true') {
@@ -3028,7 +3027,10 @@
 
                                 startBackgroundChecks();
                                 trackUserStatus();
-                                subscribeToPushNotifications();
+                                // Переподписываемся на Beams если разрешение уже дано
+                                if (Notification.permission === 'granted') {
+                                    subscribeToPushNotifications();
+                                }
                                 // Запускаем прослушивание входящих звонков
                                 setTimeout(() => { if (typeof listenForIncomingCalls === 'function') listenForIncomingCalls(); }, 1500);
                             } else {
@@ -3061,158 +3063,66 @@
             optimizeForAndroid();
         }
         // Функция запроса разрешения на уведомления
-        function requestNotificationPermission() {
-            if (!("Notification" in window)) {
-                console.log("Браузер не поддерживает уведомления");
-                return Promise.resolve("not_supported");
-            }
-
-            // Если уже разрешено - ничего не делаем
-            if (Notification.permission === "granted") {
-                return Promise.resolve("granted");
-            }
-
-            // Если запрещено - не запрашиваем
-            if (Notification.permission === "denied") {
-                return Promise.resolve("denied");
-            }
-
-            // Запрашиваем разрешение
-            return Notification.requestPermission();
-        }
-
-        // Автоматический запрос разрешения на уведомления при первом взаимодействии
-        function setupAutoNotificationRequest() {
-            if (!("Notification" in window)) return;
-            if (Notification.permission !== "default") return;
-
-            const autoRequestPermission = () => {
-                // Инициализируем аудио контекст при первом взаимодействии
-                initAudioContext();
-
-                // Проверяем, не запрашивали ли уже
-                const alreadyRequested = sessionStorage.getItem('notification_requested');
-                if (alreadyRequested) return;
-
-                Notification.requestPermission().then(permission => {
-                    sessionStorage.setItem('notification_requested', 'true');
-                    if (permission === "granted") {
-                        console.log("Разрешение на уведомления получено автоматически");
-                        localStorage.setItem('notifications_enabled', 'true');
-                        showNotification('Уведомления включены!');
-                    }
-                });
-            };
-
-            // Запрашиваем при первом клике или нажатии клавиши
-            document.addEventListener('click', autoRequestPermission, { once: true });
-            document.addEventListener('keypress', autoRequestPermission, { once: true });
-            document.addEventListener('touchstart', autoRequestPermission, { once: true });
-        }
-
-        // Инициализация настроек уведомлений при загрузке
         function initializeNotificationSettings() {
             if (!("Notification" in window)) {
                 localStorage.setItem('notifications_enabled', 'false');
                 return;
             }
-
-            // Если разрешение получено, но настройка еще не сохранена - включаем по умолчанию
             if (Notification.permission === "granted") {
-                if (localStorage.getItem('notifications_enabled') === null) {
+                if (localStorage.getItem('notifications_enabled') === null)
                     localStorage.setItem('notifications_enabled', 'true');
-                }
             } else if (Notification.permission === "denied") {
                 localStorage.setItem('notifications_enabled', 'false');
             }
         }
 
         // Регистрация Service Worker
-        // Service Worker — обязателен для фоновых пушей и OneSignal на мобильных
-        let swRegistration = null;
+        // ── Pusher Beams — фоновые push-уведомления ──────────────────────
+        const PUSHER_INSTANCE_ID = 'dd53d38d-8cda-49c0-b2ed-85c95ef442a1';
+        let beamsClient = null;
 
-        function registerServiceWorker() {
-            if (!('serviceWorker' in navigator)) return;
-            if (window.location.protocol === 'file:' || window.location.protocol === 'blob:') {
-                console.warn('[SW] Нужен HTTPS-хостинг');
-                return;
-            }
-            // Единый корневой SW — и Pusher Beams и Firebase polling в одном файле
-            navigator.serviceWorker.register('/service-worker.js')
-                .then(reg => {
-                    swRegistration = reg;
-                    console.log('[SW] ✅ Зарегистрирован:', reg.scope);
-                    // Применяем обновление сразу
-                    reg.onupdatefound = () => {
-                        const sw = reg.installing;
-                        if (sw) sw.onstatechange = () => {
-                            if (sw.state === 'installed' && navigator.serviceWorker.controller)
-                                sw.postMessage({ type: 'SKIP_WAITING' });
-                        };
-                    };
-                    // Как только SW готов — инициализируем Beams и переподписываемся
-                    reg.active
-                        ? onSwReady(reg)
-                        : reg.installing?.addEventListener('statechange', function() {
-                            if (this.state === 'activated') onSwReady(reg);
-                        });
-                })
-                .catch(err => console.error('[SW] ❌ Ошибка:', err));
-
-            // Обработка кликов по уведомлениям от SW
-            navigator.serviceWorker.addEventListener('message', event => {
-                if (event.data?.type === 'NOTIFICATION_CLICK') {
-                    console.log('[SW→Page] Клик по уведомлению');
-                }
-            });
-        }
-
-        function onSwReady(reg) {
-            // SW готов — инициализируем Pusher Beams без race condition
-            if (typeof initPusherBeams === 'function') {
-                initPusherBeams().catch(console.error);
-            }
-            // Переподписываемся если уже был залогинен
-            if (typeof autoResubscribeBeams === 'function') {
-                autoResubscribeBeams();
-            }
-            // Запускаем Firebase polling
-            if (currentUser && reg.active) {
-                reg.active.postMessage({ type: 'SUBSCRIBE_BACKGROUND', user: currentUser });
+        async function initPushNotifications() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+            try {
+                const reg = await navigator.serviceWorker.register('/service-worker.js');
+                console.log('[Push] SW зарегистрирован, scope:', reg.scope);
+                beamsClient = new PusherPushNotifications.Client({
+                    instanceId: PUSHER_INSTANCE_ID,
+                    serviceWorkerRegistration: reg,
+                });
+                console.log('[Push] Beams клиент создан');
+            } catch (err) {
+                console.error('[Push] Ошибка инициализации:', err);
             }
         }
 
-        // ── Уведомления: Firebase listener + показ через SW ──────────────
-        let _notifListener = null;
-        const _seenNotifIds = new Set();
-
-        function subscribeToPushNotifications() {
+        async function subscribeToPushNotifications() {
             if (!currentUser) return;
-            if (_notifListener) {
-                database.ref('users/' + encodeURIComponent(currentUser) + '/notifications')
-                    .off('child_added', _notifListener);
-            }
-            const ref = database.ref('users/' + encodeURIComponent(currentUser) + '/notifications');
-            const t0 = Date.now();
-            _notifListener = ref.on('child_added', async snap => {
-                const notif = snap.val();
-                const id = snap.key;
-                if (!notif || notif.read) return;
-                if (notif.timestamp < t0 - 10000) { snap.ref.update({ read: true }); return; }
-                if (_seenNotifIds.has(id)) return;
-                _seenNotifIds.add(id);
-                await showBrowserNotification(getNotificationTitle(notif), getNotificationBody(notif), notif);
-                snap.ref.update({ read: true });
-            });
-            // Сообщаем SW кого слушать когда страница закроется
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.ready.then(reg => {
-                    reg.active && reg.active.postMessage({ type: 'SUBSCRIBE_BACKGROUND', user: currentUser });
-                }).catch(() => {});
+            if (!beamsClient) { console.warn('[Push] Beams не инициализирован'); return; }
+            try {
+                await beamsClient.start();
+                const interest = 'user-' + currentUser.toLowerCase().replace(/[^a-z0-9_\-=@,.]/g, '_');
+                await beamsClient.addDeviceInterest(interest);
+                await beamsClient.addDeviceInterest('twin-all');
+                localStorage.setItem('beams_user', currentUser);
+                console.log('[Push] ✅ Подписан:', interest);
+            } catch (err) {
+                console.error('[Push] Ошибка подписки:', err);
             }
         }
 
-        // Показ системного уведомления — работает в фоне через SW
+        async function unsubscribeFromPushNotifications() {
+            if (!beamsClient) return;
+            try {
+                await beamsClient.stop();
+                localStorage.removeItem('beams_user');
+                console.log('[Push] Отписан');
+            } catch (err) {
+                console.error('[Push] Ошибка отписки:', err);
+            }
+        }
+
+        // Показ системного уведомления (только когда браузер открыт и вкладка видима)
         async function showBrowserNotification(title, body, notifData) {
             if (!('Notification' in window) || Notification.permission !== 'granted') return;
             const opts = {
@@ -3223,52 +3133,14 @@
                 tag: 'twin-' + ((notifData && notifData.from) || 'msg') + '-' + Date.now(),
                 renotify: true,
                 requireInteraction: false,
-                data: { url: '/' }
+                data: { url: 'https://russiastarscom.github.io/partner/' }
             };
             try {
-                const reg = swRegistration || (navigator.serviceWorker.controller && await navigator.serviceWorker.ready);
+                const reg = await navigator.serviceWorker.ready;
                 if (reg) await reg.showNotification(title, opts);
                 else new Notification(title, opts);
             } catch(e) {
                 try { new Notification(title, opts); } catch(_) {}
-            }
-        }
-
-        // Получение заголовка уведомления
-        function getNotificationTitle(notification) {
-            switch (notification.type) {
-                case 'message':
-                    return 'Новое сообщение';
-                case 'group_message':
-                    return `Сообщение в группе "${notification.chatName || 'Группа'}"`;
-                case 'channel_message':
-                    return `Сообщение в канале "${notification.chatName || 'Канал'}"`;
-                case 'group_invite':
-                    return 'Приглашение в группу';
-                case 'group_remove':
-                    return 'Группа';
-                case 'new_subscriber':
-                    return 'Новый подписчик';
-                default:
-                    return 'Twin Messenger';
-            }
-        }
-
-        // Получение текста уведомления
-        function getNotificationBody(notification) {
-            switch (notification.type) {
-                case 'message':
-                case 'group_message':
-                case 'channel_message':
-                    return `${notification.from}: ${notification.text || 'Новое сообщение'}`;
-                case 'group_invite':
-                    return `${notification.from} добавил вас в группу "${notification.groupName}"`;
-                case 'group_remove':
-                    return `Вы удалены из группы "${notification.groupName}"`;
-                case 'new_subscriber':
-                    return `${notification.from} подписался на ваш канал "${notification.channelName}"`;
-                default:
-                    return notification.text || 'Новое уведомление';
             }
         }
 
@@ -3605,20 +3477,17 @@
                 testNotificationBtn.style.display = 'none';
                 return;
             }
-
-            // Проверяем сохраненные настройки
-            const notificationsEnabled = localStorage.getItem('notifications_enabled') === 'true';
-
+            const enabled = localStorage.getItem('notifications_enabled') === 'true';
             if (Notification.permission === "granted") {
-                notificationToggle.checked = notificationsEnabled;
+                notificationToggle.checked = enabled;
                 notificationToggle.disabled = false;
                 notificationStatus.style.display = 'none';
-                testNotificationBtn.style.display = notificationsEnabled ? 'block' : 'none';
+                testNotificationBtn.style.display = enabled ? 'block' : 'none';
             } else if (Notification.permission === "denied") {
                 notificationToggle.checked = false;
                 notificationToggle.disabled = true;
                 notificationStatus.style.display = 'block';
-                notificationStatus.textContent = 'Уведомления заблокированы в настройках браузера. Чтобы включить, измените настройки сайта в браузере.';
+                notificationStatus.textContent = 'Уведомления заблокированы. Разрешите их в настройках браузера.';
                 testNotificationBtn.style.display = 'none';
                 localStorage.setItem('notifications_enabled', 'false');
             } else {
@@ -3630,59 +3499,30 @@
         }
 
         function testNotification() {
-            if (!("Notification" in window)) {
-                showNotification('Ваш браузер не поддерживает уведомления');
-                return;
-            }
-
-            if (Notification.permission !== "granted") {
-                // Запрашиваем разрешение если еще не получено
-                Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
-                        localStorage.setItem('notifications_enabled', 'true');
-                        showBrowserNotification('Twin Messenger', 'Это тестовое уведомление! Уведомления работают корректно.');
-                        showNotification('Тестовое уведомление отправлено');
-                        updateNotificationToggleState();
-                    } else {
-                        showNotification('Разрешение на уведомления не получено');
-                    }
-                });
-            } else {
-                showBrowserNotification('Twin Messenger', 'Это тестовое уведомление! Уведомления работают корректно.');
-                showNotification('Тестовое уведомление отправлено');
-            }
+            showBrowserNotification('Twin Messenger', 'Уведомления работают корректно ✅');
+            showNotification('Тестовое уведомление отправлено');
         }
 
         function toggleNotifications() {
             if (notificationToggle.checked) {
-                // Запрашиваем разрешение
-                if ("Notification" in window) {
-                    if (Notification.permission === "default") {
-                        Notification.requestPermission().then(permission => {
-                            if (permission === "granted") {
-                                console.log("Разрешение на уведомления получено");
-                                localStorage.setItem('notifications_enabled', 'true');
-                                showNotification('Уведомления включены!');
-                            } else {
-                                notificationToggle.checked = false;
-                                localStorage.setItem('notifications_enabled', 'false');
-                                updateNotificationToggleState();
-                            }
-                        });
-                    } else if (Notification.permission === "granted") {
+                if (!("Notification" in window)) return;
+                Notification.requestPermission().then(async permission => {
+                    if (permission === "granted") {
                         localStorage.setItem('notifications_enabled', 'true');
-                        showNotification('Уведомления включены!');
-                    } else if (Notification.permission === "denied") {
+                        await subscribeToPushNotifications();
+                        showNotification('🔔 Уведомления включены!');
+                    } else {
                         notificationToggle.checked = false;
                         localStorage.setItem('notifications_enabled', 'false');
-                        updateNotificationToggleState();
                     }
-                }
+                    updateNotificationToggleState();
+                });
             } else {
                 localStorage.setItem('notifications_enabled', 'false');
+                unsubscribeFromPushNotifications();
                 showNotification('Уведомления отключены');
+                updateNotificationToggleState();
             }
-            updateNotificationToggleState();
         }
 
         function setupNetworkStatus() {
@@ -6025,14 +5865,7 @@
 
         async function handleLogout() {
             if (confirm('Вы уверены, что хотите выйти?')) {
-                // Останавливаем фоновый слушатель SW
-                if (currentUser && 'serviceWorker' in navigator) {
-                    navigator.serviceWorker.ready.then(reg => {
-                        reg.active && reg.active.postMessage({
-                            type: 'UNSUBSCRIBE_BACKGROUND', user: currentUser
-                        });
-                    }).catch(() => {});
-                }
+                await unsubscribeFromPushNotifications();
                 await updateUserStatus(false)
                     .finally(() => {
                         localStorage.removeItem('messenger_user');
@@ -6392,7 +6225,7 @@
             });
         })();
 
-        // showBrowserNotification определена выше в subscribeToPushNotifications
+        
 
 
         // Debug function to test notifications manually
@@ -8052,8 +7885,10 @@
 
                     document.body.removeChild(modal);
 
-                    subscribeToPushNotifications();
-                    startBackgroundChecks();
+                    // Подписываемся на Beams push если разрешение уже дано, иначе ждём пока пользователь нажмёт переключатель
+                    if (Notification.permission === 'granted') {
+                        subscribeToPushNotifications();
+                    }
                     trackUserStatus();
 
                     showNotification('Вход выполнен успешно!');
@@ -9528,148 +9363,4 @@
         // ==================== КОНЕЦ СИСТЕМЫ ЗВОНКОВ ====================
 </script>
 
-<!-- ==================== PUSHER BEAMS (фоновые уведомления при закрытом браузере) ==================== -->
-<script src="https://js.pusher.com/beams/2.1.0/push-notifications-cdn.js"></script>
-<script>
-    // ────────────────────────────────────────────────────────────────
-    //  Pusher Beams — настоящий Web Push (VAPID)
-    //  Работает даже когда браузер ПОЛНОСТЬЮ закрыт
-    //
-    //  Как отправлять уведомление пользователю user123:
-    //  curl -H "Content-Type: application/json" \
-    //       -H "Authorization: Bearer 5EA5BA7B9B9BBFF9C66834138DD02FC709985BCC6CD4FD703DD7F69B0CE164C1" \
-    //       -X POST "https://dd53d38d-8cda-49c0-b2ed-85c95ef442a1.pushnotifications.pusher.com/publish_api/v1/instances/dd53d38d-8cda-49c0-b2ed-85c95ef442a1/publishes" \
-    //       -d '{"interests":["user-user123"],"web":{"notification":{"title":"💬 Новое сообщение","body":"Привет!"}}}'
-    // ────────────────────────────────────────────────────────────────
-
-    const PUSHER_INSTANCE_ID = 'dd53d38d-8cda-49c0-b2ed-85c95ef442a1';
-
-    let beamsClient = null;
-
-    // Инициализация Pusher Beams
-    async function initPusherBeams() {
-        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-            console.warn('[Beams] Push не поддерживается этим браузером');
-            return;
-        }
-        try {
-            // Используем корневой SW (зарегистрирован как /service-worker.js)
-            // Beams его найдёт сам через navigator.serviceWorker.ready
-            const reg = swRegistration || await navigator.serviceWorker.ready;
-            beamsClient = new PusherPushNotifications.Client({
-                instanceId: PUSHER_INSTANCE_ID,
-                serviceWorkerRegistration: reg,
-            });
-            console.log('[Beams] ✅ Клиент создан, scope:', reg.scope);
-        } catch (err) {
-            console.error('[Beams] Ошибка инициализации:', err);
-        }
-    }
-
-    // Подписка на уведомления для конкретного пользователя
-    // interest = 'user-<username>'  → слать через API на этот interest
-    async function subscribeToPusherBeams(username) {
-        if (!beamsClient) await initPusherBeams();
-        if (!beamsClient) return false;
-
-        try {
-            await beamsClient.start();
-
-            // Подписываемся на персональный канал пользователя
-            const interest = 'user-' + username.toLowerCase().replace(/[^a-z0-9_\-=@,.]/g, '_');
-            await beamsClient.addDeviceInterest(interest);
-            // И на общий канал Twin
-            await beamsClient.addDeviceInterest('twin-all');
-
-            console.log('[Beams] ✅ Подписан на:', interest);
-            localStorage.setItem('beams_interest', interest);
-            localStorage.setItem('beams_username', username);
-            return true;
-        } catch (err) {
-            console.error('[Beams] Ошибка подписки:', err);
-            return false;
-        }
-    }
-
-    // Отписка
-    async function unsubscribeFromPusherBeams() {
-        if (!beamsClient) return;
-        try {
-            await beamsClient.stop();
-            localStorage.removeItem('beams_interest');
-            localStorage.removeItem('beams_username');
-            console.log('[Beams] Отписан');
-        } catch (err) {
-            console.error('[Beams] Ошибка отписки:', err);
-        }
-    }
-
-    // Запрос разрешения на уведомления + подписка на Pusher Beams + Firebase polling
-    window.subscribeToNotifications = async function() {
-        if (!('Notification' in window)) {
-            showNotification('Уведомления не поддерживаются этим браузером');
-            return;
-        }
-        try {
-            const permission = await Notification.requestPermission();
-            if (permission !== 'granted') {
-                showNotification('❌ Разрешение на уведомления отклонено');
-                return;
-            }
-
-            showNotification('⏳ Подключение уведомлений...');
-            localStorage.setItem('notifications_enabled', 'true');
-
-            // 1. Pusher Beams — уведомления при закрытом браузере
-            if (currentUser) {
-                const beamsOk = await subscribeToPusherBeams(currentUser);
-                if (beamsOk) {
-                    showNotification('✅ Уведомления включены! Работают даже при закрытом браузере.');
-                } else {
-                    showNotification('✅ Уведомления включены (только в браузере)');
-                }
-            }
-
-            // 2. Firebase polling — уведомления когда браузер открыт, вкладка свёрнута
-            if (currentUser && swRegistration?.active) {
-                swRegistration.active.postMessage({ type: 'SUBSCRIBE_BACKGROUND', user: currentUser });
-            }
-
-        } catch (error) {
-            console.error('Ошибка запроса уведомлений:', error);
-            showNotification('❌ Ошибка: ' + error.message);
-        }
-    };
-
-    // Автоматически переподписываемся при входе, если раньше была подписка
-    function autoResubscribeBeams() {
-        const savedUsername = localStorage.getItem('beams_username');
-        if (savedUsername && currentUser && savedUsername === currentUser) {
-            subscribeToPusherBeams(currentUser).catch(console.error);
-        }
-    }
-
-    // Добавляем кнопку подписки в настройки профиля
-    function addNotificationSubscribeButton() {
-        const profileSettingsActions = document.querySelector('#profile-settings-modal .modal-actions');
-        if (!profileSettingsActions) return;
-        if (document.getElementById('onesignal-subscribe-btn')) return;
-
-        const subscribeBtn = document.createElement('button');
-        subscribeBtn.id = 'onesignal-subscribe-btn';
-        subscribeBtn.className = 'modal-btn';
-        subscribeBtn.innerHTML = '🔔 Включить уведомления';
-        subscribeBtn.style.background = '#2ecc71';
-        subscribeBtn.style.color = 'white';
-        subscribeBtn.style.marginRight = '5px';
-        subscribeBtn.addEventListener('click', window.subscribeToNotifications);
-        profileSettingsActions.insertBefore(subscribeBtn, profileSettingsActions.firstChild);
-    }
-
-    // Инициализация через onSwReady() — без setTimeout и race condition
-    // (вызывается из registerServiceWorker когда SW активирован)
-    setTimeout(addNotificationSubscribeButton, 2000);
-
-</script>
-<!-- ==================== КОНЕЦ PUSHER BEAMS ==================== -->
 </html>
