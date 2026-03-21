@@ -3133,14 +3133,7 @@
                 console.warn('[SW] Нужен HTTPS-хостинг');
                 return;
             }
-            // Определяем base path: /partner/ или /
-            const pathParts = location.pathname.split('/').filter(Boolean);
-            const swBase = (pathParts.length > 0 && !pathParts[0].includes('.'))
-                ? '/' + pathParts[0] + '/'
-                : '/';
-            const swUrl = swBase + 'service-worker.js';
-            console.log('[SW] Регистрация:', swUrl, 'scope:', swBase);
-            navigator.serviceWorker.register(swUrl, { scope: swBase })
+            navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
                 .then(reg => {
                     swRegistration = reg;
                     console.log('[SW] ✅ Зарегистрирован:', reg.scope);
@@ -9528,13 +9521,7 @@
     async function initOneSignal(OS) {
         if (!OS) OS = window.OneSignal;
         if (!OS) { console.warn("[OneSignal] SDK не загружен"); return; }
-        // OneSignal требует полный URL (с origin) для serviceWorkerPath
-        const pathParts = location.pathname.split("/").filter(Boolean);
-        const swSubdir = (pathParts.length > 0 && !pathParts[0].includes("."))
-            ? "/" + pathParts[0] + "/"
-            : "/";
-        const swFullBase = location.origin + swSubdir;
-        console.log("🔄 Инициализация OneSignal, swFullBase:", swFullBase);
+        console.log("🔄 Инициализация OneSignal...");
         try {
             await OS.init({
                 appId: "3ffd17da-2e0f-4504-ab59-47e15e39f5d2",
@@ -9546,8 +9533,8 @@
                     title: "Twin",
                     message: "Уведомления включены! 🔔",
                 },
-                serviceWorkerParam: { scope: swSubdir },
-                serviceWorkerPath: swFullBase + "OneSignalSDKWorker.js",
+                serviceWorkerParam: { scope: '/' },
+                serviceWorkerPath: '/OneSignalSDKWorker.js',
             });
 
             console.log('✅ OneSignal инициализирован успешно');

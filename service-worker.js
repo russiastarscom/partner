@@ -9,7 +9,7 @@
 
 const CACHE_NAME = 'twin-v5';
 
-// Пути относительно scope SW (/partner/)
+// Пути относительно scope SW (/)
 const CACHE_URLS = [
     './',
     './index.html',
