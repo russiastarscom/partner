@@ -4,769 +4,470 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#6c5ce7">
-    <title>Админ-панель: Управление подарками</title>
+    <title>Админ-панель Twin</title>
     <link rel="stylesheet" href="gift_animations.css">
     <link rel="manifest" href="manifest.json">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
-            color: #fff; 
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .admin-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .admin-header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding: 20px;
-        }
-        
-        .admin-header h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .admin-header p {
-            color: #aaa;
-            font-size: 14px;
-        }
-        
-        .admin-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-        
-        .panel {
-            background: rgba(35, 40, 58, 0.8);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            border-radius: 16px;
-            padding: 30px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .panel h2 {
-            font-size: 22px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #667eea;
-        }
-        
-        .panel-section {
-            margin-bottom: 30px;
-        }
-        
-        .panel-section:last-child {
-            margin-bottom: 0;
-        }
-        
-        .form-group {
-            margin-bottom: 16px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            color: #ccc;
-        }
-        
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-        
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
-        }
-        
-        button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        button.secondary {
-            background: rgba(102, 126, 234, 0.2);
-            border: 1px solid rgba(102, 126, 234, 0.5);
-            margin-top: 8px;
-        }
-        
-        button.danger {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
-        }
-        
-        button.danger:hover {
-            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.4);
-        }
-        
-        .message {
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            font-size: 14px;
-            animation: slideDown 0.3s ease;
-        }
-        
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .success {
-            background: rgba(111, 255, 111, 0.1);
-            border: 1px solid rgba(111, 255, 111, 0.5);
-            color: #6fff6f;
-        }
-        
-        .error {
-            background: rgba(255, 107, 107, 0.1);
-            border: 1px solid rgba(255, 107, 107, 0.5);
-            color: #ff6b6b;
-        }
-        
-        .gift-preview {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 80px;
-            background: rgba(102, 126, 234, 0.1);
-            border: 2px dashed rgba(102, 126, 234, 0.5);
-            border-radius: 8px;
-            font-size: 36px;
-            margin-top: 10px;
-            animation: giftAppear 0.6s ease;
-        }
-        
-        .gift-preview.fire {
-            background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(255, 145, 53, 0.1));
-            border-color: rgba(255, 107, 53, 0.5);
-            animation: fireBurn 0.8s ease infinite;
-        }
-        
-        .gifts-list {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-            max-height: 600px;
-            overflow-y: auto;
-        }
-        
-        .gift-item {
-            display: grid;
-            grid-template-columns: 60px 1fr 100px auto;
-            gap: 15px;
-            align-items: center;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(102, 126, 234, 0.2);
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-        
-        .gift-item:hover {
-            background: rgba(102, 126, 234, 0.1);
-            border-color: rgba(102, 126, 234, 0.5);
-            transform: translateX(5px);
-        }
-        
-        .gift-item-emoji {
-            font-size: 32px;
-            text-align: center;
-        }
-        
-        .gift-item-info h4 {
-            margin: 0 0 4px 0;
-            font-size: 14px;
-        }
-        
-        .gift-item-info p {
-            margin: 0;
-            font-size: 12px;
-            color: #aaa;
-        }
-        
-        .gift-item-price {
-            text-align: right;
-            font-weight: 600;
-        }
-        
-        .gift-item-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            width: 80px;
-        }
-        
-        .gift-item-actions button {
-            margin: 0;
-            padding: 6px 10px;
-            font-size: 12px;
-        }
-        
-        .gift-item-actions button.edit {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .gift-item-actions button.delete {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
-        }
-        
-        @media (max-width: 768px) {
-            .admin-content {
-                grid-template-columns: 1fr;
-            }
-            
-            .gift-item {
-                grid-template-columns: 50px 1fr;
-            }
-            
-            .gift-item-price,
-            .gift-item-actions {
-                display: none;
-            }
-        }
-        
-        .scrollable {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .scrollable::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .scrollable::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
-        }
-        
-        .scrollable::-webkit-scrollbar-thumb {
-            background: rgba(102, 126, 234, 0.5);
-            border-radius: 4px;
-        }
-        
-        .scrollable::-webkit-scrollbar-thumb:hover {
-            background: rgba(102, 126, 234, 0.8);
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        
-        .form-row .form-group {
-            margin-bottom: 16px;
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .badge.new {
-            background: rgba(111, 255, 111, 0.2);
-            color: #6fff6f;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0f3460 0%, #16213e 100%); color: #fff; min-height: 100vh; padding: 20px; }
+        .admin-container { max-width: 1300px; margin: 0 auto; }
+        .admin-header { text-align: center; margin-bottom: 36px; padding: 20px; }
+        .admin-header h1 { font-size: 30px; margin-bottom: 8px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .admin-header p { color: #aaa; font-size: 14px; }
+        .tabs-nav { display: flex; gap: 6px; margin-bottom: 30px; border-bottom: 2px solid rgba(102,126,234,0.3); }
+        .tab-btn { padding: 12px 22px; background: transparent; border: none; color: #aaa; font-size: 14px; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color 0.2s; width: auto; margin-top: 0; }
+        .tab-btn.active { color: #667eea; border-bottom-color: #667eea; }
+        .tab-btn:hover:not(.active) { color: #fff; transform: none; box-shadow: none; }
+        .tab-section { display: none; }
+        .tab-section.active { display: block; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 30px; }
+        .panel { background: rgba(35,40,58,0.85); border: 1px solid rgba(102,126,234,0.3); border-radius: 16px; padding: 26px; backdrop-filter: blur(10px); }
+        .panel h2 { font-size: 20px; margin-bottom: 20px; color: #667eea; display: flex; align-items: center; gap: 10px; }
+        .section-title { font-size: 12px; color: #667eea; margin-bottom: 12px; margin-top: 18px; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; }
+        .form-group { margin-bottom: 13px; }
+        label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; color: #ccc; }
+        input, select, textarea { width: 100%; padding: 10px 12px; background: rgba(0,0,0,0.25); border: 1px solid rgba(102,126,234,0.3); border-radius: 8px; color: #fff; font-size: 14px; transition: all 0.2s; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; background: rgba(102,126,234,0.1); }
+        input::placeholder, textarea::placeholder { color: #555; }
+        select option { background: #1e2233; }
+        button { width: 100%; padding: 11px; margin-top: 8px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+        button:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(102,126,234,0.35); }
+        button.secondary { background: rgba(102,126,234,0.15); border: 1px solid rgba(102,126,234,0.4); margin-top: 6px; }
+        button.danger { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        button.success { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        button.btn-sm { padding: 6px 14px; font-size: 12px; margin-top: 0; width: auto; }
+        .msg { padding: 11px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 13px; }
+        .msg.success { background: rgba(46,204,113,0.12); border: 1px solid rgba(46,204,113,0.4); color: #2ecc71; }
+        .msg.error { background: rgba(255,107,107,0.12); border: 1px solid rgba(255,107,107,0.4); color: #ff6b6b; }
+        .gift-preview { width: 100%; height: 68px; background: rgba(102,126,234,0.1); border: 2px dashed rgba(102,126,234,0.4); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 32px; margin-top: 8px; }
+        .units-area { background: rgba(0,0,0,0.2); border: 1px solid rgba(102,126,234,0.2); border-radius: 8px; padding: 10px; margin-top: 4px; max-height: 200px; overflow-y: auto; }
+        .unit-row { display: flex; gap: 8px; align-items: center; margin-bottom: 7px; }
+        .unit-row input { flex: 1; margin: 0; }
+        .unit-row .num { font-size: 11px; color: #667eea; min-width: 18px; text-align: right; }
+        .unit-row button { width: 32px; height: 32px; margin: 0; padding: 0; border-radius: 6px; font-size: 13px; flex-shrink: 0; }
+        .add-unit-btn { width: auto; padding: 7px 16px; margin-top: 8px; font-size: 13px; background: rgba(102,126,234,0.2); border: 1px dashed rgba(102,126,234,0.5); }
+        .gifts-list { display: flex; flex-direction: column; gap: 10px; max-height: 560px; overflow-y: auto; }
+        .gift-item { display: grid; grid-template-columns: 50px 1fr auto; gap: 12px; align-items: center; padding: 14px; background: rgba(0,0,0,0.2); border: 1px solid rgba(102,126,234,0.2); border-radius: 10px; transition: all 0.2s; }
+        .gift-item:hover { background: rgba(102,126,234,0.08); border-color: rgba(102,126,234,0.4); }
+        .gift-item-emoji { font-size: 28px; text-align: center; }
+        .gift-item-info h4 { font-size: 14px; margin: 0 0 3px; }
+        .gift-item-info p { font-size: 12px; color: #999; margin: 2px 0 0; }
+        .gift-item-actions { display: flex; flex-direction: column; gap: 6px; }
+        .gift-item-actions button { margin-top: 0; }
+        .orders-list { display: flex; flex-direction: column; gap: 14px; }
+        .order-card { background: rgba(0,0,0,0.25); border: 1px solid rgba(102,126,234,0.2); border-left: 4px solid transparent; border-radius: 12px; padding: 18px; }
+        .order-card.pending { border-left-color: #f39c12; }
+        .order-card.confirmed { border-left-color: #2ecc71; opacity: 0.65; }
+        .order-card.rejected { border-left-color: #e74c3c; opacity: 0.55; }
+        .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .order-title { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+        .order-id { font-family: monospace; font-size: 11px; color: #888; }
+        .order-status { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .order-status.pending { background: rgba(243,156,18,0.2); color: #f39c12; }
+        .order-status.confirmed { background: rgba(46,204,113,0.2); color: #2ecc71; }
+        .order-status.rejected { background: rgba(231,76,60,0.2); color: #e74c3c; }
+        .order-body { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+        .order-field label { color: #777; font-size: 11px; display: block; margin-bottom: 2px; font-weight: normal; }
+        .order-field span { font-weight: 600; color: #eee; font-size: 13px; }
+        .pay-url { font-size: 11px; color: #667eea; word-break: break-all; display: block; margin-top: 2px; }
+        .order-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .order-actions button { width: auto; padding: 7px 18px; font-size: 13px; margin-top: 0; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 24px; }
+        .stat-card { background: rgba(102,126,234,0.1); border: 1px solid rgba(102,126,234,0.22); border-radius: 12px; padding: 20px; text-align: center; }
+        .stat-num { font-size: 30px; font-weight: bold; color: #667eea; }
+        .stat-label { font-size: 12px; color: #aaa; margin-top: 4px; }
+        .badge { display: inline-block; background: #e74c3c; color: white; border-radius: 10px; padding: 2px 7px; font-size: 11px; font-weight: 700; margin-left: 5px; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(102,126,234,0.35); border-radius: 4px; }
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: 1fr 1fr; } .order-body { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-    <div class="admin-container">
-        <div class="admin-header">
-            <h1>🎁 Админ-панель управления подарками</h1>
-            <p>Создавайте и управляйте подарками для пользователей</p>
-        </div>
-        
-        <div class="admin-content">
-            <!-- Левая панель: Создание/Редактирование подарка -->
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>&#127873; Админ-панель Twin</h1>
+        <p>Управление подарками и подтверждение заявок на оплату</p>
+    </div>
+
+    <div class="tabs-nav">
+        <button class="tab-btn active" onclick="switchTab('gifts',this)">&#127873; Подарки</button>
+        <button class="tab-btn" onclick="switchTab('orders',this)">&#128203; Заявки <span class="badge" id="pending-count" style="display:none">0</span></button>
+        <button class="tab-btn" onclick="switchTab('stats',this)">&#128202; Статистика</button>
+    </div>
+
+    <!-- GIFTS -->
+    <div class="tab-section active" id="tab-gifts">
+        <div class="grid-2">
             <div class="panel">
-                <h2>➕ Создать подарок</h2>
-                
-                <form id="giftForm">
-                    <div class="panel-section">
-                        <h3 style="font-size: 14px; color: #667eea; margin-bottom: 15px;">Основная информация</h3>
-                        
-                        <div class="form-group">
-                            <label for="giftType">ID подарка (уникальный) *</label>
-                            <input type="text" id="giftType" required placeholder="fire, rose, star, heart..." maxlength="30">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="giftName">Название подарка *</label>
-                            <input type="text" id="giftName" required placeholder="Например: Огненный подарок" maxlength="50">
-                        </div>
+                <h2>&#43; <span id="form-title">Создать подарок</span></h2>
+                <div id="giftMsg"></div>
+                <form id="giftForm" autocomplete="off">
+                    <div class="section-title">Основная информация</div>
+                    <div class="form-group"><label>ID подарка *</label><input type="text" id="giftType" required placeholder="fire, rose, star..."></div>
+                    <div class="form-group"><label>Название *</label><input type="text" id="giftName" required placeholder="Огненный подарок"></div>
+                    <div class="section-title">Визуал</div>
+                    <div class="form-group"><label>Эмодзи или URL картинки *</label><input type="text" id="giftEmoji" required placeholder="&#128293; или https://..."><div class="gift-preview" id="giftPreview">&#127873;</div></div>
+                    <div class="form-group"><label>CSS-анимация</label>
+                        <select id="giftCss">
+                            <option value="">Без анимации</option>
+                            <option value="gift-fire">&#128293; Огонь</option>
+                            <option value="gift-fire-intense">&#128293; Огонь интенс.</option>
+                            <option value="gift-shine">&#10024; Блеск</option>
+                            <option value="gift-shake">&#127881; Встряска</option>
+                            <option value="animate-bounce">Прыгающее</option>
+                            <option value="animate-pulse">Пульсирующее</option>
+                            <option value="animate-spin">Вращающееся</option>
+                        </select>
                     </div>
-                    
-                    <div class="panel-section">
-                        <h3 style="font-size: 14px; color: #667eea; margin-bottom: 15px;">Визуал</h3>
-                        
-                        <div class="form-group">
-                            <label for="giftEmoji">Эмодзи или URL иконки *</label>
-                            <input type="text" id="giftEmoji" required placeholder="🔥 или https://example.com/image.png">
-                        </div>
-                        
-                        <div class="gift-preview" id="giftPreview">🎁</div>
-                        
-                        <div class="form-group">
-                            <label for="giftCss">CSS-класс для анимации</label>
-                            <select id="giftCss">
-                                <option value="">Без анимации</option>
-                                <option value="gift-fire">🔥 Огонь (горение)</option>
-                                <option value="gift-fire-intense">🔥 Огонь (интенсивное)</option>
-                                <option value="gift-shine">✨ Блеск</option>
-                                <option value="gift-shake">🎉 Встряска</option>
-                                <option value="animate-bounce">⬆️ Прыгающее</option>
-                                <option value="animate-pulse">💫 Пульсирующее</option>
-                                <option value="animate-spin">🔄 Вращающееся</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="panel-section">
-                        <h3 style="font-size: 14px; color: #667eea; margin-bottom: 15px;">Параметры</h3>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="giftPrice">Цена (галактик) *</label>
-                                <input type="number" id="giftPrice" required min="0" value="100" placeholder="100">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="giftQty">Доступное количество *</label>
-                                <input type="number" id="giftQty" required min="1" value="9999" placeholder="9999">
-                            </div>
-                            <div class="form-group">
-                                <label for="giftRub">Цена в рублях (₽)</label>
-                                <input type="number" id="giftRub" min="0" step="0.01" placeholder="0.00">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="giftDesc">Описание (опционально)</label>
-                            <textarea id="giftDesc" placeholder="Краткое описание подарка..." rows="3" maxlength="200"></textarea>
-                        </div>
-                    </div>
-                    
-                    <div class="panel-section">
-                        <button type="submit" id="submitBtn">➕ Добавить подарок</button>
-                        <button type="button" class="secondary" onclick="resetGiftForm()" id="resetBtn" style="display:none;">Отменить редактирование</button>
-                    </div>
-                    
-                    <div id="giftMessage"></div>
+                    <div class="section-title">Параметры</div>
+                    <div class="form-group"><label>Цена (&#8381;) *</label><input type="number" id="giftRub" required min="0" step="0.01" placeholder="199.00"></div>
+                    <div class="form-group"><label>Описание</label><textarea id="giftDesc" rows="2" maxlength="200" placeholder="Краткое описание..."></textarea></div>
+                    <div class="section-title">Единицы — ссылки на оплату</div>
+                    <p style="font-size:11px;color:#666;margin-bottom:8px;">Каждая строка — отдельная ссылка. При покупке одна единица расходуется.</p>
+                    <div class="units-area" id="unitsArea"></div>
+                    <button type="button" class="add-unit-btn" onclick="addUnitRow()">+ Добавить единицу</button>
+                    <button type="submit" id="submitBtn" style="margin-top:18px;">+ Сохранить подарок</button>
+                    <button type="button" class="secondary" id="resetBtn" onclick="resetGiftForm()" style="display:none;">Отменить</button>
                 </form>
             </div>
-            
-            <!-- Правая панель: Список подарков -->
             <div class="panel">
-                <h2>📦 Список подарков</h2>
-                
-                <div id="giftsList" class="gifts-list scrollable"></div>
-                <div id="giftListMessage"></div>
-            </div>
-        </div>
-        
-        <div class="admin-content">
-            <!-- Раздача галактик -->
-            <div class="panel">
-                <h2>💫 Выдача галактик</h2>
-                
-                <form id="galaxyForm">
-                    <div class="form-group">
-                        <label for="username">Имя пользователя *</label>
-                        <input type="text" id="username" required placeholder="Введите имя пользователя" maxlength="50">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="amount">Количество галактик *</label>
-                        <input type="number" id="amount" required min="1" value="100" placeholder="100">
-                    </div>
-                    
-                    <button type="submit">💫 Выдать галактики</button>
-                    <div id="galaxyMessage"></div>
-                </form>
-            </div>
-            
-            <!-- Статистика -->
-            <div class="panel">
-                <h2>📊 Статистика</h2>
-                
-                <div style="padding: 20px;">
-                    <div style="margin-bottom: 20px;">
-                        <p style="color: #aaa; margin-bottom: 5px;">Всего подарков в системе</p>
-                        <p style="font-size: 28px; font-weight: bold; color: #667eea;">
-                            <span id="totalGiftsCount">0</span>
-                        </p>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <p style="color: #aaa; margin-bottom: 5px;">Общая сумма предложений</p>
-                        <p style="font-size: 28px; font-weight: bold; color: #764ba2;">
-                            <span id="totalPrice">0</span> 🌌
-                        </p>
-                    </div>
-                    
-                    <div>
-                        <button type="button" class="secondary" onclick="refreshStats()">🔄 Обновить</button>
-                    </div>
-                </div>
+                <h2>&#128230; Список подарков</h2>
+                <div id="giftListMsg"></div>
+                <div id="giftsList" class="gifts-list"></div>
             </div>
         </div>
     </div>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script>
-        // ==================== FIREBASE CONFIGURATION ====================
-        const firebaseConfig = {
-            apiKey: "AIzaSyAhO3JsDI61pkpGla045EfEXq6h7EuGHoQ",
-            authDomain: "ukraine-52ad4.firebaseapp.com",
-            databaseURL: "https://ukraine-52ad4-default-rtdb.firebaseio.com",
-            projectId: "ukraine-52ad4",
-            storageBucket: "ukraine-52ad4.firebasestorage.app",
-            messagingSenderId: "63107581219",
-            appId: "1:63107581219:web:074b8e692a8a8b04737896"
-        };
 
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+    <!-- ORDERS -->
+    <div class="tab-section" id="tab-orders">
+        <div class="panel">
+            <h2>&#128203; Заявки</h2>
+            <div style="display:flex;gap:16px;margin-bottom:18px;align-items:center;flex-wrap:wrap;">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:normal;"><input type="checkbox" id="showPending" checked onchange="loadOrdersList()"> Ожидают</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:normal;"><input type="checkbox" id="showConfirmed" onchange="loadOrdersList()"> Подтверждённые</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:normal;"><input type="checkbox" id="showRejected" onchange="loadOrdersList()"> Отклонённые</label>
+                <button type="button" class="secondary btn-sm" onclick="loadOrdersList()" style="margin-left:auto;">&#128260; Обновить</button>
+            </div>
+            <div id="ordersList" class="orders-list"></div>
+        </div>
+    </div>
 
-        // ==================== STATE ====================
-        let editingGiftId = null;
+    <!-- STATS -->
+    <div class="tab-section" id="tab-stats">
+        <div class="panel">
+            <h2>&#128202; Статистика</h2>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-num" id="sGifts">-</div><div class="stat-label">Типов подарков</div></div>
+                <div class="stat-card"><div class="stat-num" id="sAvail">-</div><div class="stat-label">Единиц доступно</div></div>
+                <div class="stat-card"><div class="stat-num" id="sTotal">-</div><div class="stat-label">Единиц всего</div></div>
+                <div class="stat-card"><div class="stat-num" id="sPending">-</div><div class="stat-label">Ожидает подтверждения</div></div>
+                <div class="stat-card"><div class="stat-num" id="sConfirmed">-</div><div class="stat-label">Подтверждено</div></div>
+                <div class="stat-card"><div class="stat-num" id="sRejected">-</div><div class="stat-label">Отклонено</div></div>
+            </div>
+            <button type="button" class="secondary" style="width:auto;padding:10px 24px;" onclick="refreshStats()">&#128260; Обновить</button>
+        </div>
+    </div>
+</div>
 
-        // ==================== GIFT FORM HANDLERS ====================
-        
-        // Предпросмотр эмодзи в реальном времени
-        document.getElementById('giftEmoji').addEventListener('input', function() {
-            const emoji = this.value;
-            const preview = document.getElementById('giftPreview');
-            
-            if (emoji.startsWith('http')) {
-                preview.innerHTML = `<img src="${emoji}" style="max-width: 50px; max-height: 50px; border-radius: 4px;">`;
-            } else {
-                preview.textContent = emoji || '🎁';
-            }
-            
-            // Добавляем анимацию огня если выбран класс fire
-            const cssClass = document.getElementById('giftCss').value;
-            preview.className = 'gift-preview';
-            if (cssClass.includes('fire')) {
-                preview.classList.add('fire');
-            }
-        });
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({
+    apiKey:"AIzaSyAhO3JsDI61pkpGla045EfEXq6h7EuGHoQ",
+    authDomain:"ukraine-52ad4.firebaseapp.com",
+    databaseURL:"https://ukraine-52ad4-default-rtdb.firebaseio.com",
+    projectId:"ukraine-52ad4",
+    storageBucket:"ukraine-52ad4.firebasestorage.app",
+    messagingSenderId:"63107581219",
+    appId:"1:63107581219:web:074b8e692a8a8b04737896"
+});
+const db = firebase.database();
+let editingId = null;
+let unitRows = [];
 
-        document.getElementById('giftCss').addEventListener('change', function() {
-            const preview = document.getElementById('giftPreview');
-            const cssClass = this.value;
-            preview.className = 'gift-preview';
-            if (cssClass.includes('fire')) {
-                preview.classList.add('fire');
-            }
-        });
+function switchTab(name, btn) {
+    document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+name).classList.add('active');
+    btn.classList.add('active');
+    if (name==='orders') loadOrdersList();
+    if (name==='stats') refreshStats();
+}
 
-        // Обработчик отправки формы подарка
-        document.getElementById('giftForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const type = document.getElementById('giftType').value.trim();
-            const name = document.getElementById('giftName').value.trim();
-            const emoji = document.getElementById('giftEmoji').value.trim();
-            const price = parseInt(document.getElementById('giftPrice').value);
-            const quantity = parseInt(document.getElementById('giftQty').value);
-            const cssClass = document.getElementById('giftCss').value;
-            const description = document.getElementById('giftDesc').value.trim();
-            const rub = parseFloat(document.getElementById('giftRub').value);
+function showMsg(id,txt,type){
+    const el=document.getElementById(id);
+    if(!txt){el.innerHTML='';return;}
+    el.innerHTML='<div class="msg '+type+'">'+txt+'</div>';
+}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-            // Валидация
-            if (!type || !name || !emoji) {
-                showMessage('giftMessage', 'Заполните все обязательные поля!', 'error');
-                return;
-            }
+function addUnitRow(payUrl,fbKey){
+    payUrl=payUrl||''; fbKey=fbKey||null;
+    const uid='u_'+Date.now()+'_'+Math.random().toString(36).substr(2,4);
+    unitRows.push({id:uid,payUrl:payUrl,fbKey:fbKey});
+    renderUnitRows();
+}
+function removeUnitRow(uid){
+    unitRows=unitRows.filter(r=>r.id!==uid);
+    renderUnitRows();
+}
+function renderUnitRows(){
+    const area=document.getElementById('unitsArea');
+    if(!unitRows.length){area.innerHTML='<div style="color:#555;font-size:12px;padding:4px 0;">Нет единиц — нажмите «Добавить»</div>';return;}
+    area.innerHTML=unitRows.map((r,i)=>
+        '<div class="unit-row">'+
+        '<span class="num">'+(i+1)+'.</span>'+
+        '<input type="url" value="'+esc(r.payUrl)+'" placeholder="https://pay.example.com/invoice/..." oninput="unitRows['+i+'].payUrl=this.value">'+
+        '<button type="button" class="danger" onclick="removeUnitRow(\'' + r.id + '\')" title="Удалить">x</button>'+
+        '</div>'
+    ).join('');
+}
 
-            if (isNaN(price) || price < 0) {
-                showMessage('giftMessage', 'Цена должна быть больше или равна 0!', 'error');
-                return;
-            }
+document.getElementById('giftEmoji').addEventListener('input',function(){
+    const v=this.value,p=document.getElementById('giftPreview');
+    if(v.startsWith('http'))p.innerHTML='<img src="'+v+'" style="max-width:50px;max-height:50px;border-radius:6px;">';
+    else p.textContent=v||'🎁';
+});
 
-            try {
-                const giftData = {
-                    name,
-                    price,
-                    quantity,
-                    createdAt: new Date().toLocaleString('ru-RU')
-                };
-                if (!isNaN(rub)) {
-                    giftData.rub = rub;
-                }
-                // Проверяем, является ли ссылкой
-                if (emoji.startsWith('http')) {
-                    giftData.image = emoji;
+document.getElementById('giftForm').addEventListener('submit',async function(e){
+    e.preventDefault();
+    const type=document.getElementById('giftType').value.trim();
+    const name=document.getElementById('giftName').value.trim();
+    const emoji=document.getElementById('giftEmoji').value.trim();
+    const rub=parseFloat(document.getElementById('giftRub').value);
+    const css=document.getElementById('giftCss').value;
+    const desc=document.getElementById('giftDesc').value.trim();
+    if(!type||!name||!emoji){showMsg('giftMsg','Заполните обязательные поля!','error');return;}
+    if(isNaN(rub)||rub<0){showMsg('giftMsg','Укажите корректную цену','error');return;}
+    const valid=unitRows.filter(r=>r.payUrl.trim());
+    if(!valid.length){showMsg('giftMsg','Добавьте хотя бы одну единицу со ссылкой','error');return;}
+    try{
+        const d={name,rub,price:rub,createdAt:new Date().toLocaleString('ru-RU')}; // price дублируем для обратной совместимости
+        if(emoji.startsWith('http'))d.image=emoji; else d.emoji=emoji;
+        if(css)d.cssClass=css;
+        if(desc)d.description=desc;
+        await db.ref('giftInventory/'+type).update(d);
+        if(!editingId){
+            // Новый подарок — удаляем старые единицы и пишем новые
+            await db.ref('giftInventory/'+type+'/units').remove();
+            for(const u of valid) await db.ref('giftInventory/'+type+'/units').push({payUrl:u.payUrl.trim(),used:false,addedAt:Date.now()});
+        } else {
+            // Редактирование — обновляем существующие единицы и добавляем новые
+            for(const u of valid){
+                if(u.fbKey){
+                    // Обновляем URL существующей единицы
+                    await db.ref('giftInventory/'+type+'/units/'+u.fbKey).update({payUrl:u.payUrl.trim()});
                 } else {
-                    giftData.emoji = emoji;
+                    // Добавляем новую единицу
+                    await db.ref('giftInventory/'+type+'/units').push({payUrl:u.payUrl.trim(),used:false,addedAt:Date.now()});
                 }
-                if (cssClass) giftData.cssClass = cssClass;
-                if (description) giftData.description = description;
-                const giftsRef = database.ref('giftInventory/' + type);
-                await giftsRef.set(giftData);
-                showMessage('giftMessage', `✅ Подарок "${name}" успешно добавлен!`, 'success');
-                resetGiftForm();
-                loadGiftsList();
-                refreshStats();
-            } catch (error) {
-                console.error('Ошибка при добавлении подарка:', error);
-                showMessage('giftMessage', `❌ Ошибка: ${error.message}`, 'error');
-            }
-        });
-
-        // Загрузка списка подарков
-        async function loadGiftsList() {
-            const container = document.getElementById('giftsList');
-            const messageContainer = document.getElementById('giftListMessage');
-            
-            try {
-                const snapshot = await database.ref('giftInventory').once('value');
-                const gifts = snapshot.val() || {};
-                const giftEntries = Object.entries(gifts);
-
-                if (giftEntries.length === 0) {
-                    container.innerHTML = '';
-                    messageContainer.innerHTML = '<div class="message error">📌 Подарков еще нет</div>';
-                    return;
-                }
-
-                messageContainer.innerHTML = '';
-                container.innerHTML = giftEntries.map(([id, gift]) => `
-                    <div class="gift-item">
-                        <div class="gift-item-emoji">
-                            ${gift.emoji || (gift.image ? `<img src="${gift.image}" style="max-width: 40px; max-height: 40px; border-radius: 4px;">` : '🎁')}
-                        </div>
-                        <div class="gift-item-info">
-                            <h4>${gift.name || 'Без названия'}</h4>
-                            <p>ID: ${id}</p>
-                            <p>Кол-во: ${gift.quantity || 0} | Класс: ${gift.cssClass || 'нет'}</p>
-                        </div>
-                        <div class="gift-item-price">
-                            💫 ${gift.price || 0}
-                        </div>
-                        <div class="gift-item-actions">
-                            <button type="button" class="edit" onclick="editGift('${id}')">✏️ Изменить</button>
-                            <button type="button" class="delete" onclick="deleteGift('${id}')">🗑️ Удалить</button>
-                        </div>
-                    </div>
-                `).join('');
-            } catch (error) {
-                console.error('Ошибка при загрузке подарков:', error);
-                messageContainer.innerHTML = `<div class="message error">❌ Ошибка загрузки: ${error.message}</div>`;
             }
         }
+        showMsg('giftMsg','Подарок "'+name+'" сохранён!','success');
+        resetGiftForm(); loadGiftsList();
+    }catch(err){showMsg('giftMsg','Ошибка: '+err.message,'error');}
+});
 
-        // Редактирование подарка
-        async function editGift(giftId) {
-            try {
-                const snapshot = await database.ref('giftInventory/' + giftId).once('value');
-                const gift = snapshot.val();
+function resetGiftForm(){
+    document.getElementById('giftForm').reset();
+    document.getElementById('giftType').disabled=false;
+    editingId=null; unitRows=[]; renderUnitRows();
+    document.getElementById('giftPreview').textContent='🎁';
+    document.getElementById('submitBtn').textContent='+ Сохранить подарок';
+    document.getElementById('form-title').textContent='Создать подарок';
+    document.getElementById('resetBtn').style.display='none';
+    showMsg('giftMsg','','');
+}
 
-                if (!gift) {
-                    showMessage('giftMessage', 'Подарок не найден!', 'error');
-                    return;
-                }
+async function loadGiftsList(){
+    const c=document.getElementById('giftsList');
+    try{
+        const snap=await db.ref('giftInventory').once('value');
+        const gifts=snap.val()||{};
+        const entries=Object.entries(gifts);
+        if(!entries.length){c.innerHTML='';showMsg('giftListMsg','Подарков ещё нет','error');return;}
+        document.getElementById('giftListMsg').innerHTML='';
+        c.innerHTML=entries.map(([id,g])=>{
+            // Пропускаем служебные поля Firebase
+            if(typeof g !== 'object' || !g) return '';
+            const units=g.units?Object.values(g.units):[];
+            const avail=units.filter(u=>!u.used).length;
+            const used=units.filter(u=>u.used).length;
+            // Для старых подарков без units используем quantity
+            const legacyQty = (!g.units && typeof g.quantity==='number') ? g.quantity : null;
+            const availLabel = legacyQty !== null
+                ? '<span style="color:#f39c12">'+legacyQty+' (старый формат)</span>'
+                : '<span style="color:#2ecc71">'+avail+' доступно</span>';
+            const vis=g.emoji?'<div style="font-size:28px;text-align:center;">'+g.emoji+'</div>'
+                :(g.image?'<img src="'+g.image+'" style="width:40px;height:40px;border-radius:6px;object-fit:cover;">'
+                :'<div style="font-size:28px;">🎁</div>');
+            return '<div class="gift-item">'+
+                '<div class="gift-item-emoji">'+vis+'</div>'+
+                '<div class="gift-item-info"><h4>'+esc(g.name||'Без названия')+'</h4>'+
+                '<p>ID: <b>'+id+'</b> &middot; '+(g.rub||g.price||'?')+' ₽</p>'+
+                '<p>'+availLabel+(legacyQty===null?' &middot; '+used+' использовано':'')+'</p></div>'+
+                '<div class="gift-item-actions">'+
+                '<button type="button" style="background:linear-gradient(135deg,#667eea,#764ba2);" class="btn-sm" onclick="editGift(\'' + id + '\')">&#9998; Изм.</button>'+
+                '<button type="button" class="danger btn-sm" onclick="deleteGift(\'' + id + '\')">&#128465; Удал.</button>'+
+                '</div></div>';
+        }).join('');
+    }catch(err){showMsg('giftListMsg','Ошибка: '+err.message,'error');}
+}
 
-                // Заполняем форму
-                document.getElementById('giftType').value = giftId;
-                document.getElementById('giftName').value = gift.name || '';
-                document.getElementById('giftEmoji').value = gift.emoji || gift.image || '';
-                document.getElementById('giftPrice').value = gift.price || 0;
-                document.getElementById('giftQty').value = gift.quantity || 1;
-                document.getElementById('giftCss').value = gift.cssClass || '';
-                document.getElementById('giftDesc').value = gift.description || '';
-
-                // Обновляем превью
-                document.getElementById('giftEmoji').dispatchEvent(new Event('input'));
-
-                // Показываем кнопку отмены
-                editingGiftId = giftId;
-                document.getElementById('submitBtn').textContent = '✏️ Сохранить изменения';
-                document.getElementById('resetBtn').style.display = 'block';
-
-                // Прокручиваем к форме
-                document.getElementsByClassName('panel')[0].scrollIntoView({ behavior: 'smooth' });
-            } catch (error) {
-                showMessage('giftMessage', `❌ Ошибка: ${error.message}`, 'error');
-            }
-        }
-
-        // Удаление подарка
-        async function deleteGift(giftId) {
-            if (!confirm(`Вы уверены, что хотите удалить подарок "${giftId}"?`)) return;
-
-            try {
-                await database.ref('giftInventory/' + giftId).remove();
-                showMessage('giftMessage', '✅ Подарок удален!', 'success');
-                loadGiftsList();
-                refreshStats();
-            } catch (error) {
-                showMessage('giftMessage', `❌ Ошибка удаления: ${error.message}`, 'error');
-            }
-        }
-
-        // Сброс формы
-        function resetGiftForm() {
-            document.getElementById('giftForm').reset();
-            editingGiftId = null;
-            document.getElementById('submitBtn').textContent = '➕ Добавить подарок';
-            document.getElementById('resetBtn').style.display = 'none';
-            document.getElementById('giftPreview').textContent = '🎁';
-            document.getElementById('giftPreview').className = 'gift-preview';
-            showMessage('giftMessage', '', '');
-        }
-
-        // ==================== GALAXIES HANDLERS ====================
-        
-        document.getElementById('galaxyForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const username = document.getElementById('username').value.trim();
-            const amount = parseInt(document.getElementById('amount').value);
-
-            if (!username || isNaN(amount) || amount < 1) {
-                showMessage('galaxyMessage', 'Введите корректные данные!', 'error');
-                return;
-            }
-
-            try {
-                const userRef = database.ref('users/' + encodeURIComponent(username));
-                const snapshot = await userRef.once('value');
-                let user = snapshot.val() || {};
-
-                user.galaxies = (user.galaxies || 0) + amount;
-                user.lastGalaxyGivenAt = new Date().toLocaleString('ru-RU');
-
-                await userRef.update(user);
-
-                showMessage('galaxyMessage', `✅ Пользователю "${username}" выдано ${amount} 🌌 галактик!\nВсего: ${user.galaxies}`, 'success');
-                document.getElementById('galaxyForm').reset();
-            } catch (error) {
-                showMessage('galaxyMessage', `❌ Ошибка: ${error.message}`, 'error');
-            }
-        });
-
-        // ==================== STATISTICS ====================
-        
-        async function refreshStats() {
-            try {
-                const snapshot = await database.ref('giftInventory').once('value');
-                const gifts = snapshot.val() || {};
-                const giftEntries = Object.entries(gifts);
-
-                const totalCount = giftEntries.length;
-                const totalPrice = giftEntries.reduce((sum, [_, gift]) => sum + (gift.price || 0), 0);
-
-                document.getElementById('totalGiftsCount').textContent = totalCount;
-                document.getElementById('totalPrice').textContent = totalPrice;
-            } catch (error) {
-                console.error('Ошибка при обновлении статистики:', error);
-            }
-        }
-
-        // ==================== UTILITIES ====================
-        
-        function showMessage(elementId, message, type) {
-            const element = document.getElementById(elementId);
-            if (!message) {
-                element.innerHTML = '';
-                return;
-            }
-            element.innerHTML = `<div class="message ${type}">${message}</div>`;
-        }
-
-        // ==================== INITIALIZATION ====================
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            loadGiftsList();
-            refreshStats();
-        });
-    </script>
-    
-    <!-- Régistration Service Worker et PWA Install -->
-    <script>
-        let deferredPrompt;
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            
-            const installMsg = document.createElement('div');
-            installMsg.textContent = '📲 Нажмите, чтобы установить как приложение';
-            installMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #2ecc71; color: white; padding: 15px 20px; border-radius: 8px; cursor: pointer; z-index: 9999; font-weight: bold;';
-            
-            installMsg.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') {
-                        console.log('Приложение установлено');
-                    }
-                    deferredPrompt = null;
-                    installMsg.remove();
-                }
+async function editGift(giftId){
+    try{
+        const snap=await db.ref('giftInventory/'+giftId).once('value');
+        const g=snap.val();
+        if(!g){alert('Подарок не найден');return;}
+        document.getElementById('giftType').value=giftId;
+        document.getElementById('giftType').disabled=true;
+        document.getElementById('giftName').value=g.name||'';
+        document.getElementById('giftEmoji').value=g.emoji||g.image||'';
+        document.getElementById('giftEmoji').dispatchEvent(new Event('input'));
+        // Поддержка старого поля price и нового rub
+        document.getElementById('giftRub').value=g.rub||g.price||'';
+        document.getElementById('giftCss').value=g.cssClass||'';
+        document.getElementById('giftDesc').value=g.description||'';
+        unitRows=[];
+        if(g.units){
+            Object.entries(g.units).forEach(([k,u])=>{
+                if(!u.used) unitRows.push({id:'fb_'+k,payUrl:u.payUrl||'',fbKey:k});
             });
-            
-            document.body.appendChild(installMsg);
-        });
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then(registration => {
-                    console.log('Service Worker зарегистрирован:', registration);
-                })
-                .catch(error => {
-                    console.log('Регистрация Service Worker ошибка:', error);
-                });
         }
-    </script>
+        renderUnitRows();
+        editingId=giftId;
+        document.getElementById('submitBtn').textContent='Сохранить изменения';
+        document.getElementById('form-title').textContent='Редактировать подарок';
+        document.getElementById('resetBtn').style.display='block';
+        document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        document.getElementById('tab-gifts').classList.add('active');
+        document.querySelector('.tab-btn').classList.add('active');
+        document.querySelector('.panel').scrollIntoView({behavior:'smooth'});
+    }catch(err){showMsg('giftMsg','Ошибка: '+err.message,'error');}
+}
+
+async function deleteGift(giftId){
+    if(!confirm('Удалить "'+giftId+'" и все единицы?'))return;
+    try{
+        await db.ref('giftInventory/'+giftId).remove();
+        showMsg('giftListMsg','Подарок удалён','success');
+        loadGiftsList();refreshStats();
+    }catch(err){showMsg('giftListMsg','Ошибка: '+err.message,'error');}
+}
+
+async function loadOrdersList(){
+    const c=document.getElementById('ordersList');
+    c.innerHTML='<div style="color:#aaa;font-size:13px;padding:10px;">Загрузка...</div>';
+    const sp=document.getElementById('showPending').checked;
+    const sc=document.getElementById('showConfirmed').checked;
+    const sr=document.getElementById('showRejected').checked;
+    try{
+        const snap=await db.ref('giftOrders').once('value');
+        const orders=snap.val()||{};
+        const entries=Object.entries(orders).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
+        const filtered=entries.filter(([,o])=>(o.status==='pending'&&sp)||(o.status==='confirmed'&&sc)||(o.status==='rejected'&&sr));
+        const pCount=entries.filter(([,o])=>o.status==='pending').length;
+        const badge=document.getElementById('pending-count');
+        badge.textContent=pCount;badge.style.display=pCount>0?'inline-block':'none';
+        if(!filtered.length){c.innerHTML='<div style="color:#aaa;font-size:13px;padding:24px;text-align:center;">Нет заявок</div>';return;}
+        const lbl={pending:'Ожидает',confirmed:'Подтверждено',rejected:'Отклонено'};
+        c.innerHTML=filtered.map(([oid,o])=>
+            '<div class="order-card '+o.status+'">'+
+            '<div class="order-header">'+
+            '<div><div class="order-title">&#127873; '+esc(o.giftName||o.giftType)+'</div>'+
+            '<div class="order-id">ID: '+oid+'</div></div>'+
+            '<span class="order-status '+o.status+'">'+(lbl[o.status]||o.status)+'</span>'+
+            '</div>'+
+            '<div class="order-body">'+
+            '<div class="order-field"><label>Покупатель</label><span>&#128100; '+esc(o.from)+'</span></div>'+
+            '<div class="order-field"><label>Получатель</label><span>&#127873; '+esc(o.to)+'</span></div>'+
+            '<div class="order-field"><label>Подарок</label><span>'+esc(o.giftType)+'</span></div>'+
+            '<div class="order-field"><label>Дата</label><span>'+(o.createdAt?new Date(o.createdAt).toLocaleString('ru-RU'):'—')+'</span></div>'+
+            '<div class="order-field" style="grid-column:1/-1;"><label>Ссылка оплаты</label>'+
+            '<a href="'+esc(o.payUrl)+'" target="_blank" class="pay-url">&#128279; '+esc(o.payUrl)+'</a></div>'+
+            '</div>'+
+            (o.status==='pending'?
+            '<div class="order-actions">'+
+            '<button type="button" class="success btn-sm" onclick="confirmOrder(\'' + oid + '\')">&#9989; Подтвердить оплату</button>'+
+            '<button type="button" class="danger btn-sm" onclick="rejectOrder(\'' + oid + '\')">&#10060; Отклонить</button>'+
+            '</div>':'')+
+            (o.status==='confirmed'&&o.confirmedAt?'<div style="font-size:11px;color:#888;margin-top:8px;">Подтверждено: '+new Date(o.confirmedAt).toLocaleString('ru-RU')+'</div>':'')+
+            (o.status==='rejected'&&o.rejectedAt?'<div style="font-size:11px;color:#888;margin-top:8px;">Отклонено: '+new Date(o.rejectedAt).toLocaleString('ru-RU')+(o.rejectReason?' — '+esc(o.rejectReason):'')+'</div>':'')+
+            '</div>'
+        ).join('');
+    }catch(err){c.innerHTML='<div style="color:#ff6b6b;font-size:13px;">Ошибка: '+err.message+'</div>';}
+}
+
+async function confirmOrder(oid){
+    if(!confirm('Подтвердить? Подарок будет отправлен получателю.'))return;
+    try{
+        const snap=await db.ref('giftOrders/'+oid).once('value');
+        const o=snap.val();
+        if(!o){alert('Заявка не найдена');return;}
+        await db.ref('giftInventory/'+o.giftType+'/units/'+o.unitId).update({used:true,usedAt:Date.now(),usedBy:o.from,orderId:oid});
+        const gs=await db.ref('giftInventory/'+o.giftType).once('value');
+        const gd=gs.val()||{};
+        await db.ref('users/'+encodeURIComponent(o.to)+'/receivedGifts').push({
+            from:o.from,to:o.to,type:o.giftType,
+            giftInfo:{name:o.giftName,emoji:gd.emoji||null,image:gd.image||null,cssClass:gd.cssClass||null,rub:gd.rub||null},
+            timestamp:Date.now(),hidden:false,orderId:oid
+        });
+        await db.ref('users/'+encodeURIComponent(o.to)+'/notifications').push({
+            type:'gift_received',from:o.from,giftType:o.giftType,giftName:o.giftName,
+            giftEmoji:gd.emoji||null,timestamp:Date.now(),read:false
+        });
+        await db.ref('giftOrders/'+oid).update({status:'confirmed',confirmedAt:Date.now()});
+        loadOrdersList();refreshStats();
+    }catch(err){alert('Ошибка: '+err.message);}
+}
+
+async function rejectOrder(oid){
+    const reason=prompt('Причина (опционально):');
+    if(reason===null)return;
+    try{
+        await db.ref('giftOrders/'+oid).update({status:'rejected',rejectedAt:Date.now(),rejectReason:reason||''});
+        loadOrdersList();refreshStats();
+    }catch(err){alert('Ошибка: '+err.message);}
+}
+
+async function refreshStats(){
+    try{
+        const[gs,os]=await Promise.all([db.ref('giftInventory').once('value'),db.ref('giftOrders').once('value')]);
+        const gifts=gs.val()||{},orders=os.val()||{};
+        let tot=0,av=0;
+        Object.values(gifts).forEach(g=>{
+            if(!g || typeof g !== 'object') return;
+            if(g.units){
+                const u=Object.values(g.units);
+                tot+=u.length;
+                av+=u.filter(x=>!x.used).length;
+            } else if(typeof g.quantity==='number'){
+                // Старый формат
+                tot+=g.quantity; av+=g.quantity;
+            }
+        });
+        const oa=Object.values(orders);
+        document.getElementById('sGifts').textContent=Object.keys(gifts).length;
+        document.getElementById('sTotal').textContent=tot;
+        document.getElementById('sAvail').textContent=av;
+        document.getElementById('sPending').textContent=oa.filter(o=>o.status==='pending').length;
+        document.getElementById('sConfirmed').textContent=oa.filter(o=>o.status==='confirmed').length;
+        document.getElementById('sRejected').textContent=oa.filter(o=>o.status==='rejected').length;
+        const p=oa.filter(o=>o.status==='pending').length;
+        const badge=document.getElementById('pending-count');
+        badge.textContent=p;badge.style.display=p>0?'inline-block':'none';
+    }catch(e){console.error(e);}
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+    renderUnitRows();loadGiftsList();refreshStats();
+    db.ref('giftOrders').orderByChild('status').equalTo('pending').on('value',function(snap){
+        const c=snap.numChildren(),badge=document.getElementById('pending-count');
+        badge.textContent=c;badge.style.display=c>0?'inline-block':'none';
+    });
+});
+</script>
 </body>
 </html>
