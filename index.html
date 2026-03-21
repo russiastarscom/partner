@@ -9527,13 +9527,14 @@
 
     async function initOneSignal(OS) {
         if (!OS) OS = window.OneSignal;
-        if (!OS) { console.warn('[OneSignal] SDK не загружен'); return; }
-        // Динамически определяем base path (работает и на /partner/ и на /)
-        const pathParts = location.pathname.split('/').filter(Boolean);
-        const swBase = (pathParts.length > 0 && !pathParts[0].includes('.'))
-            ? '/' + pathParts[0] + '/'
-            : '/';
-        console.log('🔄 Инициализация OneSignal, swBase:', swBase);
+        if (!OS) { console.warn("[OneSignal] SDK не загружен"); return; }
+        // OneSignal требует полный URL (с origin) для serviceWorkerPath
+        const pathParts = location.pathname.split("/").filter(Boolean);
+        const swSubdir = (pathParts.length > 0 && !pathParts[0].includes("."))
+            ? "/" + pathParts[0] + "/"
+            : "/";
+        const swFullBase = location.origin + swSubdir;
+        console.log("🔄 Инициализация OneSignal, swFullBase:", swFullBase);
         try {
             await OS.init({
                 appId: "3ffd17da-2e0f-4504-ab59-47e15e39f5d2",
@@ -9545,8 +9546,8 @@
                     title: "Twin",
                     message: "Уведомления включены! 🔔",
                 },
-                serviceWorkerParam: { scope: swBase },
-                serviceWorkerPath: swBase + 'OneSignalSDKWorker.js',
+                serviceWorkerParam: { scope: swSubdir },
+                serviceWorkerPath: swFullBase + "OneSignalSDKWorker.js",
             });
 
             console.log('✅ OneSignal инициализирован успешно');
