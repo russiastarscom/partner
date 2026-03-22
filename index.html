@@ -9169,8 +9169,12 @@
 //  push-init + push-notify объединены
 // ════════════════════════════════════════════════════════════
 
-const VAPID_PUBLIC_KEY = 'BHWhY-ozjg5GkVLxFhhG_VEtj198PkvEjRtTDSfOMtNKGr1RpX_ELO9YAQChg7E0gLIrERJW0LzolDkkD0RBzbM';
+// ⚠️ КЛЮЧ ДОЛЖЕН СОВПАДАТЬ С server.js — иначе push не работает
+const VAPID_PUBLIC_KEY = 'BANapkW0GhUBLNbQBvsZbHBdcjGm_kVIifEYNBsivgzSkYztpF37z1Ij7YvX3s03J-6RRvNE-PvZ5K2JJVfS_vQ';
 const PUSH_SERVER_URL  = 'https://twin-push-server-production.up.railway.app';
+const PUSH_ICON  = 'https://russiastarscom.github.io/partner/icon-192x192.png';
+const PUSH_BADGE = 'https://russiastarscom.github.io/partner/icon-192x192.png';
+const PUSH_URL   = 'https://russiastarscom.github.io/partner/index.html';
 
 // ── Утилита: base64url → Uint8Array ──────────────────────
 function urlBase64ToUint8Array(base64String) {
@@ -9205,7 +9209,6 @@ async function initPushNotifications(userId) {
         console.warn('[Push] Браузер не поддерживает Web Push'); return;
     }
     try {
-        // Путь к SW — всегда рядом с текущей страницей
         const swUrl = new URL('./service-worker.js', window.location.href).href;
         console.log('[Push] Регистрируем SW:', swUrl);
 
@@ -9214,36 +9217,54 @@ async function initPushNotifications(userId) {
         });
         console.log('[Push] SW зарегистрирован, scope:', registration.scope);
 
-        // Ждём активации если SW только что установился
-        await new Promise(resolve => {
-            if (registration.active) { resolve(); return; }
-            const sw = registration.installing || registration.waiting;
-            if (sw) {
-                sw.addEventListener('statechange', e => {
-                    if (e.target.state === 'activated') resolve();
-                });
-            } else {
-                resolve();
-            }
-        });
+        // Ждём полной активации — критично для getSubscription()
+        await navigator.serviceWorker.ready;
+        console.log('[Push] SW активен');
 
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
-            console.warn('[Push] Пользователь отклонил уведомления'); return;
+            console.warn('[Push] Пользователь отклонил уведомления:', permission); return;
         }
 
-        const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-        });
-        console.log('[Push] Подписка получена:', subscription.endpoint);
+        // Проверяем существующую подписку
+        // Если VAPID ключ изменился — переподписываемся
+        let subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+            try {
+                const oldKey = btoa(String.fromCharCode(...new Uint8Array(subscription.options.applicationServerKey)));
+                const newKey = btoa(String.fromCharCode(...urlBase64ToUint8Array(VAPID_PUBLIC_KEY)));
+                if (oldKey !== newKey) {
+                    console.log('[Push] VAPID ключ изменился — переподписка');
+                    await subscription.unsubscribe();
+                    subscription = null;
+                } else {
+                    console.log('[Push] Используем существующую подписку');
+                }
+            } catch(e) {
+                await subscription.unsubscribe();
+                subscription = null;
+            }
+        }
+
+        if (!subscription) {
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+            });
+            console.log('[Push] Новая подписка создана:', subscription.endpoint);
+        }
 
         const res = await fetch(`${PUSH_SERVER_URL}/subscribe`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId, subscription })
         });
-        console.log(res.ok ? '[Push] ✓ Подписка сохранена' : '[Push] Ошибка сервера: ' + res.status);
+        if (res.ok) {
+            const data = await res.json();
+            console.log('[Push] ✓ Подписка сохранена, всего:', data.totalSubscriptions);
+        } else {
+            console.error('[Push] Ошибка сервера:', res.status, await res.text());
+        }
 
     } catch (err) {
         console.error('[Push] Ошибка инициализации:', err);
@@ -9296,22 +9317,22 @@ function applyPushPatches() {
                 await sendPushToUser(chat, {
                     title: sender,
                     body: text.length > 100 ? text.slice(0,100)+'…' : text,
-                    icon: '/partner/icon-192x192.png', badge: '/partner/icon-192x192.png',
-                    tag: `msg-${sender}`, url: '/partner/index.html'
+                    icon: PUSH_ICON, badge: PUSH_BADGE,
+                    tag: `msg-${sender}`, url: PUSH_URL
                 });
             } else if (chatType === 'group' && group?.participants) {
                 await sendPushToMany(group.participants, {
                     title: group.name || 'Группа',
                     body: `${sender}: ${text.length > 80 ? text.slice(0,80)+'…' : text}`,
-                    icon: '/partner/icon-192x192.png', badge: '/partner/icon-192x192.png',
-                    tag: `group-${chat}`, url: '/partner/index.html'
+                    icon: PUSH_ICON, badge: PUSH_BADGE,
+                    tag: `group-${chat}`, url: PUSH_URL
                 });
             } else if (chatType === 'channel' && channel?.subscribers) {
                 await sendPushToMany(channel.subscribers, {
                     title: `📢 ${channel.name || 'Канал'}`,
                     body: text.length > 100 ? text.slice(0,100)+'…' : text,
-                    icon: '/partner/icon-192x192.png', badge: '/partner/icon-192x192.png',
-                    tag: `channel-${chat}`, url: '/partner/index.html'
+                    icon: PUSH_ICON, badge: PUSH_BADGE,
+                    tag: `channel-${chat}`, url: PUSH_URL
                 });
             }
         };
@@ -9335,8 +9356,8 @@ function applyPushPatches() {
                 await sendPushToMany(pending, {
                     title: '👥 Вас добавили в группу',
                     body: `${creator} добавил вас в «${groupName}»`,
-                    icon: '/partner/icon-192x192.png', badge: '/partner/icon-192x192.png',
-                    tag: 'group-invite', url: '/partner/index.html'
+                    icon: PUSH_ICON, badge: PUSH_BADGE,
+                    tag: 'group-invite', url: PUSH_URL
                 });
             }
         };
@@ -9355,8 +9376,8 @@ function applyPushPatches() {
             await sendPushToUser(targetUser, {
                 title: `📲 Входящий звонок от ${caller}`,
                 body: callType === 'audio' ? '🔊 Аудио звонок' : '📹 Видео звонок',
-                icon: '/partner/icon-192x192.png', badge: '/partner/icon-192x192.png',
-                tag: `call-${caller}`, url: '/partner/index.html'
+                icon: PUSH_ICON, badge: PUSH_BADGE,
+                tag: `call-${caller}`, url: PUSH_URL
             });
         };
         window.startCall._pushPatched = true;
@@ -9380,8 +9401,8 @@ function applyPushPatches() {
                     await sendPushToUser(channel.creator, {
                         title: '📢 Новый подписчик',
                         body: `${sub} подписался на «${channel.name}»`,
-                        icon: '/partner/icon-192x192.png', badge: '/partner/icon-192x192.png',
-                        tag: `sub-${channelId}`, url: '/partner/index.html'
+                        icon: PUSH_ICON, badge: PUSH_BADGE,
+                        tag: `sub-${channelId}`, url: PUSH_URL
                     });
                 });
             });
