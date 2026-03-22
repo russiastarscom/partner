@@ -1,14 +1,14 @@
 // ════════════════════════════════════════════════════════════
 //  Twin — push-init.js  (ИСПРАВЛЕННАЯ ВЕРСИЯ)
-//  Подключи этот файл в index.html перед закрывающим </body>:
+//  Файл: /partner/push-init.js
+//  Подключи перед </body> в index.html:
 //  <script src="push-init.js"></script>
 // ════════════════════════════════════════════════════════════
 
-// ── VAPID публичный ключ — ДОЛЖЕН совпадать с server.js ──
-// ⚠️  ИСПРАВЛЕНО: был другой ключ, из-за чего push не работал
+// ── VAPID публичный ключ — совпадает с server.js ─────────
 const VAPID_PUBLIC_KEY = 'BANapkW0GhUBLNbQBvsZbHBdcjGm_kVIifEYNBsivgzSkYztpF37z1Ij7YvX3s03J-6RRvNE-PvZ5K2JJVfS_vQ';
 
-// ── URL твоего push-сервера ──────────────────────────────
+// ── URL push-сервера ─────────────────────────────────────
 const PUSH_SERVER_URL = 'https://twin-push-server-production.up.railway.app';
 
 // ════════════════════════════════════════════════════════════
@@ -24,8 +24,18 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 /**
- * Регистрирует service worker и оформляет push-подписку.
- * @param {string} userId - uid текущего пользователя в Firebase
+ * Сравнивает два applicationServerKey (Uint8Array / ArrayBuffer)
+ */
+function keysMatch(buf1, buf2) {
+    const a = new Uint8Array(buf1);
+    const b = new Uint8Array(buf2);
+    if (a.length !== b.length) return false;
+    return a.every((v, i) => v === b[i]);
+}
+
+/**
+ * Регистрирует service worker из корня и оформляет push-подписку.
+ * @param {string} userId - uid/username текущего пользователя
  */
 async function initPushNotifications(userId) {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
@@ -34,18 +44,18 @@ async function initPushNotifications(userId) {
     }
 
     try {
-        // 1. Регистрируем service worker
-        // ⚠️ ИСПРАВЛЕНО: путь должен совпадать с тем, что в корне сайта
-        const registration = await navigator.serviceWorker.register('/partner/service-worker.js', {
-            scope: '/partner/'
+        // 1. Регистрируем service worker ИЗ КОРНЯ сайта
+        // ⚠️ КРИТИЧНО: scope '/' позволяет SW обрабатывать push для всего сайта
+        const registration = await navigator.serviceWorker.register('/service-worker.js', {
+            scope: '/'
         });
-        console.log('[Push] SW зарегистрирован:', registration.scope);
+        console.log('[Push] SW зарегистрирован, scope:', registration.scope);
 
-        // Ждём активации SW перед подпиской
+        // Ждём активации SW
         await navigator.serviceWorker.ready;
         console.log('[Push] SW активен');
 
-        // 2. Спрашиваем разрешение на уведомления
+        // 2. Запрашиваем разрешение на уведомления
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
             console.warn('[Push] Пользователь отказал в уведомлениях:', permission);
@@ -56,13 +66,12 @@ async function initPushNotifications(userId) {
         let subscription = await registration.pushManager.getSubscription();
 
         if (subscription) {
-            // Проверяем, тот ли это VAPID ключ
-            // Если ключ изменился — отписываемся и подписываемся заново
-            const currentKey = btoa(String.fromCharCode(...new Uint8Array(subscription.options.applicationServerKey)));
-            const expectedKey = btoa(String.fromCharCode(...urlBase64ToUint8Array(VAPID_PUBLIC_KEY)));
+            // Проверяем совпадение VAPID ключа
+            const expectedKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+            const currentKey  = subscription.options && subscription.options.applicationServerKey;
 
-            if (currentKey !== expectedKey) {
-                console.log('[Push] VAPID ключ изменился, переподписка...');
+            if (currentKey && !keysMatch(currentKey, expectedKey)) {
+                console.log('[Push] VAPID ключ изменился — переподписка...');
                 await subscription.unsubscribe();
                 subscription = null;
             } else {
@@ -88,7 +97,7 @@ async function initPushNotifications(userId) {
 
         if (res.ok) {
             const data = await res.json();
-            console.log('[Push] ✓ Подписка сохранена на сервере, всего:', data.totalSubscriptions);
+            console.log('[Push] ✓ Подписка сохранена. Всего подписок:', data.totalSubscriptions);
         } else {
             const errText = await res.text();
             console.error('[Push] Сервер вернул ошибку:', res.status, errText);
@@ -100,13 +109,14 @@ async function initPushNotifications(userId) {
 }
 
 /**
- * Отписывается от push-уведомлений (при выходе из аккаунта).
+ * Отписывается от push-уведомлений (вызывать при выходе из аккаунта).
  * @param {string} userId
  */
 async function unsubscribePush(userId) {
     try {
-        const reg = await navigator.serviceWorker.getRegistration('/partner/service-worker.js');
+        const reg = await navigator.serviceWorker.getRegistration('/service-worker.js');
         if (!reg) return;
+
         const sub = await reg.pushManager.getSubscription();
         if (!sub) return;
 
@@ -124,13 +134,15 @@ async function unsubscribePush(userId) {
 }
 
 // ── Автозапуск после логина ──────────────────────────────
+// Ждём появления currentUser (Firebase async auth)
 document.addEventListener('DOMContentLoaded', () => {
+    let attempts = 0;
     const interval = setInterval(() => {
+        if (++attempts > 30) { clearInterval(interval); return; } // 30 сек
+
         if (typeof currentUser !== 'undefined' && currentUser) {
             clearInterval(interval);
             initPushNotifications(currentUser);
         }
     }, 1000);
-
-    setTimeout(() => clearInterval(interval), 30000);
 });

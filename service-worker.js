@@ -1,9 +1,10 @@
 // ════════════════════════════════════════════════════════════
-//  Twin — Service Worker v11 (ИСПРАВЛЕННАЯ ВЕРСИЯ)
-//  Файл: /partner/service-worker.js
+//  Twin — Service Worker v12  (КОРНЕВОЙ ФАЙЛ)
+//  Файл: /service-worker.js  (корень репозитория)
+//  URL:  https://russiastarscom.github.io/service-worker.js
 // ════════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'twin-v11';
+const CACHE_NAME = 'twin-v12';
 const CACHE_URLS = [
     '/partner/',
     '/partner/index.html',
@@ -14,7 +15,7 @@ const CACHE_URLS = [
 
 // ── Установка ────────────────────────────────────────────
 self.addEventListener('install', e => {
-    console.log('[SW] Установка v11');
+    console.log('[SW] Установка v12');
     self.skipWaiting();
     e.waitUntil(
         caches.open(CACHE_NAME)
@@ -24,7 +25,7 @@ self.addEventListener('install', e => {
 
 // ── Активация ────────────────────────────────────────────
 self.addEventListener('activate', e => {
-    console.log('[SW] Активация v11');
+    console.log('[SW] Активация v12');
     e.waitUntil(
         caches.keys()
             .then(keys => Promise.all(
@@ -39,11 +40,13 @@ self.addEventListener('fetch', e => {
     if (e.request.method !== 'GET') return;
     const u = e.request.url;
 
+    // Пропускаем API-запросы напрямую в сеть (не кэшируем)
     if (
         u.includes('firebaseio.com') ||
         u.includes('googleapis.com') ||
+        u.includes('firebaseapp.com') ||
         u.includes('8x8.vc') ||
-        u.includes('railway.app')   // ⚠️ ИСПРАВЛЕНО: не кэшируем push-сервер
+        u.includes('railway.app')
     ) return;
 
     e.respondWith(
@@ -67,7 +70,6 @@ self.addEventListener('fetch', e => {
 self.addEventListener('push', e => {
     console.log('[SW] Push получен');
 
-    // ⚠️ ИСПРАВЛЕНО: дефолты с абсолютными URL (обязательно для закрытого браузера)
     let payload = {
         title: 'Twin',
         body: 'Новое сообщение',
@@ -86,8 +88,6 @@ self.addEventListener('push', e => {
         }
     }
 
-    // ⚠️ ИСПРАВЛЕНО: убрали actions — не все браузеры поддерживают,
-    // и это может блокировать показ уведомления
     const options = {
         body:     payload.body,
         icon:     payload.icon,
@@ -95,7 +95,6 @@ self.addEventListener('push', e => {
         tag:      payload.tag,
         renotify: true,
         vibrate:  [200, 100, 200],
-        // ⚠️ КРИТИЧНО: requireInteraction = true гарантирует показ когда браузер закрыт
         requireInteraction: false,
         data: {
             url: payload.url,
@@ -103,7 +102,6 @@ self.addEventListener('push', e => {
         }
     };
 
-    // ⚠️ ИСПРАВЛЕНО: всегда возвращаем промис из waitUntil
     e.waitUntil(
         self.registration.showNotification(payload.title, options)
             .then(() => console.log('[SW] Уведомление показано:', payload.title))
@@ -123,14 +121,12 @@ self.addEventListener('notificationclick', e => {
     e.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true })
             .then(windowClients => {
-                // Ищем уже открытую вкладку Twin
                 for (const client of windowClients) {
                     if (client.url.includes('/partner/') && 'focus' in client) {
                         client.navigate(targetUrl);
                         return client.focus();
                     }
                 }
-                // Открываем новую вкладку
                 if (clients.openWindow) {
                     return clients.openWindow(targetUrl);
                 }
@@ -143,4 +139,4 @@ self.addEventListener('notificationclose', e => {
     console.log('[SW] Уведомление закрыто:', e.notification.tag);
 });
 
-console.log('[SW] Twin v11 готов — Web Push включён ✓');
+console.log('[SW] Twin v12 готов — Web Push включён ✓');

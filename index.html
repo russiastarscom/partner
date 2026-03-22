@@ -36,39 +36,29 @@
     
     <!-- === КОНЕЦ БЛОКА SEO === -->
     
-    <!-- Добавьте эти мета-теги для PWA -->
+    <!-- PWA мета-теги -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Twin">
     <meta name="theme-color" content="#6c5ce7">
     <meta name="msapplication-navbutton-color" content="#6c5ce7">
-    <meta name="apple-mobile-web-app-title" content="Twin">
-    <!-- Основные иконки -->
-    <link rel="icon" type="image/png" sizes="32x32" href="icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="icon-192x192.png">
-    <link rel="apple-touch-icon" href="icon-192x192.png">
-
-    <!-- Для Android -->
-    <link rel="manifest" href="manifest.json">
-
-    <!-- Для iOS -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Twin">
-
-    <!-- Для Windows -->
     <meta name="msapplication-TileColor" content="#6c5ce7">
-    <meta name="msapplication-TileImage" content="icon-192x192.png">
-    
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, height=device-height">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#6c5ce7">
-    <link rel="stylesheet" href="gift_animations.css">
-    <link rel="manifest" href="manifest.json">
+    <meta name="msapplication-TileImage" content="/partner/icon-192x192.png">
     <meta name="format-detection" content="telephone=no">
+
+    <!-- Viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, height=device-height">
+
+    <!-- Иконки (абсолютные пути) -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/partner/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/partner/icon-192x192.png">
+    <link rel="apple-touch-icon" href="/partner/icon-192x192.png">
+
+    <!-- PWA manifest (абсолютный путь) -->
+    <link rel="manifest" href="/partner/manifest.json">
+
+    <link rel="stylesheet" href="gift_animations.css">
     <title>Twin</title>
     <style>
         :root {
@@ -5492,33 +5482,6 @@
                 // Создаем уведомление для получателя(ей)
                 await createNotificationForReceiver(text);
 
-                // Web Push уведомление
-                try {
-                    const _pushText = text.length > 100 ? text.slice(0, 100) + '…' : text;
-                    if (currentChatType === 'user' && currentChat) {
-                        await sendPushToUser(currentChat, {
-                            title: currentUser,
-                            body: _pushText,
-                            icon: PUSH_ICON, badge: PUSH_BADGE,
-                            tag: 'msg-' + currentUser, url: PUSH_URL
-                        });
-                    } else if (currentChatType === 'group' && currentGroup && currentGroup.participants) {
-                        await sendPushToMany(currentGroup.participants, {
-                            title: currentGroup.name || 'Группа',
-                            body: currentUser + ': ' + _pushText,
-                            icon: PUSH_ICON, badge: PUSH_BADGE,
-                            tag: 'group-' + chatId, url: PUSH_URL
-                        });
-                    } else if (currentChatType === 'channel' && currentChannel && currentChannel.subscribers) {
-                        await sendPushToMany(currentChannel.subscribers, {
-                            title: '📢 ' + (currentChannel.name || 'Канал'),
-                            body: _pushText,
-                            icon: PUSH_ICON, badge: PUSH_BADGE,
-                            tag: 'channel-' + chatId, url: PUSH_URL
-                        });
-                    }
-                } catch (_pe) { console.warn('[Push] sendMessage error:', _pe); }
-
                 messageText.value = '';
 
                 loadMessages();
@@ -7092,15 +7055,6 @@
                         } catch (error) {
                             console.error(`Ошибка отправки уведомления пользователю ${participant}:`, error);
                         }
-                        // Web Push
-                        try {
-                            await sendPushToUser(participant, {
-                                title: '👥 Вас добавили в группу',
-                                body: currentUser + ' создал группу «' + groupName + '»',
-                                icon: PUSH_ICON, badge: PUSH_BADGE,
-                                tag: 'group-invite', url: PUSH_URL
-                            });
-                        } catch(_pe) { console.warn('[Push] createGroup error:', _pe); }
                     }
                 });
             } catch (error) {
@@ -8905,17 +8859,6 @@
          * @param {string|null} roomOverride - имя комнаты (для входящего)
          */
         async function startCall(targetUser, callType, isIncoming = false, roomOverride = null) {
-            // Web Push — уведомляем получателя о звонке
-            if (!isIncoming && targetUser && currentUser) {
-                try {
-                    await sendPushToUser(targetUser, {
-                        title: '📲 Звонок от ' + currentUser,
-                        body: callType === 'audio' ? '🔊 Аудио звонок' : '📹 Видео звонок',
-                        icon: PUSH_ICON, badge: PUSH_BADGE,
-                        tag: 'call-' + currentUser, url: PUSH_URL
-                    });
-                } catch(_pe) { console.warn('[Push] startCall error:', _pe); }
-            }
             try {
                 await loadJitsiScript();
             } catch (e) {
@@ -9212,16 +9155,13 @@
 
 <script>
 // ════════════════════════════════════════════════════════════
-//  Twin — Push System (inline, bypass cache)
+//  Twin — Push System (inline)
 //  push-init + push-notify объединены
 // ════════════════════════════════════════════════════════════
 
-// ⚠️ КЛЮЧ ДОЛЖЕН СОВПАДАТЬ С server.js — иначе push не работает
+// ⚠️ ИСПРАВЛЕНО: правильный VAPID ключ, совпадает с server.js
 const VAPID_PUBLIC_KEY = 'BANapkW0GhUBLNbQBvsZbHBdcjGm_kVIifEYNBsivgzSkYztpF37z1Ij7YvX3s03J-6RRvNE-PvZ5K2JJVfS_vQ';
 const PUSH_SERVER_URL  = 'https://twin-push-server-production.up.railway.app';
-const PUSH_ICON  = 'https://russiastarscom.github.io/partner/icon-192x192.png';
-const PUSH_BADGE = 'https://russiastarscom.github.io/partner/icon-192x192.png';
-const PUSH_URL   = 'https://russiastarscom.github.io/partner/index.html';
 
 // ── Утилита: base64url → Uint8Array ──────────────────────
 function urlBase64ToUint8Array(base64String) {
@@ -9231,6 +9171,13 @@ function urlBase64ToUint8Array(base64String) {
     return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
 }
 
+// ── Сравнение VAPID ключей (ArrayBuffer) ─────────────────
+function vapidKeysMatch(buf1, buf2) {
+    const a = new Uint8Array(buf1), b = new Uint8Array(buf2);
+    if (a.length !== b.length) return false;
+    return a.every((v, i) => v === b[i]);
+}
+
 // ── Отправить push одному юзеру ───────────────────────────
 async function sendPushToUser(targetUserId, payload) {
     if (!targetUserId || !payload) return;
@@ -9238,7 +9185,7 @@ async function sendPushToUser(targetUserId, payload) {
         await fetch(`${PUSH_SERVER_URL}/send`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: targetUserId, payload })
+            body: JSON.stringify({ userId: targetUserId, ...payload })
         });
     } catch (e) { console.warn('[Push] send error:', e); }
 }
@@ -9256,40 +9203,32 @@ async function initPushNotifications(userId) {
         console.warn('[Push] Браузер не поддерживает Web Push'); return;
     }
     try {
-        const swUrl = new URL('./service-worker.js', window.location.href).href;
-        console.log('[Push] Регистрируем SW:', swUrl);
-
-        const registration = await navigator.serviceWorker.register(swUrl, {
-            scope: new URL('./', window.location.href).pathname
+        // ⚠️ ИСПРАВЛЕНО: SW регистрируется из КОРНЯ сайта, scope '/'
+        const registration = await navigator.serviceWorker.register('/service-worker.js', {
+            scope: '/'
         });
         console.log('[Push] SW зарегистрирован, scope:', registration.scope);
 
-        // Ждём полной активации — критично для getSubscription()
         await navigator.serviceWorker.ready;
         console.log('[Push] SW активен');
 
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
-            console.warn('[Push] Пользователь отклонил уведомления:', permission); return;
+            console.warn('[Push] Пользователь отклонил уведомления'); return;
         }
 
-        // Проверяем существующую подписку
-        // Если VAPID ключ изменился — переподписываемся
+        // ⚠️ ИСПРАВЛЕНО: проверяем существующую подписку перед созданием новой
         let subscription = await registration.pushManager.getSubscription();
+
         if (subscription) {
-            try {
-                const oldKey = btoa(String.fromCharCode(...new Uint8Array(subscription.options.applicationServerKey)));
-                const newKey = btoa(String.fromCharCode(...urlBase64ToUint8Array(VAPID_PUBLIC_KEY)));
-                if (oldKey !== newKey) {
-                    console.log('[Push] VAPID ключ изменился — переподписка');
-                    await subscription.unsubscribe();
-                    subscription = null;
-                } else {
-                    console.log('[Push] Используем существующую подписку');
-                }
-            } catch(e) {
+            const expectedKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+            const currentKey  = subscription.options && subscription.options.applicationServerKey;
+            if (currentKey && !vapidKeysMatch(currentKey, expectedKey)) {
+                console.log('[Push] VAPID ключ изменился — переподписка...');
                 await subscription.unsubscribe();
                 subscription = null;
+            } else {
+                console.log('[Push] Используем существующую подписку');
             }
         }
 
@@ -9308,7 +9247,7 @@ async function initPushNotifications(userId) {
         });
         if (res.ok) {
             const data = await res.json();
-            console.log('[Push] ✓ Подписка сохранена, всего:', data.totalSubscriptions);
+            console.log('[Push] ✓ Подписка сохранена. Всего:', data.totalSubscriptions);
         } else {
             console.error('[Push] Ошибка сервера:', res.status, await res.text());
         }
@@ -9321,8 +9260,8 @@ async function initPushNotifications(userId) {
 // ── Отписка ───────────────────────────────────────────────
 async function unsubscribePush(userId) {
     try {
-        const swUrl = new URL('./service-worker.js', window.location.href).href;
-        const reg = await navigator.serviceWorker.getRegistration(swUrl);
+        // ⚠️ ИСПРАВЛЕНО: ищем SW по правильному корневому пути
+        const reg = await navigator.serviceWorker.getRegistration('/service-worker.js');
         if (!reg) return;
         const sub = await reg.pushManager.getSubscription();
         if (!sub) return;
@@ -9364,22 +9303,22 @@ function applyPushPatches() {
                 await sendPushToUser(chat, {
                     title: sender,
                     body: text.length > 100 ? text.slice(0,100)+'…' : text,
-                    icon: PUSH_ICON, badge: PUSH_BADGE,
-                    tag: `msg-${sender}`, url: PUSH_URL
+                    icon: '/partner/icon-192x192.png', badge: '/partner/icon-192x192.png',
+                    tag: `msg-${sender}`, url: '/partner/index.html'
                 });
             } else if (chatType === 'group' && group?.participants) {
                 await sendPushToMany(group.participants, {
                     title: group.name || 'Группа',
                     body: `${sender}: ${text.length > 80 ? text.slice(0,80)+'…' : text}`,
-                    icon: PUSH_ICON, badge: PUSH_BADGE,
-                    tag: `group-${chat}`, url: PUSH_URL
+                    icon: '/partner/icon-192x192.png', badge: '/partner/icon-192x192.png',
+                    tag: `group-${chat}`, url: '/partner/index.html'
                 });
             } else if (chatType === 'channel' && channel?.subscribers) {
                 await sendPushToMany(channel.subscribers, {
                     title: `📢 ${channel.name || 'Канал'}`,
                     body: text.length > 100 ? text.slice(0,100)+'…' : text,
-                    icon: PUSH_ICON, badge: PUSH_BADGE,
-                    tag: `channel-${chat}`, url: PUSH_URL
+                    icon: '/partner/icon-192x192.png', badge: '/partner/icon-192x192.png',
+                    tag: `channel-${chat}`, url: '/partner/index.html'
                 });
             }
         };
@@ -9403,8 +9342,8 @@ function applyPushPatches() {
                 await sendPushToMany(pending, {
                     title: '👥 Вас добавили в группу',
                     body: `${creator} добавил вас в «${groupName}»`,
-                    icon: PUSH_ICON, badge: PUSH_BADGE,
-                    tag: 'group-invite', url: PUSH_URL
+                    icon: '/partner/icon-192x192.png', badge: '/partner/icon-192x192.png',
+                    tag: 'group-invite', url: '/partner/index.html'
                 });
             }
         };
@@ -9423,8 +9362,8 @@ function applyPushPatches() {
             await sendPushToUser(targetUser, {
                 title: `📲 Входящий звонок от ${caller}`,
                 body: callType === 'audio' ? '🔊 Аудио звонок' : '📹 Видео звонок',
-                icon: PUSH_ICON, badge: PUSH_BADGE,
-                tag: `call-${caller}`, url: PUSH_URL
+                icon: '/partner/icon-192x192.png', badge: '/partner/icon-192x192.png',
+                tag: `call-${caller}`, url: '/partner/index.html'
             });
         };
         window.startCall._pushPatched = true;
@@ -9448,8 +9387,8 @@ function applyPushPatches() {
                     await sendPushToUser(channel.creator, {
                         title: '📢 Новый подписчик',
                         body: `${sub} подписался на «${channel.name}»`,
-                        icon: PUSH_ICON, badge: PUSH_BADGE,
-                        tag: `sub-${channelId}`, url: PUSH_URL
+                        icon: '/partner/icon-192x192.png', badge: '/partner/icon-192x192.png',
+                        tag: `sub-${channelId}`, url: '/partner/index.html'
                     });
                 });
             });
@@ -9471,99 +9410,10 @@ function applyPushPatches() {
 
         clearInterval(interval);
         initPushNotifications(currentUser);
-        console.log('[Push] ✅ Push подписка запущена для:', currentUser);
+        applyPushPatches();
+        console.log('[Push] ✅ Система уведомлений запущена для:', currentUser);
     }, 1000);
 })();
 </script>
-
-
-<!-- ══ PUSH DEBUG PANEL (удали после отладки) ══ -->
-<style>
-#push-debug {
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 999999;
-    background: rgba(0,0,0,0.92); color: #0f0; font: 11px/1.4 monospace;
-    max-height: 40vh; overflow-y: auto; padding: 6px 8px;
-    border-top: 2px solid #0f0; display: none;
-}
-#push-debug-toggle {
-    position: fixed; bottom: 0; right: 0; z-index: 1000000;
-    background: #6c5ce7; color: #fff; border: none; border-radius: 8px 0 0 0;
-    padding: 6px 12px; font-size: 12px; cursor: pointer; font-weight: bold;
-}
-#push-debug .err { color: #f66; }
-#push-debug .ok  { color: #0f0; }
-#push-debug .warn{ color: #fa0; }
-</style>
-<div id="push-debug"></div>
-<button id="push-debug-toggle" onclick="
-  var p=document.getElementById('push-debug');
-  p.style.display=p.style.display==='none'?'block':'none';
-">🔔 Debug</button>
-<script>
-(function(){
-    var panel = document.getElementById('push-debug');
-    function addLog(msg, type) {
-        var d = document.createElement('div');
-        d.className = type||'';
-        d.textContent = new Date().toLocaleTimeString() + ' ' + msg;
-        panel.appendChild(d);
-        panel.scrollTop = panel.scrollHeight;
-    }
-    // Перехватываем console
-    var _log = console.log.bind(console);
-    var _warn = console.warn.bind(console);
-    var _err = console.error.bind(console);
-    console.log = function() {
-        var msg = Array.from(arguments).join(' ');
-        _log.apply(console, arguments);
-        if (msg.includes('[Push]') || msg.includes('[SW]')) addLog(msg, 'ok');
-    };
-    console.warn = function() {
-        var msg = Array.from(arguments).join(' ');
-        _warn.apply(console, arguments);
-        if (msg.includes('[Push]') || msg.includes('[SW]')) addLog(msg, 'warn');
-    };
-    console.error = function() {
-        var msg = Array.from(arguments).join(' ');
-        _err.apply(console, arguments);
-        if (msg.includes('[Push]') || msg.includes('[SW]')) addLog(msg, 'err');
-    };
-
-    // Кнопка — проверить состояние вручную
-    document.getElementById('push-debug-toggle').addEventListener('dblclick', async function() {
-        panel.style.display = 'block';
-        addLog('=== РУЧНАЯ ПРОВЕРКА ===', 'warn');
-        addLog('SW поддержка: ' + ('serviceWorker' in navigator), '');
-        addLog('Push поддержка: ' + ('PushManager' in window), '');
-        addLog('Notification.permission: ' + Notification.permission, '');
-        addLog('currentUser: ' + (typeof currentUser !== "undefined" ? currentUser : "НЕТ"), '');
-        
-        try {
-            const regs = await navigator.serviceWorker.getRegistrations();
-            addLog('SW зарегистрировано: ' + regs.length, regs.length ? 'ok' : 'err');
-            for (const r of regs) {
-                addLog('  scope: ' + r.scope, '');
-                addLog('  active: ' + (r.active ? r.active.state : 'нет'), '');
-                const sub = await r.pushManager.getSubscription();
-                addLog('  подписка: ' + (sub ? sub.endpoint.slice(0,50)+'...' : 'НЕТ'), sub ? 'ok' : 'err');
-            }
-        } catch(e) {
-            addLog('Ошибка проверки SW: ' + e.message, 'err');
-        }
-
-        // Проверяем сервер
-        try {
-            const r = await fetch('https://twin-push-server-production.up.railway.app/health');
-            const d = await r.json();
-            addLog('Сервер: ' + d.status + ', юзеров: ' + d.users + ', подписок: ' + d.subscriptions, 'ok');
-        } catch(e) {
-            addLog('Сервер недоступен: ' + e.message, 'err');
-        }
-    });
-    
-    addLog('Debug панель готова. Двойной тап = проверка состояния.', 'warn');
-})();
-</script>
-<!-- ══ END PUSH DEBUG PANEL ══ -->
 
 </html>

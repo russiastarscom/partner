@@ -1,0 +1,41 @@
+<!-- ═══════════════════════════════════════════════════════════
+     ДОБАВИТЬ В <head> файла /partner/index.html
+     Заменить существующие строки с manifest и theme-color
+     ═══════════════════════════════════════════════════════════ -->
+
+<!-- PWA manifest — путь абсолютный -->
+<link rel="manifest" href="/partner/manifest.json">
+
+<!-- PWA мета-теги -->
+<meta name="theme-color" content="#6c5ce7">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Twin">
+<meta name="msapplication-TileColor" content="#6c5ce7">
+<meta name="msapplication-TileImage" content="/partner/icon-192x192.png">
+
+<!-- Иконки с абсолютными путями -->
+<link rel="icon" type="image/png" sizes="192x192" href="/partner/icon-192x192.png">
+<link rel="apple-touch-icon" href="/partner/icon-192x192.png">
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     ДОБАВИТЬ ПЕРЕД </body> файла /partner/index.html
+     (после всех остальных скриптов, но до закрывающего тега)
+     ═══════════════════════════════════════════════════════════ -->
+
+<script>
+// Регистрация Service Worker из КОРНЯ сайта
+// Это нужно сделать как можно раньше, до push-init.js
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
+            .then(reg => console.log('[SW] Зарегистрирован из корня, scope:', reg.scope))
+            .catch(err => console.error('[SW] Ошибка регистрации:', err));
+    });
+}
+</script>
+
+<!-- Push-подписка (инициализация после Firebase auth) -->
+<script src="push-init.js"></script>
