@@ -38,22 +38,9 @@ async function initPushNotifications(userId) {
     }
 
     try {
-        // 1. Регистрируем service worker
-        //    На GitHub Pages файл лежит в /partner/, регистрируем относительно текущей страницы
-        let registration;
-        try {
-            // Сначала проверяем — вдруг уже зарегистрирован
-            registration = await navigator.serviceWorker.getRegistration();
-        } catch(e) {}
-
-        if (!registration) {
-            // Определяем путь к SW динамически (работает и на localhost и на GitHub Pages)
-            const swPath = new URL('service-worker.js', window.location.href).pathname;
-            registration = await navigator.serviceWorker.register(swPath);
-            console.log('[Push] SW зарегистрирован по пути:', swPath);
-        } else {
-            console.log('[Push] SW уже зарегистрирован');
-        }
+        // 1. Регистрируем (или получаем существующий) service worker
+        const registration = await navigator.serviceWorker.register('/service-worker.js');
+        console.log('[Push] SW зарегистрирован');
 
         // 2. Спрашиваем разрешение на уведомления
         const permission = await Notification.requestPermission();
