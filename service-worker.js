@@ -1,24 +1,20 @@
 // ════════════════════════════════════════════════════════════
-//  Twin — Service Worker v11 (с Web Push, динамические пути)
-//  Файл: /partner/service-worker.js
+//  Twin — Service Worker v10 (с Web Push)
+//  Файл: /service-worker.js  ← КОРЕНЬ репозитория
 // ════════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'twin-v11';
-
-// Определяем базовый путь динамически (работает и на /partner/ и на /)
-const BASE_PATH = self.registration.scope; // e.g. https://russiastarscom.github.io/partner/
-
+const CACHE_NAME = 'twin-v10';
 const CACHE_URLS = [
-    BASE_PATH,
-    BASE_PATH + 'index.html',
-    BASE_PATH + 'manifest.json',
-    BASE_PATH + 'icon-192x192.png',
-    BASE_PATH + 'icon-512x512.png'
+    '/partner/',
+    '/partner/index.html',
+    '/partner/manifest.json',
+    '/partner/icon-192x192.png',
+    '/partner/icon-512x512.png'
 ];
 
 // ── Установка ────────────────────────────────────────────
 self.addEventListener('install', e => {
-    console.log('[SW] Установка v11, scope:', BASE_PATH);
+    console.log('[SW] Установка v10');
     self.skipWaiting();
     e.waitUntil(
         caches.open(CACHE_NAME)
@@ -28,7 +24,7 @@ self.addEventListener('install', e => {
 
 // ── Активация ────────────────────────────────────────────
 self.addEventListener('activate', e => {
-    console.log('[SW] Активация v11');
+    console.log('[SW] Активация v10');
     e.waitUntil(
         caches.keys()
             .then(keys => Promise.all(
@@ -59,24 +55,42 @@ self.addEventListener('fetch', e => {
                 }
                 return res;
             });
-        }).catch(() => caches.match(BASE_PATH + 'index.html'))
+        }).catch(() => caches.match('/partner/index.html'))
     );
 });
 
 // ════════════════════════════════════════════════════════════
+//  ██████╗ ██╗   ██╗███████╗██╗  ██╗
+//  ██╔══██╗██║   ██║██╔════╝██║  ██║
+//  ██████╔╝██║   ██║███████╗███████║
+//  ██╔═══╝ ██║   ██║╚════██║██╔══██║
+//  ██║     ╚██████╔╝███████║██║  ██║
+//  ╚═╝      ╚═════╝ ╚══════╝╚═╝  ╚═╝
 //  Web Push — обработка входящих уведомлений
 // ════════════════════════════════════════════════════════════
 
+/**
+ * Обрабатывает входящий push от сервера.
+ * Сервер должен отправить JSON вида:
+ * {
+ *   "title": "Иван",
+ *   "body": "Привет! Как дела?",
+ *   "icon": "/partner/icon-192x192.png",   // необязательно
+ *   "badge": "/partner/icon-192x192.png",  // необязательно
+ *   "tag": "msg-ivan",                     // группировка уведомлений
+ *   "url": "/partner/index.html?chat=ivan" // куда открыть по клику
+ * }
+ */
 self.addEventListener('push', e => {
     console.log('[SW] Push получен');
 
     let payload = {
         title: 'Twin',
         body: 'Новое сообщение',
-        icon: BASE_PATH + 'icon-192x192.png',
-        badge: BASE_PATH + 'icon-192x192.png',
+        icon: '/partner/icon-192x192.png',
+        badge: '/partner/icon-192x192.png',
         tag: 'twin-msg',
-        url: BASE_PATH + 'index.html'
+        url: '/partner/index.html'
     };
 
     if (e.data) {
@@ -93,7 +107,7 @@ self.addEventListener('push', e => {
         icon: payload.icon,
         badge: payload.badge,
         tag: payload.tag,
-        renotify: true,
+        renotify: true,                  // звук/вибрация даже при одинаковом tag
         vibrate: [200, 100, 200],
         data: { url: payload.url },
         actions: [
@@ -115,17 +129,19 @@ self.addEventListener('notificationclick', e => {
 
     const targetUrl = (e.notification.data && e.notification.data.url)
         ? e.notification.data.url
-        : BASE_PATH + 'index.html';
+        : '/partner/index.html';
 
     e.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true })
             .then(windowClients => {
+                // Ищем уже открытую вкладку Twin
                 for (const client of windowClients) {
-                    if (client.url.startsWith(BASE_PATH) && 'focus' in client) {
+                    if (client.url.includes('/partner/') && 'focus' in client) {
                         client.navigate(targetUrl);
                         return client.focus();
                     }
                 }
+                // Открываем новую вкладку
                 if (clients.openWindow) {
                     return clients.openWindow(targetUrl);
                 }
@@ -138,4 +154,4 @@ self.addEventListener('notificationclose', e => {
     console.log('[SW] Уведомление закрыто:', e.notification.tag);
 });
 
-console.log('[SW] Twin v11 готов — Web Push включён ✓');
+console.log('[SW] Twin v10 готов — Web Push включён ✓');
