@@ -1,14 +1,13 @@
 {
   "name": "Twin",
   "short_name": "Twin",
-  "description": "Мессенджер с уведомлениями",
+  "description": "Мессенджер",
   "start_url": "/partner/index.html",
   "scope": "/partner/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#6c5ce7",
-  "gcm_sender_id": "103953800507",
   "icons": [
     {
       "src": "/partner/icon-192x192.png",
@@ -36,20 +35,6 @@
           "type": "image/png"
         }
       ]
-    },
-    {
-      "name": "Уведомления",
-      "short_name": "Уведомления",
-      "description": "Настройки уведомлений",
-      "url": "/partner/notifications.html",
-      "icons": [
-        {
-          "src": "/partner/icon-192x192.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
     }
-  ],
-  "permissions": []
+  ]
 }
