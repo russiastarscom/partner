@@ -9430,4 +9430,94 @@ function applyPushPatches() {
 })();
 </script>
 
+
+<!-- ══ PUSH DEBUG PANEL (удали после отладки) ══ -->
+<style>
+#push-debug {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 999999;
+    background: rgba(0,0,0,0.92); color: #0f0; font: 11px/1.4 monospace;
+    max-height: 40vh; overflow-y: auto; padding: 6px 8px;
+    border-top: 2px solid #0f0; display: none;
+}
+#push-debug-toggle {
+    position: fixed; bottom: 0; right: 0; z-index: 1000000;
+    background: #6c5ce7; color: #fff; border: none; border-radius: 8px 0 0 0;
+    padding: 6px 12px; font-size: 12px; cursor: pointer; font-weight: bold;
+}
+#push-debug .err { color: #f66; }
+#push-debug .ok  { color: #0f0; }
+#push-debug .warn{ color: #fa0; }
+</style>
+<div id="push-debug"></div>
+<button id="push-debug-toggle" onclick="
+  var p=document.getElementById('push-debug');
+  p.style.display=p.style.display==='none'?'block':'none';
+">🔔 Debug</button>
+<script>
+(function(){
+    var panel = document.getElementById('push-debug');
+    function addLog(msg, type) {
+        var d = document.createElement('div');
+        d.className = type||'';
+        d.textContent = new Date().toLocaleTimeString() + ' ' + msg;
+        panel.appendChild(d);
+        panel.scrollTop = panel.scrollHeight;
+    }
+    // Перехватываем console
+    var _log = console.log.bind(console);
+    var _warn = console.warn.bind(console);
+    var _err = console.error.bind(console);
+    console.log = function() {
+        var msg = Array.from(arguments).join(' ');
+        _log.apply(console, arguments);
+        if (msg.includes('[Push]') || msg.includes('[SW]')) addLog(msg, 'ok');
+    };
+    console.warn = function() {
+        var msg = Array.from(arguments).join(' ');
+        _warn.apply(console, arguments);
+        if (msg.includes('[Push]') || msg.includes('[SW]')) addLog(msg, 'warn');
+    };
+    console.error = function() {
+        var msg = Array.from(arguments).join(' ');
+        _err.apply(console, arguments);
+        if (msg.includes('[Push]') || msg.includes('[SW]')) addLog(msg, 'err');
+    };
+
+    // Кнопка — проверить состояние вручную
+    document.getElementById('push-debug-toggle').addEventListener('dblclick', async function() {
+        panel.style.display = 'block';
+        addLog('=== РУЧНАЯ ПРОВЕРКА ===', 'warn');
+        addLog('SW поддержка: ' + ('serviceWorker' in navigator), '');
+        addLog('Push поддержка: ' + ('PushManager' in window), '');
+        addLog('Notification.permission: ' + Notification.permission, '');
+        addLog('currentUser: ' + (typeof currentUser !== "undefined" ? currentUser : "НЕТ"), '');
+        
+        try {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            addLog('SW зарегистрировано: ' + regs.length, regs.length ? 'ok' : 'err');
+            for (const r of regs) {
+                addLog('  scope: ' + r.scope, '');
+                addLog('  active: ' + (r.active ? r.active.state : 'нет'), '');
+                const sub = await r.pushManager.getSubscription();
+                addLog('  подписка: ' + (sub ? sub.endpoint.slice(0,50)+'...' : 'НЕТ'), sub ? 'ok' : 'err');
+            }
+        } catch(e) {
+            addLog('Ошибка проверки SW: ' + e.message, 'err');
+        }
+
+        // Проверяем сервер
+        try {
+            const r = await fetch('https://twin-push-server-production.up.railway.app/health');
+            const d = await r.json();
+            addLog('Сервер: ' + d.status + ', юзеров: ' + d.users + ', подписок: ' + d.subscriptions, 'ok');
+        } catch(e) {
+            addLog('Сервер недоступен: ' + e.message, 'err');
+        }
+    });
+    
+    addLog('Debug панель готова. Двойной тап = проверка состояния.', 'warn');
+})();
+</script>
+<!-- ══ END PUSH DEBUG PANEL ══ -->
+
 </html>
