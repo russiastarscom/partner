@@ -5492,6 +5492,33 @@
                 // Создаем уведомление для получателя(ей)
                 await createNotificationForReceiver(text);
 
+                // Web Push уведомление
+                try {
+                    const _pushText = text.length > 100 ? text.slice(0, 100) + '…' : text;
+                    if (currentChatType === 'user' && currentChat) {
+                        await sendPushToUser(currentChat, {
+                            title: currentUser,
+                            body: _pushText,
+                            icon: PUSH_ICON, badge: PUSH_BADGE,
+                            tag: 'msg-' + currentUser, url: PUSH_URL
+                        });
+                    } else if (currentChatType === 'group' && currentGroup && currentGroup.participants) {
+                        await sendPushToMany(currentGroup.participants, {
+                            title: currentGroup.name || 'Группа',
+                            body: currentUser + ': ' + _pushText,
+                            icon: PUSH_ICON, badge: PUSH_BADGE,
+                            tag: 'group-' + chatId, url: PUSH_URL
+                        });
+                    } else if (currentChatType === 'channel' && currentChannel && currentChannel.subscribers) {
+                        await sendPushToMany(currentChannel.subscribers, {
+                            title: '📢 ' + (currentChannel.name || 'Канал'),
+                            body: _pushText,
+                            icon: PUSH_ICON, badge: PUSH_BADGE,
+                            tag: 'channel-' + chatId, url: PUSH_URL
+                        });
+                    }
+                } catch (_pe) { console.warn('[Push] sendMessage error:', _pe); }
+
                 messageText.value = '';
 
                 loadMessages();
@@ -7065,6 +7092,15 @@
                         } catch (error) {
                             console.error(`Ошибка отправки уведомления пользователю ${participant}:`, error);
                         }
+                        // Web Push
+                        try {
+                            await sendPushToUser(participant, {
+                                title: '👥 Вас добавили в группу',
+                                body: currentUser + ' создал группу «' + groupName + '»',
+                                icon: PUSH_ICON, badge: PUSH_BADGE,
+                                tag: 'group-invite', url: PUSH_URL
+                            });
+                        } catch(_pe) { console.warn('[Push] createGroup error:', _pe); }
                     }
                 });
             } catch (error) {
@@ -8869,6 +8905,17 @@
          * @param {string|null} roomOverride - имя комнаты (для входящего)
          */
         async function startCall(targetUser, callType, isIncoming = false, roomOverride = null) {
+            // Web Push — уведомляем получателя о звонке
+            if (!isIncoming && targetUser && currentUser) {
+                try {
+                    await sendPushToUser(targetUser, {
+                        title: '📲 Звонок от ' + currentUser,
+                        body: callType === 'audio' ? '🔊 Аудио звонок' : '📹 Видео звонок',
+                        icon: PUSH_ICON, badge: PUSH_BADGE,
+                        tag: 'call-' + currentUser, url: PUSH_URL
+                    });
+                } catch(_pe) { console.warn('[Push] startCall error:', _pe); }
+            }
             try {
                 await loadJitsiScript();
             } catch (e) {
@@ -9424,8 +9471,7 @@ function applyPushPatches() {
 
         clearInterval(interval);
         initPushNotifications(currentUser);
-        applyPushPatches();
-        console.log('[Push] ✅ Система уведомлений запущена для:', currentUser);
+        console.log('[Push] ✅ Push подписка запущена для:', currentUser);
     }, 1000);
 })();
 </script>
