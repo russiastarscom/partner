@@ -7,8 +7,6 @@
 // ════════════════════════════════════════════════════════════
 
 // ── Вставь сюда свой публичный VAPID-ключ ───────────────
-//    Получить: https://vapidkeys.com  или командой:
-//    npx web-push generate-vapid-keys
 const VAPID_PUBLIC_KEY = 'BHWhY-ozjg5GkVLxFhhG_VEtj198PkvEjRtTDSfOMtNKGr1RpX_ELO9YAQChg7E0gLIrERJW0LzolDkkD0RBzbM';
 
 // ── URL твоего push-сервера ──────────────────────────────
@@ -27,8 +25,17 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 /**
+ * Определяет путь к service-worker.js относительно текущей страницы.
+ * Работает и на GitHub Pages (/partner/), и на корневом хосте (/).
+ */
+function getSwPath() {
+    // Берём путь текущей страницы без имени файла
+    const base = window.location.pathname.replace(/\/[^/]*$/, '') || '/';
+    return base + '/service-worker.js';
+}
+
+/**
  * Регистрирует service worker и оформляет push-подписку.
- * Вызывается после логина пользователя.
  * @param {string} userId - uid текущего пользователя в Firebase
  */
 async function initPushNotifications(userId) {
@@ -38,18 +45,25 @@ async function initPushNotifications(userId) {
     }
 
     try {
-        // 1. Регистрируем (или получаем существующий) service worker
-        const registration = await navigator.serviceWorker.register('/service-worker.js');
+        // 1. Регистрируем SW с правильным путём и scope
+        const swPath = getSwPath();
+        const swScope = swPath.replace('/service-worker.js', '/');
+        console.log('[Push] Регистрируем SW:', swPath, '| scope:', swScope);
+
+        const registration = await navigator.serviceWorker.register(swPath, { scope: swScope });
         console.log('[Push] SW зарегистрирован');
 
-        // 2. Спрашиваем разрешение на уведомления
+        // 2. Ждём, пока SW станет активным
+        await navigator.serviceWorker.ready;
+
+        // 3. Спрашиваем разрешение на уведомления
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
             console.warn('[Push] Пользователь отказал в уведомлениях');
             return;
         }
 
-        // 3. Подписываемся через VAPID
+        // 4. Подписываемся через VAPID
         const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
             applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
@@ -57,14 +71,11 @@ async function initPushNotifications(userId) {
 
         console.log('[Push] Подписка получена:', subscription.endpoint);
 
-        // 4. Отправляем подписку на наш сервер, привязывая к userId
+        // 5. Отправляем подписку на сервер
         const res = await fetch(`${PUSH_SERVER_URL}/subscribe`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userId,
-                subscription   // { endpoint, keys: { p256dh, auth } }
-            })
+            body: JSON.stringify({ userId, subscription })
         });
 
         if (res.ok) {
@@ -103,20 +114,13 @@ async function unsubscribePush(userId) {
 }
 
 // ── Автозапуск после логина ──────────────────────────────
-// Twin использует Firebase Auth — ловим момент, когда
-// currentUser появляется в глобальной переменной.
-// Если у тебя есть колбэк onLogin — вызови там initPushNotifications(uid).
-
 document.addEventListener('DOMContentLoaded', () => {
-    // Ждём, пока Firebase инициализирует пользователя
     const interval = setInterval(() => {
-        // currentUser — глобальная переменная из index.html
         if (typeof currentUser !== 'undefined' && currentUser) {
             clearInterval(interval);
             initPushNotifications(currentUser);
         }
     }, 1000);
 
-    // Останавливаем через 30 сек если не залогинился
     setTimeout(() => clearInterval(interval), 30000);
 });
