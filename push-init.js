@@ -1,15 +1,12 @@
 // ════════════════════════════════════════════════════════════
-//  Twin — push-init.js
+//  Twin — push-init.js  (ИСПРАВЛЕННАЯ ВЕРСИЯ)
 //  Подключи этот файл в index.html перед закрывающим </body>:
 //  <script src="push-init.js"></script>
-//
-//  ⚠️  Замени VAPID_PUBLIC_KEY на свой ключ (см. инструкцию)
 // ════════════════════════════════════════════════════════════
 
-// ── Вставь сюда свой публичный VAPID-ключ ───────────────
-//    Получить: https://vapidkeys.com  или командой:
-//    npx web-push generate-vapid-keys
-const VAPID_PUBLIC_KEY = 'BHWhY-ozjg5GkVLxFhhG_VEtj198PkvEjRtTDSfOMtNKGr1RpX_ELO9YAQChg7E0gLIrERJW0LzolDkkD0RBzbM';
+// ── VAPID публичный ключ — ДОЛЖЕН совпадать с server.js ──
+// ⚠️  ИСПРАВЛЕНО: был другой ключ, из-за чего push не работал
+const VAPID_PUBLIC_KEY = 'BANapkW0GhUBLNbQBvsZbHBdcjGm_kVIifEYNBsivgzSkYztpF37z1Ij7YvX3s03J-6RRvNE-PvZ5K2JJVfS_vQ';
 
 // ── URL твоего push-сервера ──────────────────────────────
 const PUSH_SERVER_URL = 'https://twin-push-server-production.up.railway.app';
@@ -28,7 +25,6 @@ function urlBase64ToUint8Array(base64String) {
 
 /**
  * Регистрирует service worker и оформляет push-подписку.
- * Вызывается после логина пользователя.
  * @param {string} userId - uid текущего пользователя в Firebase
  */
 async function initPushNotifications(userId) {
@@ -38,39 +34,64 @@ async function initPushNotifications(userId) {
     }
 
     try {
-        // 1. Регистрируем (или получаем существующий) service worker
-        const registration = await navigator.serviceWorker.register('/service-worker.js');
-        console.log('[Push] SW зарегистрирован');
+        // 1. Регистрируем service worker
+        // ⚠️ ИСПРАВЛЕНО: путь должен совпадать с тем, что в корне сайта
+        const registration = await navigator.serviceWorker.register('/partner/service-worker.js', {
+            scope: '/partner/'
+        });
+        console.log('[Push] SW зарегистрирован:', registration.scope);
+
+        // Ждём активации SW перед подпиской
+        await navigator.serviceWorker.ready;
+        console.log('[Push] SW активен');
 
         // 2. Спрашиваем разрешение на уведомления
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
-            console.warn('[Push] Пользователь отказал в уведомлениях');
+            console.warn('[Push] Пользователь отказал в уведомлениях:', permission);
             return;
         }
 
-        // 3. Подписываемся через VAPID
-        const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-        });
+        // 3. Проверяем существующую подписку
+        let subscription = await registration.pushManager.getSubscription();
 
-        console.log('[Push] Подписка получена:', subscription.endpoint);
+        if (subscription) {
+            // Проверяем, тот ли это VAPID ключ
+            // Если ключ изменился — отписываемся и подписываемся заново
+            const currentKey = btoa(String.fromCharCode(...new Uint8Array(subscription.options.applicationServerKey)));
+            const expectedKey = btoa(String.fromCharCode(...urlBase64ToUint8Array(VAPID_PUBLIC_KEY)));
 
-        // 4. Отправляем подписку на наш сервер, привязывая к userId
+            if (currentKey !== expectedKey) {
+                console.log('[Push] VAPID ключ изменился, переподписка...');
+                await subscription.unsubscribe();
+                subscription = null;
+            } else {
+                console.log('[Push] Используем существующую подписку');
+            }
+        }
+
+        // 4. Создаём новую подписку если нужно
+        if (!subscription) {
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+            });
+            console.log('[Push] Новая подписка создана:', subscription.endpoint);
+        }
+
+        // 5. Отправляем подписку на сервер
         const res = await fetch(`${PUSH_SERVER_URL}/subscribe`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userId,
-                subscription   // { endpoint, keys: { p256dh, auth } }
-            })
+            body: JSON.stringify({ userId, subscription })
         });
 
         if (res.ok) {
-            console.log('[Push] ✓ Подписка сохранена на сервере');
+            const data = await res.json();
+            console.log('[Push] ✓ Подписка сохранена на сервере, всего:', data.totalSubscriptions);
         } else {
-            console.error('[Push] Сервер вернул ошибку:', res.status);
+            const errText = await res.text();
+            console.error('[Push] Сервер вернул ошибку:', res.status, errText);
         }
 
     } catch (err) {
@@ -84,7 +105,7 @@ async function initPushNotifications(userId) {
  */
 async function unsubscribePush(userId) {
     try {
-        const reg = await navigator.serviceWorker.getRegistration();
+        const reg = await navigator.serviceWorker.getRegistration('/partner/service-worker.js');
         if (!reg) return;
         const sub = await reg.pushManager.getSubscription();
         if (!sub) return;
@@ -103,20 +124,13 @@ async function unsubscribePush(userId) {
 }
 
 // ── Автозапуск после логина ──────────────────────────────
-// Twin использует Firebase Auth — ловим момент, когда
-// currentUser появляется в глобальной переменной.
-// Если у тебя есть колбэк onLogin — вызови там initPushNotifications(uid).
-
 document.addEventListener('DOMContentLoaded', () => {
-    // Ждём, пока Firebase инициализирует пользователя
     const interval = setInterval(() => {
-        // currentUser — глобальная переменная из index.html
         if (typeof currentUser !== 'undefined' && currentUser) {
             clearInterval(interval);
             initPushNotifications(currentUser);
         }
     }, 1000);
 
-    // Останавливаем через 30 сек если не залогинился
     setTimeout(() => clearInterval(interval), 30000);
 });

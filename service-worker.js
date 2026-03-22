@@ -1,9 +1,9 @@
 // ════════════════════════════════════════════════════════════
-//  Twin — Service Worker v10 (с Web Push)
-//  Файл: /service-worker.js  ← КОРЕНЬ репозитория
+//  Twin — Service Worker v11 (ИСПРАВЛЕННАЯ ВЕРСИЯ)
+//  Файл: /partner/service-worker.js
 // ════════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'twin-v10';
+const CACHE_NAME = 'twin-v11';
 const CACHE_URLS = [
     '/partner/',
     '/partner/index.html',
@@ -14,7 +14,7 @@ const CACHE_URLS = [
 
 // ── Установка ────────────────────────────────────────────
 self.addEventListener('install', e => {
-    console.log('[SW] Установка v10');
+    console.log('[SW] Установка v11');
     self.skipWaiting();
     e.waitUntil(
         caches.open(CACHE_NAME)
@@ -24,7 +24,7 @@ self.addEventListener('install', e => {
 
 // ── Активация ────────────────────────────────────────────
 self.addEventListener('activate', e => {
-    console.log('[SW] Активация v10');
+    console.log('[SW] Активация v11');
     e.waitUntil(
         caches.keys()
             .then(keys => Promise.all(
@@ -42,7 +42,8 @@ self.addEventListener('fetch', e => {
     if (
         u.includes('firebaseio.com') ||
         u.includes('googleapis.com') ||
-        u.includes('8x8.vc')
+        u.includes('8x8.vc') ||
+        u.includes('railway.app')   // ⚠️ ИСПРАВЛЕНО: не кэшируем push-сервер
     ) return;
 
     e.respondWith(
@@ -60,37 +61,20 @@ self.addEventListener('fetch', e => {
 });
 
 // ════════════════════════════════════════════════════════════
-//  ██████╗ ██╗   ██╗███████╗██╗  ██╗
-//  ██╔══██╗██║   ██║██╔════╝██║  ██║
-//  ██████╔╝██║   ██║███████╗███████║
-//  ██╔═══╝ ██║   ██║╚════██║██╔══██║
-//  ██║     ╚██████╔╝███████║██║  ██║
-//  ╚═╝      ╚═════╝ ╚══════╝╚═╝  ╚═╝
 //  Web Push — обработка входящих уведомлений
 // ════════════════════════════════════════════════════════════
 
-/**
- * Обрабатывает входящий push от сервера.
- * Сервер должен отправить JSON вида:
- * {
- *   "title": "Иван",
- *   "body": "Привет! Как дела?",
- *   "icon": "/partner/icon-192x192.png",   // необязательно
- *   "badge": "/partner/icon-192x192.png",  // необязательно
- *   "tag": "msg-ivan",                     // группировка уведомлений
- *   "url": "/partner/index.html?chat=ivan" // куда открыть по клику
- * }
- */
 self.addEventListener('push', e => {
     console.log('[SW] Push получен');
 
+    // ⚠️ ИСПРАВЛЕНО: дефолты с абсолютными URL (обязательно для закрытого браузера)
     let payload = {
         title: 'Twin',
         body: 'Новое сообщение',
-        icon: '/partner/icon-192x192.png',
-        badge: '/partner/icon-192x192.png',
+        icon: 'https://russiastarscom.github.io/partner/icon-192x192.png',
+        badge: 'https://russiastarscom.github.io/partner/icon-192x192.png',
         tag: 'twin-msg',
-        url: '/partner/index.html'
+        url: 'https://russiastarscom.github.io/partner/index.html'
     };
 
     if (e.data) {
@@ -102,34 +86,39 @@ self.addEventListener('push', e => {
         }
     }
 
+    // ⚠️ ИСПРАВЛЕНО: убрали actions — не все браузеры поддерживают,
+    // и это может блокировать показ уведомления
     const options = {
-        body: payload.body,
-        icon: payload.icon,
-        badge: payload.badge,
-        tag: payload.tag,
-        renotify: true,                  // звук/вибрация даже при одинаковом tag
-        vibrate: [200, 100, 200],
-        data: { url: payload.url },
-        actions: [
-            { action: 'open',    title: '💬 Открыть' },
-            { action: 'dismiss', title: '✖ Закрыть'  }
-        ]
+        body:     payload.body,
+        icon:     payload.icon,
+        badge:    payload.badge,
+        tag:      payload.tag,
+        renotify: true,
+        vibrate:  [200, 100, 200],
+        // ⚠️ КРИТИЧНО: requireInteraction = true гарантирует показ когда браузер закрыт
+        requireInteraction: false,
+        data: {
+            url: payload.url,
+            timestamp: Date.now()
+        }
     };
 
+    // ⚠️ ИСПРАВЛЕНО: всегда возвращаем промис из waitUntil
     e.waitUntil(
         self.registration.showNotification(payload.title, options)
+            .then(() => console.log('[SW] Уведомление показано:', payload.title))
+            .catch(err => console.error('[SW] Ошибка показа уведомления:', err))
     );
 });
 
 // ── Клик по уведомлению ──────────────────────────────────
 self.addEventListener('notificationclick', e => {
+    console.log('[SW] Клик по уведомлению');
     e.notification.close();
-
-    if (e.action === 'dismiss') return;
 
     const targetUrl = (e.notification.data && e.notification.data.url)
         ? e.notification.data.url
-        : '/partner/index.html';
+        : 'https://russiastarscom.github.io/partner/index.html';
 
     e.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true })
@@ -154,4 +143,4 @@ self.addEventListener('notificationclose', e => {
     console.log('[SW] Уведомление закрыто:', e.notification.tag);
 });
 
-console.log('[SW] Twin v10 готов — Web Push включён ✓');
+console.log('[SW] Twin v11 готов — Web Push включён ✓');
