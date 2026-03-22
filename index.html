@@ -50,8 +50,6 @@
 
     <!-- Для Android -->
     <link rel="manifest" href="manifest.json">
-    <!-- Pusher Beams SDK -->
-    <script src="https://js.pusher.com/beams/2.1.0/push-notifications-cdn.js"></script>
 
     <!-- Для iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2592,17 +2590,6 @@
                 </label>
             </div>
 
-            <div class="theme-toggle" id="notification-toggle-container">
-                <label>
-                    <input type="checkbox" id="notification-toggle">
-                    <span>Уведомления в браузере</span>
-                </label>
-            </div>
-            <div id="notification-status"
-                style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 10px; display: none;">
-            </div>
-            <button class="modal-btn modal-btn-secondary" id="test-notification-btn"
-                style="width: 100%; margin-bottom: 15px; display: none;">Проверить уведомления</button>
 
             <div class="emoji-selector">
                 <label>Ваш статус:</label>
@@ -2880,9 +2867,7 @@
         const usersTab = document.getElementById('users-tab');
         const channelsTab = document.getElementById('channels-tab');
         const themeToggle = document.getElementById('theme-toggle');
-        const notificationToggle = document.getElementById('notification-toggle');
-        const notificationStatus = document.getElementById('notification-status');
-        const testNotificationBtn = document.getElementById('test-notification-btn');
+
         const emojiOptions = document.getElementById('emoji-options');
         const editMessageModal = document.getElementById('edit-message-modal');
         const editMessageText = document.getElementById('edit-message-text');
@@ -2976,9 +2961,6 @@
             setupEventListeners();
             setupNetworkStatus();
 
-            // Инициализируем Pusher Beams (регистрирует SW + создаёт клиент)
-            initPushNotifications();
-
             // Проверяем сохраненную тему
             if (localStorage.getItem('dark_theme') === 'true') {
                 document.body.classList.add('dark-theme');
@@ -2987,9 +2969,6 @@
                 document.body.classList.remove('dark-theme');
                 if (typeof themeToggle !== 'undefined' && themeToggle) themeToggle.checked = false;
             }
-
-            // Инициализируем настройки уведомлений
-            initializeNotificationSettings();
 
             // Инициализируем систему подарков
             initGiftSystem();
@@ -3027,10 +3006,6 @@
 
                                 startBackgroundChecks();
                                 trackUserStatus();
-                                // Переподписываемся на Beams если разрешение уже дано
-                                if (Notification.permission === 'granted') {
-                                    subscribeToPushNotifications();
-                                }
                                 // Запускаем прослушивание входящих звонков
                                 setTimeout(() => { if (typeof listenForIncomingCalls === 'function') listenForIncomingCalls(); }, 1500);
                             } else {
@@ -3063,87 +3038,6 @@
             optimizeForAndroid();
         }
         // Функция запроса разрешения на уведомления
-        function initializeNotificationSettings() {
-            if (!("Notification" in window)) {
-                localStorage.setItem('notifications_enabled', 'false');
-                return;
-            }
-            if (Notification.permission === "granted") {
-                if (localStorage.getItem('notifications_enabled') === null)
-                    localStorage.setItem('notifications_enabled', 'true');
-            } else if (Notification.permission === "denied") {
-                localStorage.setItem('notifications_enabled', 'false');
-            }
-        }
-
-        // Регистрация Service Worker
-        // ── Pusher Beams — фоновые push-уведомления ──────────────────────
-        const PUSHER_INSTANCE_ID = 'dd53d38d-8cda-49c0-b2ed-85c95ef442a1';
-        let beamsClient = null;
-
-        async function initPushNotifications() {
-            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
-            try {
-                const reg = await navigator.serviceWorker.register('/service-worker.js');
-                console.log('[Push] SW зарегистрирован, scope:', reg.scope);
-                beamsClient = new PusherPushNotifications.Client({
-                    instanceId: PUSHER_INSTANCE_ID,
-                    serviceWorkerRegistration: reg,
-                });
-                console.log('[Push] Beams клиент создан');
-            } catch (err) {
-                console.error('[Push] Ошибка инициализации:', err);
-            }
-        }
-
-        async function subscribeToPushNotifications() {
-            if (!currentUser) return;
-            if (!beamsClient) { console.warn('[Push] Beams не инициализирован'); return; }
-            try {
-                await beamsClient.start();
-                const interest = 'user-' + currentUser.toLowerCase().replace(/[^a-z0-9_\-=@,.]/g, '_');
-                await beamsClient.addDeviceInterest(interest);
-                await beamsClient.addDeviceInterest('twin-all');
-                localStorage.setItem('beams_user', currentUser);
-                console.log('[Push] ✅ Подписан:', interest);
-            } catch (err) {
-                console.error('[Push] Ошибка подписки:', err);
-            }
-        }
-
-        async function unsubscribeFromPushNotifications() {
-            if (!beamsClient) return;
-            try {
-                await beamsClient.stop();
-                localStorage.removeItem('beams_user');
-                console.log('[Push] Отписан');
-            } catch (err) {
-                console.error('[Push] Ошибка отписки:', err);
-            }
-        }
-
-        // Показ системного уведомления (только когда браузер открыт и вкладка видима)
-        async function showBrowserNotification(title, body, notifData) {
-            if (!('Notification' in window) || Notification.permission !== 'granted') return;
-            const opts = {
-                body: body || '',
-                icon: 'icon-192x192.png',
-                badge: 'icon-192x192.png',
-                vibrate: [200, 100, 200],
-                tag: 'twin-' + ((notifData && notifData.from) || 'msg') + '-' + Date.now(),
-                renotify: true,
-                requireInteraction: false,
-                data: { url: 'https://russiastarscom.github.io/partner/' }
-            };
-            try {
-                const reg = await navigator.serviceWorker.ready;
-                if (reg) await reg.showNotification(title, opts);
-                else new Notification(title, opts);
-            } catch(e) {
-                try { new Notification(title, opts); } catch(_) {}
-            }
-        }
-
         function optimizeForAndroid() {
             // Базовая оптимизация для мобильных устройств
             if ('ontouchstart' in window) {
@@ -3408,8 +3302,7 @@
             channelIconUrlInput.addEventListener('input', updateChannelIconPreview);
 
             themeToggle.addEventListener('change', toggleTheme);
-            notificationToggle.addEventListener('change', toggleNotifications);
-            testNotificationBtn.addEventListener('click', testNotification);
+
 
             emojiOptions.addEventListener('click', (e) => {
                 if (e.target.classList.contains('emoji-option')) {
@@ -3466,63 +3359,6 @@
 
         function toggleSettingsMenu() {
             settingsMenu.classList.toggle('active');
-            updateNotificationToggleState();
-        }
-
-        function updateNotificationToggleState() {
-            if (!("Notification" in window)) {
-                notificationToggle.disabled = true;
-                notificationStatus.style.display = 'block';
-                notificationStatus.textContent = 'Ваш браузер не поддерживает уведомления';
-                testNotificationBtn.style.display = 'none';
-                return;
-            }
-            const enabled = localStorage.getItem('notifications_enabled') === 'true';
-            if (Notification.permission === "granted") {
-                notificationToggle.checked = enabled;
-                notificationToggle.disabled = false;
-                notificationStatus.style.display = 'none';
-                testNotificationBtn.style.display = enabled ? 'block' : 'none';
-            } else if (Notification.permission === "denied") {
-                notificationToggle.checked = false;
-                notificationToggle.disabled = true;
-                notificationStatus.style.display = 'block';
-                notificationStatus.textContent = 'Уведомления заблокированы. Разрешите их в настройках браузера.';
-                testNotificationBtn.style.display = 'none';
-                localStorage.setItem('notifications_enabled', 'false');
-            } else {
-                notificationToggle.checked = false;
-                notificationToggle.disabled = false;
-                notificationStatus.style.display = 'none';
-                testNotificationBtn.style.display = 'none';
-            }
-        }
-
-        function testNotification() {
-            showBrowserNotification('Twin Messenger', 'Уведомления работают корректно ✅');
-            showNotification('Тестовое уведомление отправлено');
-        }
-
-        function toggleNotifications() {
-            if (notificationToggle.checked) {
-                if (!("Notification" in window)) return;
-                Notification.requestPermission().then(async permission => {
-                    if (permission === "granted") {
-                        localStorage.setItem('notifications_enabled', 'true');
-                        await subscribeToPushNotifications();
-                        showNotification('🔔 Уведомления включены!');
-                    } else {
-                        notificationToggle.checked = false;
-                        localStorage.setItem('notifications_enabled', 'false');
-                    }
-                    updateNotificationToggleState();
-                });
-            } else {
-                localStorage.setItem('notifications_enabled', 'false');
-                unsubscribeFromPushNotifications();
-                showNotification('Уведомления отключены');
-                updateNotificationToggleState();
-            }
         }
 
         function setupNetworkStatus() {
@@ -3638,12 +3474,6 @@
                             console.log('[CheckMessages] Should notify:', shouldNotify, 'hidden:', document.hidden, 'currentChat:', currentChat, 'chatId:', chatId);
 
                             if (shouldNotify) {
-                                // Show browser notification (system level)
-                                showBrowserNotification(
-                                    `Новое сообщение от ${chatName}`,
-                                    latestMessage.text
-                                );
-
                                 // Show Telegram-style toast notification (in-app)
                                 let toastType = 'message';
                                 let toastTitle = chatName;
@@ -3719,7 +3549,6 @@
                     if (group.participants && group.participants.includes(currentUser) &&
                         !groups.some(g => g.id === groupId) && shouldNotify) {
 
-                        showBrowserNotification('Twin Messenger', `Вас добавили в группу "${group.name}"`);
 
                         // Show toast notification for group invite
                         showToastNotification({
@@ -3780,10 +3609,6 @@
                                 notifiedMessageIds.delete(firstId);
                             }
 
-                            showBrowserNotification(
-                                `Новое сообщение в канале "${channel.name}"`,
-                                latestMessage.text
-                            );
 
                             // Show toast notification for channel message
                             showToastNotification({
@@ -6228,22 +6053,6 @@
         
 
 
-        // Debug function to test notifications manually
-        function debugNotification() {
-            console.log('[Debug] Testing notification system...');
-            console.log('[Debug] Notification.permission:', Notification.permission);
-            console.log('[Debug] notifications_enabled:', localStorage.getItem('notifications_enabled'));
-            console.log('[Debug] document.hidden:', document.hidden);
-            console.log('[Debug] currentUser:', currentUser);
-            console.log('[Debug] currentChat:', currentChat);
-
-            // Force show a test notification
-            showBrowserNotification('Test Notification', 'This is a forced test notification');
-        }
-
-        // Make it available globally for debugging
-        window.debugNotification = debugNotification;
-
         // Telegram-style toast notification system
         let toastIdCounter = 0;
         const activeToasts = new Map();
@@ -6641,11 +6450,6 @@
                                 read: false
                             });
 
-                            // Показываем браузерное уведомление создателю, если он онлайн
-                            showBrowserNotification(
-                                'Новый подписчик',
-                                `${currentUser} подписался на ваш канал "${channel.name}"`
-                            );
                         } catch (error) {
                             console.error('Ошибка отправки уведомления создателю:', error);
                         }
@@ -7885,10 +7689,6 @@
 
                     document.body.removeChild(modal);
 
-                    // Подписываемся на Beams push если разрешение уже дано, иначе ждём пока пользователь нажмёт переключатель
-                    if (Notification.permission === 'granted') {
-                        subscribeToPushNotifications();
-                    }
                     trackUserStatus();
 
                     showNotification('Вход выполнен успешно!');
@@ -9362,5 +9162,7 @@
 
         // ==================== КОНЕЦ СИСТЕМЫ ЗВОНКОВ ====================
 </script>
+
+<script src="push-init.js"></script>
 
 </html>

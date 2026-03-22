@@ -1,16 +1,9 @@
 // ════════════════════════════════════════════════════════════
-//  Twin — Service Worker v8 (ЕДИНЫЙ)
+//  Twin — Service Worker v10 (с Web Push)
 //  Файл: /service-worker.js  ← КОРЕНЬ репозитория
-//  URL:  https://russiastarscom.github.io/service-worker.js
-//
-//  ✅ Pusher Beams (Web Push / VAPID) — уведомления при ЗАКРЫТОМ браузере
-//  ✅ Firebase polling — уведомления когда браузер открыт, вкладка свёрнута
 // ════════════════════════════════════════════════════════════
 
-// Pusher Beams SW — ОБЯЗАТЕЛЬНО первой строкой
-importScripts('https://js.pusher.com/beams/service-worker.js');
-
-const CACHE_NAME = 'twin-v8';
+const CACHE_NAME = 'twin-v10';
 const CACHE_URLS = [
     '/partner/',
     '/partner/index.html',
@@ -19,17 +12,9 @@ const CACHE_URLS = [
     '/partner/icon-512x512.png'
 ];
 
-// ── Firebase конфиг ──────────────────────────────────────
-const FB_DB_URL = 'https://ukraine-52ad4-default-rtdb.firebaseio.com';
-
-// ── Состояние polling ────────────────────────────────────
-const _pollers   = {};
-const _seen      = new Set();
-const _startTime = {};
-
 // ── Установка ────────────────────────────────────────────
 self.addEventListener('install', e => {
-    console.log('[SW] Установка v8');
+    console.log('[SW] Установка v10');
     self.skipWaiting();
     e.waitUntil(
         caches.open(CACHE_NAME)
@@ -39,168 +24,13 @@ self.addEventListener('install', e => {
 
 // ── Активация ────────────────────────────────────────────
 self.addEventListener('activate', e => {
-    console.log('[SW] Активация v8');
+    console.log('[SW] Активация v10');
     e.waitUntil(
         caches.keys()
             .then(keys => Promise.all(
                 keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
             ))
             .then(() => self.clients.claim())
-    );
-});
-
-// ── Сообщения от страницы ────────────────────────────────
-self.addEventListener('message', e => {
-    const d = e.data;
-    if (!d) return;
-    switch (d.type) {
-        case 'SUBSCRIBE_BACKGROUND':
-            if (d.user) startPolling(d.user);
-            break;
-        case 'UNSUBSCRIBE_BACKGROUND':
-            if (d.user) stopPolling(d.user);
-            break;
-        case 'SKIP_WAITING':
-            self.skipWaiting();
-            break;
-    }
-});
-
-// ═══════════════════════════════════════════════════════════
-//  FIREBASE POLLING (браузер открыт, вкладка свёрнута)
-//  При закрытом браузере — Pusher Beams (VAPID) выше.
-// ═══════════════════════════════════════════════════════════
-
-function startPolling(username) {
-    if (_pollers[username]) return;
-    _startTime[username] = Date.now();
-    console.log('[SW] Старт polling:', username);
-    pollNotifications(username);
-    _pollers[username] = setInterval(() => pollNotifications(username), 15_000);
-}
-
-function stopPolling(username) {
-    if (!_pollers[username]) return;
-    clearInterval(_pollers[username]);
-    delete _pollers[username];
-    delete _startTime[username];
-    console.log('[SW] Polling остановлен:', username);
-}
-
-async function pollNotifications(username) {
-    try {
-        const encoded = encodeURIComponent(username);
-        const url = `${FB_DB_URL}/users/${encoded}/notifications.json?orderBy="timestamp"&limitToLast=10`;
-        const res = await fetch(url, { cache: 'no-store' });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!data || typeof data !== 'object') return;
-
-        const t0 = _startTime[username] || Date.now();
-
-        for (const [id, n] of Object.entries(data)) {
-            if (!n || n.read) continue;
-            if (_seen.has(id)) continue;
-            if (n.timestamp && n.timestamp < t0 - 10_000) {
-                markRead(username, id);
-                continue;
-            }
-            _seen.add(id);
-
-            const list = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-            const appVisible = list.some(c =>
-                c.visibilityState === 'visible' && c.url.includes('/partner/')
-            );
-
-            if (appVisible) {
-                markRead(username, id);
-            } else {
-                await showTwinNotification(id, n);
-                markRead(username, id);
-            }
-        }
-    } catch (err) {
-        console.warn('[SW] polling error:', err);
-    }
-}
-
-async function markRead(username, notifId) {
-    try {
-        const encoded = encodeURIComponent(username);
-        await fetch(
-            `${FB_DB_URL}/users/${encoded}/notifications/${notifId}.json`,
-            {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ read: true })
-            }
-        );
-    } catch (e) {
-        console.warn('[SW] markRead error:', e);
-    }
-}
-
-// ── Показ уведомления ────────────────────────────────────
-async function showTwinNotification(id, n) {
-    await self.registration.showNotification(getTitle(n), {
-        body:    getBody(n),
-        icon:    '/partner/icon-192x192.png',
-        badge:   '/partner/icon-192x192.png',
-        vibrate: [200, 100, 200],
-        tag:     'twin-' + id,
-        renotify: true,
-        requireInteraction: false,
-        data: { url: 'https://russiastarscom.github.io/partner/', notifId: id },
-        actions: [
-            { action: 'open',    title: 'Открыть' },
-            { action: 'dismiss', title: 'Закрыть'  }
-        ]
-    });
-}
-
-function getTitle(n) {
-    const map = {
-        message:         'Новое сообщение',
-        group_message:   (n.groupName   || 'Группа'),
-        channel_message: (n.channelName || 'Канал'),
-        group_invite:    'Приглашение в группу',
-        group_remove:    'Вы удалены из группы',
-        new_subscriber:  'Новый подписчик',
-        gift:            'Подарок!'
-    };
-    return map[n.type] || 'Twin';
-}
-
-function getBody(n) {
-    const map = {
-        message:         `${n.from}: ${n.text || '…'}`,
-        group_message:   `${n.from}: ${n.text || '…'}`,
-        channel_message: n.text || '…',
-        group_invite:    `${n.from} добавил вас в «${n.groupName}»`,
-        group_remove:    `Вы удалены из «${n.groupName}»`,
-        new_subscriber:  `${n.from} подписался на ваш канал`,
-        gift:            `${n.from} прислал подарок`
-    };
-    return map[n.type] || n.text || 'Новое уведомление';
-}
-
-// ── Клик по уведомлению ──────────────────────────────────
-self.addEventListener('notificationclick', e => {
-    e.notification.close();
-    if (e.action === 'dismiss') return;
-
-    const url = e.notification.data?.url || 'https://russiastarscom.github.io/partner/';
-
-    e.waitUntil(
-        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
-            for (const c of list) {
-                if (c.url.includes('/partner/') && 'focus' in c) {
-                    c.postMessage({ type: 'NOTIFICATION_CLICK', data: e.notification.data });
-                    return c.focus();
-                }
-            }
-            return self.clients.openWindow(url);
-        })
     );
 });
 
@@ -212,8 +42,6 @@ self.addEventListener('fetch', e => {
     if (
         u.includes('firebaseio.com') ||
         u.includes('googleapis.com') ||
-        u.includes('pusher.com') ||
-        u.includes('onesignal.com') ||
         u.includes('8x8.vc')
     ) return;
 
@@ -231,4 +59,99 @@ self.addEventListener('fetch', e => {
     );
 });
 
-console.log('[SW] Twin v8 готов — Pusher Beams + Firebase Polling (единый корневой SW)');
+// ════════════════════════════════════════════════════════════
+//  ██████╗ ██╗   ██╗███████╗██╗  ██╗
+//  ██╔══██╗██║   ██║██╔════╝██║  ██║
+//  ██████╔╝██║   ██║███████╗███████║
+//  ██╔═══╝ ██║   ██║╚════██║██╔══██║
+//  ██║     ╚██████╔╝███████║██║  ██║
+//  ╚═╝      ╚═════╝ ╚══════╝╚═╝  ╚═╝
+//  Web Push — обработка входящих уведомлений
+// ════════════════════════════════════════════════════════════
+
+/**
+ * Обрабатывает входящий push от сервера.
+ * Сервер должен отправить JSON вида:
+ * {
+ *   "title": "Иван",
+ *   "body": "Привет! Как дела?",
+ *   "icon": "/partner/icon-192x192.png",   // необязательно
+ *   "badge": "/partner/icon-192x192.png",  // необязательно
+ *   "tag": "msg-ivan",                     // группировка уведомлений
+ *   "url": "/partner/index.html?chat=ivan" // куда открыть по клику
+ * }
+ */
+self.addEventListener('push', e => {
+    console.log('[SW] Push получен');
+
+    let payload = {
+        title: 'Twin',
+        body: 'Новое сообщение',
+        icon: '/partner/icon-192x192.png',
+        badge: '/partner/icon-192x192.png',
+        tag: 'twin-msg',
+        url: '/partner/index.html'
+    };
+
+    if (e.data) {
+        try {
+            const d = e.data.json();
+            payload = { ...payload, ...d };
+        } catch {
+            payload.body = e.data.text() || payload.body;
+        }
+    }
+
+    const options = {
+        body: payload.body,
+        icon: payload.icon,
+        badge: payload.badge,
+        tag: payload.tag,
+        renotify: true,                  // звук/вибрация даже при одинаковом tag
+        vibrate: [200, 100, 200],
+        data: { url: payload.url },
+        actions: [
+            { action: 'open',    title: '💬 Открыть' },
+            { action: 'dismiss', title: '✖ Закрыть'  }
+        ]
+    };
+
+    e.waitUntil(
+        self.registration.showNotification(payload.title, options)
+    );
+});
+
+// ── Клик по уведомлению ──────────────────────────────────
+self.addEventListener('notificationclick', e => {
+    e.notification.close();
+
+    if (e.action === 'dismiss') return;
+
+    const targetUrl = (e.notification.data && e.notification.data.url)
+        ? e.notification.data.url
+        : '/partner/index.html';
+
+    e.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true })
+            .then(windowClients => {
+                // Ищем уже открытую вкладку Twin
+                for (const client of windowClients) {
+                    if (client.url.includes('/partner/') && 'focus' in client) {
+                        client.navigate(targetUrl);
+                        return client.focus();
+                    }
+                }
+                // Открываем новую вкладку
+                if (clients.openWindow) {
+                    return clients.openWindow(targetUrl);
+                }
+            })
+    );
+});
+
+// ── Уведомление закрыто пользователем ───────────────────
+self.addEventListener('notificationclose', e => {
+    console.log('[SW] Уведомление закрыто:', e.notification.tag);
+});
+
+console.log('[SW] Twin v10 готов — Web Push включён ✓');

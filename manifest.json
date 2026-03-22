@@ -50,6 +50,5 @@
       ]
     }
   ],
-  "gcm_sender_id": "482941778795",
-  "permissions": ["notifications"]
+  "permissions": []
 }
