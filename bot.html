@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Twin Bot</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,sans-serif;background:#0c0c14;color:#e8e6f4;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+  #topbar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#11111c;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+  #tb-ava{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#7c6ef7,#a855f7);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+  #tb-info{flex:1;min-width:0}
+  #tb-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #tb-sub{font-size:11px;color:#52506a}
+  .tbtn{background:none;border:none;color:#9896aa;font-size:13px;padding:6px 10px;border-radius:8px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;font-family:inherit;font-weight:500}
+  .tbtn:hover{background:rgba(255,255,255,.07);color:#e8e6f4}
+  .tbtn.hl{background:rgba(124,110,247,.15);color:#a99cf8}
+  .tbtn.hl:hover{background:rgba(124,110,247,.28)}
+  #owner-dot{width:7px;height:7px;border-radius:50%;background:#7c6ef7;flex-shrink:0;display:none}
+  #owner-dot.show{display:block}
+  /* iframe */
+  #bot-frame{flex:1;width:100%;border:none;background:#fff;display:none}
+  #bot-frame.show{display:block}
+  /* loader */
+  #loader{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+  #loader.hide{display:none}
+  .ld-ico{font-size:44px;animation:li 1.4s ease-in-out infinite}
+  @keyframes li{0%,100%{transform:scale(1)}50%{transform:scale(1.13)}}
+  .ld-bar{width:88px;height:2px;background:#1a1a28;border-radius:1px;overflow:hidden}
+  .ld-fill{height:100%;background:#7c6ef7;animation:lf 1.6s ease-in-out infinite}
+  @keyframes lf{0%{width:0;margin-left:0}50%{width:100%;margin-left:0}100%{width:0;margin-left:100%}}
+  .ld-txt{font-size:11px;color:#52506a;letter-spacing:.1em;text-transform:uppercase}
+  /* not found */
+  #nf{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:24px}
+  #nf.show{display:flex}
+  #nf .i{font-size:48px}
+  #nf h2{font-size:19px;font-weight:600}
+  #nf p{font-size:13px;color:#9896aa;line-height:1.6}
+  #nf a{color:#a99cf8;text-decoration:none;font-size:13px;margin-top:6px}
+  /* EDITOR */
+  #ed{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:none;flex-direction:column;backdrop-filter:blur(4px)}
+  #ed.show{display:flex}
+  #ed-bar{display:flex;align-items:center;gap:7px;padding:10px 12px;background:#0e0e1a;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+  #ed-bar::-webkit-scrollbar{display:none}
+  #ed-title{font-size:14px;font-weight:600;color:#e8e6f4;white-space:nowrap;flex-shrink:0;margin-right:2px}
+  .eb{padding:7px 13px;border-radius:8px;border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;flex-shrink:0;transition:all .15s}
+  .eb:active{transform:scale(.95)}
+  .eb-sv{background:#7c6ef7;color:#fff}
+  .eb-pv{background:rgba(61,214,140,.13);color:#3dd68c;border:1px solid rgba(61,214,140,.2)}
+  .eb-tl{background:rgba(255,255,255,.07);color:#9896aa}
+  .eb-cl{background:rgba(244,100,95,.12);color:#f4645f;margin-left:auto}
+  #ed-st{font-size:11px;font-family:'Courier New',monospace;color:#52506a;white-space:nowrap;flex-shrink:0}
+  #ed-st.ok{color:#3dd68c}#ed-st.er{color:#f4645f}
+  #ed-body{flex:1;display:flex;overflow:hidden;min-height:0}
+  #lnums{flex-shrink:0;min-width:42px;background:#07070d;border-right:1px solid rgba(255,255,255,.05);font-family:'Courier New',monospace;font-size:12.5px;line-height:1.72;color:#2a284a;text-align:right;user-select:none;overflow:hidden;padding:14px 0}
+  #lnums span{display:block;padding:0 7px}
+  #code-ta{flex:1;padding:14px;background:#07070d;border:none;outline:none;color:#d4d2ee;font-family:'Courier New',Courier,monospace;font-size:13px;line-height:1.72;resize:none;overflow:auto;tab-size:2;white-space:pre;overflow-wrap:normal;caret-color:#a29bfe;-webkit-text-size-adjust:none}
+  #code-ta::selection{background:rgba(124,110,247,.3)}
+  #code-ta::-webkit-scrollbar{width:4px;height:4px}
+  #code-ta::-webkit-scrollbar-thumb{background:#1c1c38;border-radius:4px}
+  /* toast */
+  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(10px);background:#1a1a28;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:9px 18px;font-size:13px;color:#e8e6f4;white-space:nowrap;opacity:0;transition:all .25s;pointer-events:none;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div id="tb-ava">🤖</div>
+  <div id="tb-info">
+    <div id="tb-name">Загрузка...</div>
+    <div id="tb-sub">Twin Bot</div>
+  </div>
+  <div id="owner-dot" title="Мой бот"></div>
+  <button class="tbtn" onclick="doShare()" title="Скопировать ссылку">🔗</button>
+  <button class="tbtn hl" id="edit-btn" style="display:none" onclick="openEd()">✏️ Код</button>
+  <button class="tbtn" onclick="reload()" title="Перезагрузить">⟳</button>
+  <a class="tbtn" href="index.html">← Twin</a>
+</div>
+
+<div id="loader">
+  <div class="ld-ico" id="ld-ava">🤖</div>
+  <div class="ld-bar"><div class="ld-fill"></div></div>
+  <div class="ld-txt">Загрузка...</div>
+</div>
+
+<div id="nf">
+  <div class="i">🤷</div>
+  <h2>Бот не найден</h2>
+  <p>Возможно, бот удалён или ссылка неверна.</p>
+  <a href="index.html">← Вернуться в Twin</a>
+</div>
+
+<iframe id="bot-frame"
+  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+  allow=""></iframe>
+
+<!-- EDITOR -->
+<div id="ed">
+  <div id="ed-bar">
+    <span id="ed-title">✏️ Редактор</span>
+    <button class="eb eb-sv" onclick="saveCode()">💾 Сохранить</button>
+    <button class="eb eb-pv" onclick="preview()">👁 Превью</button>
+    <button class="eb eb-tl" onclick="loadTpl()">📋 Шаблон</button>
+    <span id="ed-st">—</span>
+    <button class="eb eb-cl" onclick="closeEd()">✕ Закрыть</button>
+  </div>
+  <div id="ed-body">
+    <div id="lnums"></div>
+    <textarea id="code-ta" spellcheck="false" autocomplete="off"
+      autocorrect="off" autocapitalize="off"
+      oninput="onCI()" onscroll="onCS()" onkeydown="onCK(event)"></textarea>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script>
+/* ─── FIREBASE ─── */
+try {
+  firebase.initializeApp({
+    apiKey:"AIzaSyAhO3JsDI61pkpGla045EfEXq6h7EuGHoQ",
+    authDomain:"ukraine-52ad4.firebaseapp.com",
+    databaseURL:"https://ukraine-52ad4-default-rtdb.firebaseio.com",
+    projectId:"ukraine-52ad4",
+    storageBucket:"ukraine-52ad4.firebasestorage.app",
+    messagingSenderId:"63107581219",
+    appId:"1:63107581219:web:074b8e692a8a8b04737896"
+  });
+} catch(e){}
+const db = (() => { try{ return firebase.database(); }catch(e){ return null; } })();
+
+/* ─── STATE ─── */
+let BOT = null, BOT_ID = null, IS_OWNER = false, CU = null;
+
+/* ─── DEFAULT HTML TEMPLATE ─── */
+const TPL = `<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Мой бот</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, sans-serif;
+    background: #0f0f18;
+    color: #e8e6f4;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card {
+    background: #1a1a28;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 20px;
+    padding: 36px 28px;
+    width: 90%;
+    max-width: 420px;
+    text-align: center;
+  }
+  .ava { font-size: 60px; margin-bottom: 18px; }
+  h1   { font-size: 26px; font-weight: 700; margin-bottom: 10px; }
+  p    { font-size: 14px; color: #9896aa; line-height: 1.65; margin-bottom: 26px; }
+  a    {
+    display: inline-block;
+    padding: 12px 28px;
+    background: #7c6ef7;
+    color: #fff;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background .2s;
+  }
+  a:hover { background: #6558e0; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="ava">🤖</div>
+    <h1>Привет!</h1>
+    <p>
+      Это страница бота Twin.<br>
+      Нажми <strong>✏️ Код</strong> вверху чтобы редактировать.<br>
+      Сделай что угодно — чат, игру, утилиту или мини-сайт.
+    </p>
+    <a href="index.html">← Вернуться в Twin</a>
+  </div>
+</body>
+</html>`;
+
+/* ─── STARTUP ─── */
+window.onload = async function() {
+  const p = new URLSearchParams(location.search);
+  BOT_ID = p.get('id') || p.get('bot');
+
+  try { CU = JSON.parse(localStorage.getItem('messenger_user')||'{}').username||null; } catch(e){}
+
+  if (!BOT_ID) { showNF(); return; }
+  if (!db)     { showNF(); return; }
+
+  try {
+    const snap = await db.ref('bots/'+BOT_ID).once('value');
+    if (!snap.exists()) { showNF(); return; }
+    BOT = Object.assign({ id: BOT_ID }, snap.val());
+    db.ref('bots/'+BOT_ID+'/views').transaction(v => (v||0)+1);
+  } catch(e) { showNF(); return; }
+
+  IS_OWNER = !!(CU && BOT.ownerName === CU);
+  initUI();
+  renderBot();
+};
+
+function showNF() {
+  $('loader').classList.add('hide');
+  $('nf').classList.add('show');
+}
+
+function initUI() {
+  $('tb-ava').textContent  = BOT.emoji || '🤖';
+  $('ld-ava').textContent  = BOT.emoji || '🤖';
+  $('tb-name').textContent = BOT.name  || 'Bot';
+  $('tb-sub').textContent  = '@'+(BOT.username||BOT_ID)+' · Twin Bot';
+  document.title = (BOT.name||'Bot')+' — Twin Bot';
+  if (IS_OWNER) {
+    $('edit-btn').style.display = '';
+    $('owner-dot').classList.add('show');
+  }
+}
+
+function renderBot() {
+  const frame = $('bot-frame');
+  frame.srcdoc = BOT.htmlCode || TPL;
+  frame.onload = () => { $('loader').classList.add('hide'); frame.classList.add('show'); };
+}
+
+function reload() {
+  $('loader').classList.remove('hide');
+  $('bot-frame').classList.remove('show');
+  $('bot-frame').srcdoc = BOT.htmlCode || TPL;
+}
+
+/* ─── EDITOR ─── */
+function openEd() {
+  $('code-ta').value = BOT.htmlCode || TPL;
+  updateLN(); setSt('—','');
+  $('ed').classList.add('show');
+  setTimeout(() => $('code-ta').focus(), 200);
+}
+function closeEd() { $('ed').classList.remove('show'); }
+
+function onCI() { updateLN(); setSt('Не сохранено',''); }
+function onCS() { const t=$('code-ta'),l=$('lnums'); if(l) l.scrollTop=t.scrollTop; }
+function onCK(e) {
+  if(e.key!=='Tab') return; e.preventDefault();
+  const t=e.target,s=t.selectionStart,n=t.selectionEnd;
+  t.value=t.value.slice(0,s)+'  '+t.value.slice(n);
+  t.selectionStart=t.selectionEnd=s+2; updateLN();
+}
+function updateLN() {
+  const t=$('code-ta'),l=$('lnums'); if(!t||!l) return;
+  l.innerHTML=(t.value||'').split('\n').map((_,i)=>`<span>${i+1}</span>`).join('');
+}
+function setSt(txt,cls) {
+  const e=$('ed-st'); e.textContent=txt; e.className=cls||'';
+}
+
+async function saveCode() {
+  if(!IS_OWNER){ toast('Только владелец может сохранять'); return; }
+  const code = $('code-ta').value;
+  setSt('Сохраняем...','');
+  try {
+    await db.ref('bots/'+BOT_ID).update({ htmlCode:code, updatedAt:Date.now() });
+    BOT.htmlCode = code;
+    setSt('✓ Сохранено','ok');
+    toast('💾 Код сохранён!');
+    closeEd();
+    reload();
+  } catch(e) { setSt('✗ Ошибка','er'); toast('Ошибка: '+e.message); }
+}
+
+function preview() {
+  const code = $('code-ta').value;
+  if(!code.trim()){ toast('Код пустой'); return; }
+  const blob = new Blob([code],{type:'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const w = window.open(url,'_blank');
+  if(!w){ toast('Разрешите всплывающие окна'); return; }
+  setTimeout(()=>URL.revokeObjectURL(url), 60000);
+}
+
+function loadTpl() {
+  if($('code-ta').value.trim() && !confirm('Заменить код шаблоном?')) return;
+  $('code-ta').value = TPL; updateLN(); setSt('Шаблон','');
+}
+
+/* ─── SHARE ─── */
+function doShare() {
+  const url = location.origin + location.pathname + '?id=' + BOT_ID;
+  if(navigator.share) {
+    navigator.share({ title: BOT.name||'Bot', url }).catch(()=>copyURL(url));
+  } else copyURL(url);
+}
+function copyURL(url) {
+  if(navigator.clipboard){ navigator.clipboard.writeText(url).then(()=>toast('🔗 Ссылка скопирована!')); return; }
+  const t=document.createElement('textarea'); t.value=url;
+  t.style.cssText='position:fixed;opacity:0'; document.body.appendChild(t);
+  t.focus(); t.select();
+  try{ document.execCommand('copy'); toast('🔗 Ссылка скопирована!'); }catch(e){}
+  document.body.removeChild(t);
+}
+
+/* ─── UTILS ─── */
+function $(id){ return document.getElementById(id); }
+let _tt;
+function toast(msg){
+  const e=$('toast'); e.textContent=msg; e.classList.add('show');
+  clearTimeout(_tt); _tt=setTimeout(()=>e.classList.remove('show'),2400);
+}
+</script>
+</body>
+</html>

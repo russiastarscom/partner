@@ -87,6 +87,140 @@
             --channel-hover: #e1e6ff;
         }
 
+        /* ============================================================
+           ВИРТУАЛЬНЫЙ ПИТОМЕЦ
+           ============================================================ */
+        .pet-card {
+            background: linear-gradient(135deg, rgba(108,92,231,0.08) 0%, rgba(162,155,254,0.12) 100%);
+            border: 1.5px solid rgba(108,92,231,0.2);
+            border-radius: 18px;
+            padding: 16px;
+            margin: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: box-shadow 0.2s, transform 0.15s;
+        }
+        .pet-card:hover {
+            box-shadow: 0 4px 20px rgba(108,92,231,0.18);
+            transform: translateY(-1px);
+        }
+        .pet-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.4rem;
+            flex-shrink: 0;
+            box-shadow: 0 3px 12px rgba(108,92,231,0.3);
+            position: relative;
+            animation: petBounce 3s ease-in-out infinite;
+        }
+        @keyframes petBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .pet-info { flex: 1; min-width: 0; }
+        .pet-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text-color);
+            margin-bottom: 2px;
+        }
+        .pet-type {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-bottom: 6px;
+        }
+        .pet-age-bar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pet-age-bar {
+            flex: 1;
+            height: 7px;
+            background: var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .pet-age-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #a29bfe, #6c5ce7);
+            transition: width 0.5s ease;
+        }
+        .pet-age-label {
+            font-size: 0.72rem;
+            color: var(--text-light);
+            white-space: nowrap;
+            font-weight: 600;
+        }
+        .pet-stage-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 9px;
+            border-radius: 20px;
+            background: linear-gradient(90deg, #a29bfe, #6c5ce7);
+            color: #fff;
+            margin-top: 5px;
+        }
+
+        /* Модалка питомца */
+        #pet-setup-modal .pet-type-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 10px 0 16px;
+        }
+        .pet-type-btn {
+            background: var(--bg-color);
+            border: 2px solid var(--border-color);
+            border-radius: 14px;
+            padding: 12px 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: border-color 0.15s, background 0.15s;
+            font-family: inherit;
+        }
+        .pet-type-btn:hover { background: rgba(108,92,231,0.07); border-color: var(--primary-color); }
+        .pet-type-btn.selected { border-color: var(--primary-color); background: rgba(108,92,231,0.1); }
+        .pet-type-btn .pt-emoji { font-size: 2rem; display: block; margin-bottom: 4px; }
+        .pet-type-btn .pt-label { font-size: 0.75rem; font-weight: 600; color: var(--text-color); }
+        .pet-big-preview {
+            text-align: center;
+            font-size: 4rem;
+            margin: 10px 0;
+            animation: petBounce 2s ease-in-out infinite;
+        }
+
+        /* Список питомцев всех */
+        .pets-list-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            padding: 4px 2px 10px;
+        }
+        .pets-list-card {
+            background: var(--modal-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px 12px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: box-shadow 0.18s, transform 0.15s;
+        }
+        .pets-list-card:hover { box-shadow: 0 4px 16px rgba(108,92,231,0.15); transform: translateY(-2px); }
+        .pets-list-card .plc-emoji { font-size: 2.4rem; display: block; margin-bottom: 8px; }
+        .pets-list-card .plc-pet-name { font-weight: 700; font-size: 0.92rem; color: var(--text-color); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pets-list-card .plc-owner { font-size: 0.75rem; color: var(--text-light); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pets-list-card .plc-stage { font-size: 0.7rem; font-weight: 700; padding: 2px 9px; border-radius: 20px; background: linear-gradient(90deg, #a29bfe, #6c5ce7); color: #fff; display: inline-block; }
+
 
         /* ============================================================
            ПОСТЫ КАНАЛА + КОММЕНТАРИИ
@@ -203,8 +337,56 @@
         .post-footer {
             display: flex;
             align-items: center;
+            gap: 4px;
             padding: 8px 14px 12px;
             border-top: 1px solid var(--border-color);
+        }
+
+        /* Лайк поста */
+        .post-like-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: none;
+            border: none;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 0.88rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: background 0.18s, color 0.18s, transform 0.12s;
+            font-family: inherit;
+            font-weight: 500;
+            user-select: none;
+        }
+        .post-like-btn:hover {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+        .post-like-btn.liked {
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.08);
+        }
+        .post-like-btn .like-count {
+            font-weight: 700;
+            font-size: 0.88rem;
+        }
+        .post-like-btn:active { transform: scale(0.9); }
+
+        /* Просмотры поста */
+        .post-views {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: auto;
+            font-size: 0.82rem;
+            color: var(--text-light);
+            padding: 6px 8px;
+            pointer-events: none;
+            user-select: none;
+        }
+        .post-views .views-count {
+            font-weight: 600;
         }
         .post-comment-toggle {
             display: inline-flex;
@@ -2654,6 +2836,76 @@
         .message-input button {
             flex: 0 0 auto;
         }
+
+        /* ==================== БОТЫ ====================
+           Только список + модалки создания/просмотра.
+           Чат и редактор живут в bot.html
+        ==================== */
+        #bots-panel{display:none;flex-direction:column;flex:1;overflow:hidden}
+        #bots-panel.active{display:flex}
+        /* list */
+        .bi{display:flex;align-items:center;gap:12px;padding:11px 16px;cursor:pointer;transition:background .14s;border-bottom:1px solid var(--border-color)}
+        .bi:hover{background:var(--message-hover)}
+        .bi-ava{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;box-shadow:0 2px 8px rgba(108,92,231,.2);position:relative}
+        .bi-mine{position:absolute;bottom:-2px;right:-2px;font-size:.68rem;background:var(--primary-color);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border:2px solid var(--sidebar-bg);color:#fff;font-weight:700}
+        .bi-info{flex:1;min-width:0}
+        .bi-name{font-weight:700;font-size:.94rem;color:var(--text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .bi-un{font-size:.77rem;color:var(--primary-color);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .bi-ds{font-size:.74rem;color:var(--text-light);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .bi-open{padding:5px 13px;border-radius:20px;font-size:.75rem;font-weight:600;background:rgba(108,92,231,.12);color:var(--primary-color);border:1px solid rgba(108,92,231,.25);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s;font-family:inherit}
+        .bi-open:hover{background:var(--primary-color);color:#fff}
+        .bots-empty-msg{text-align:center;padding:44px 20px;color:var(--text-light)}
+        .bots-empty-msg .bee{font-size:3rem;margin-bottom:12px}
+        .bots-empty-msg p{font-size:.87rem;line-height:1.5}
+        /* dev reg rows */
+        .dreg-row{margin-bottom:11px}
+        .dreg-row label{display:block;font-size:.77rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+        /* create bot modal — html editor */
+        #create-bot-modal .modal-content{max-width:680px;width:96vw;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;padding:0}
+        @media(max-width:600px){#create-bot-modal .modal-content{width:100vw;max-height:100vh;border-radius:0}}
+        .cb-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border-color);flex-shrink:0}
+        .cb-hdr h2{font-size:1.05rem;font-weight:700;color:var(--text-color)}
+        .cb-x{background:none;border:none;font-size:1.25rem;cursor:pointer;color:var(--text-light);padding:3px 7px;border-radius:7px;transition:background .14s}
+        .cb-x:hover{background:var(--message-hover)}
+        .cb-meta{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border-color);flex-shrink:0;flex-wrap:wrap}
+        .cb-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:130px}
+        .cb-field label{font-size:.72rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em}
+        .cb-inp{padding:8px 12px;background:var(--bg-color);border:1.5px solid var(--border-color);border-radius:9px;color:var(--text-color);font-family:inherit;font-size:.9rem;outline:none;transition:border-color .15s;width:100%}
+        .cb-inp:focus{border-color:var(--primary-color)}
+        .cb-editor-wrap{flex:1;display:flex;overflow:hidden;min-height:0}
+        .cb-lnums{flex-shrink:0;min-width:38px;background:#0b0b14;border-right:1px solid rgba(255,255,255,.06);font-family:monospace;font-size:12.5px;line-height:1.7;color:#3a3858;text-align:right;user-select:none;overflow:hidden;padding:14px 0}
+        .cb-lnums span{display:block;padding:0 7px}
+        #cb-code{flex:1;padding:14px;background:#0b0b14;border:none;outline:none;color:#d4d2ee;font-family:'Courier New',Courier,monospace;font-size:13px;line-height:1.7;resize:none;overflow:auto;tab-size:2;white-space:pre;overflow-wrap:normal;caret-color:#a29bfe;-webkit-text-size-adjust:none}
+        #cb-code::selection{background:rgba(108,92,231,.3)}
+        #cb-code::-webkit-scrollbar{width:4px;height:4px}
+        #cb-code::-webkit-scrollbar-thumb{background:#2a2a40;border-radius:4px}
+        .cb-toolbar{display:flex;align-items:center;gap:7px;padding:8px 12px;background:var(--bg-color);border-top:1px solid var(--border-color);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+        .cb-toolbar::-webkit-scrollbar{display:none}
+        .cb-btn{padding:7px 14px;border-radius:8px;border:none;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+        .cb-btn:active{transform:scale(.96)}
+        .cb-ok{background:var(--primary-color);color:#fff;box-shadow:0 3px 12px rgba(108,92,231,.3)}
+        .cb-cancel{background:var(--border-color);color:var(--text-color)}
+        .cb-tpl{background:rgba(108,92,231,.1);color:var(--primary-color);border:1px solid rgba(108,92,231,.2)}
+        .cb-preview{background:rgba(46,204,113,.1);color:#27ae60;border:1px solid rgba(46,204,113,.2);margin-left:auto}
+        body.dark-theme .cb-preview{color:#2ecc71}
+        .cb-st{font-size:.72rem;font-family:monospace;color:var(--text-light);font-style:italic;margin-left:4px}
+        /* bot view modal */
+        #bot-view-modal .modal-content{max-width:400px}
+        .bv-hdr{text-align:center;padding:22px 16px 14px}
+        .bv-ava{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin:0 auto 12px;box-shadow:0 4px 18px rgba(108,92,231,.28)}
+        .bv-nm{font-size:1.15rem;font-weight:700;color:var(--text-color)}
+        .bv-un{font-size:.84rem;color:var(--primary-color);margin-top:3px}
+        .bv-ds{font-size:.86rem;color:var(--text-light);margin-top:8px;line-height:1.5;padding:0 8px}
+        .bv-meta{display:flex;justify-content:center;gap:18px;margin-top:14px;padding:12px 0;border-top:1px solid var(--border-color);border-bottom:1px solid var(--border-color)}
+        .bv-mi{text-align:center}
+        .bv-mi .n{font-size:1.05rem;font-weight:700;color:var(--text-color)}
+        .bv-mi .l{font-size:.7rem;color:var(--text-light)}
+        .bv-link{display:flex;gap:8px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border-color)}
+        .bv-link input{flex:1;padding:8px 12px;background:var(--bg-color);border:1px solid var(--border-color);border-radius:8px;color:var(--text-color);font-family:monospace;font-size:.75rem;outline:none;cursor:pointer}
+        .bv-link-copy{padding:7px 14px;border-radius:8px;border:none;background:rgba(108,92,231,.12);color:var(--primary-color);font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
+        .bv-link-copy:hover{background:var(--primary-color);color:#fff}
+        .bv-act{padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+        /* ==================== КОНЕЦ БОТОВ ==================== */
     </style>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -2688,6 +2940,7 @@
                     <button class="tab active" id="chats-tab">Чаты</button>
                     <button class="tab" id="users-tab">Пользователи</button>
                     <button class="tab" id="channels-tab">Каналы</button>
+                    <button class="tab" id="bots-tab">Боты</button>
                 </div>
 
                 <div class="search-container">
@@ -2697,6 +2950,25 @@
                 <div class="search-results" id="search-results">
                     <!-- Результаты поиска будут здесь -->
                 </div>
+
+                <!-- ===== ПАНЕЛЬ БОТОВ ===== -->
+                <div id="bots-panel" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+                    <div style="padding:10px 14px 6px;position:relative;">
+                        <span style="position:absolute;left:26px;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none;color:var(--text-light);">🔍</span>
+                        <input type="text" id="bots-search" placeholder="Поиск ботов или введи create_bot..."
+                            style="width:100%;padding:10px 16px 10px 38px;border:1.5px solid var(--border-color);border-radius:22px;background:var(--input-bg);color:var(--text-color);font-size:.92rem;font-family:inherit;outline:none;box-sizing:border-box;">
+                    </div>
+                    <div style="font-size:.74rem;color:var(--text-light);padding:2px 18px 7px;line-height:1.4;">
+                        Введите <b style="color:var(--primary-color);">create_bot</b> чтобы создать своего бота
+                    </div>
+                    <div id="bots-list" style="flex:1;overflow-y:auto;padding:4px 0 10px;">
+                        <div style="text-align:center;padding:40px 20px;color:var(--text-light);">
+                            <div style="font-size:3rem;margin-bottom:12px;">🤖</div>
+                            <p style="font-size:.88rem;">Загрузка...</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- ===== КОНЕЦ ПАНЕЛИ БОТОВ ===== -->
 
                 <!-- Панель аккаунтов -->
                 <div id="accounts-panel" style="display:none; padding:8px 12px 4px; border-top:1px solid var(--border-color);">
@@ -2826,6 +3098,14 @@
 
     <!-- Меню настроек -->
     <div class="settings-menu" id="settings-menu">
+        <div class="settings-menu-item" id="profile-menu-btn" onclick="toggleSettingsMenu();openProfileSettings();" style="color:var(--primary-color);font-weight:700;">
+            <span>👤</span>
+            <span>Мой профиль</span>
+        </div>
+        <div class="settings-menu-item" id="pet-menu-btn" onclick="toggleSettingsMenu();openPetInteract();" style="color:var(--primary-color);">
+            <span>🐾</span>
+            <span>Мой питомец</span>
+        </div>
         <div class="settings-menu-item create-group" id="create-group-menu-btn">
             <span>👥</span>
             <span>Создать группу</span>
@@ -2950,6 +3230,29 @@
                     <span>Темная тема</span>
                 </label>
             </div>
+
+            <!-- Карточка питомца в профиле -->
+            <div id="my-pet-card-profile" style="margin-top:14px;display:none;">
+                <label style="font-size:0.85rem;font-weight:700;color:var(--text-light);margin-bottom:6px;display:block;">🐾 Мой питомец</label>
+                <div class="pet-card" id="my-pet-card-inner" onclick="openPetInteract()">
+                    <div class="pet-avatar" id="my-pet-avatar-prof">🐱</div>
+                    <div class="pet-info">
+                        <div class="pet-name" id="my-pet-name-prof">—</div>
+                        <div class="pet-type" id="my-pet-type-prof"></div>
+                        <div class="pet-age-bar-wrap">
+                            <div class="pet-age-bar"><div class="pet-age-fill" id="my-pet-age-fill" style="width:0%"></div></div>
+                            <span class="pet-age-label" id="my-pet-age-label">0 ч.</span>
+                        </div>
+                        <span class="pet-stage-badge" id="my-pet-stage-badge">Яйцо</span>
+                    </div>
+                </div>
+                <button class="modal-btn" onclick="openPetSetup()" style="width:100%;margin-top:0;font-size:0.82rem;padding:8px;">✏️ Изменить питомца</button>
+            </div>
+            <div id="no-pet-profile" style="margin-top:14px;display:block;">
+                <button class="modal-btn modal-btn-primary" onclick="openPetSetup()" style="width:100%;background:linear-gradient(135deg,#a29bfe,#6c5ce7);">🥚 Завести питомца</button>
+            </div>
+
+            <button class="modal-btn" onclick="openPetZoo()" style="width:100%;margin-top:8px;font-size:0.82rem;background:rgba(108,92,231,0.1);color:var(--primary-color);">🌍 Питомцы всех пользователей</button>
 
             <div class="modal-actions">
                 <button class="modal-btn modal-btn-secondary" id="cancel-profile-settings-btn">Отмена</button>
@@ -3079,6 +3382,67 @@
             </div>
             <div class="modal-actions" style="margin-top:18px;">
                 <button class="modal-btn modal-btn-secondary" id="channel-share-close-btn">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== МОДАЛКА НАСТРОЙКИ ПИТОМЦА ===== -->
+    <div class="modal" id="pet-setup-modal">
+        <div class="modal-content" style="max-width:420px;">
+            <h2 class="modal-title">🐾 Мой питомец</h2>
+            <div class="pet-big-preview" id="pet-setup-preview">🐱</div>
+            <input type="text" class="modal-input" id="pet-name-input" placeholder="Имя питомца" maxlength="24" style="margin-bottom:14px;">
+            <label style="font-size:0.85rem;font-weight:700;color:var(--text-light);margin-bottom:8px;display:block;">Выберите питомца:</label>
+            <div class="pet-type-grid" id="pet-type-grid"></div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" id="pet-setup-cancel">Отмена</button>
+                <button class="modal-btn modal-btn-primary" id="pet-setup-save">💾 Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== МОДАЛКА ЗОО — ВСЕ ПИТОМЦЫ ===== -->
+    <div class="modal" id="pet-zoo-modal">
+        <div class="modal-content" style="max-width:520px;max-height:80vh;overflow-y:auto;">
+            <h2 class="modal-title">🌍 Питомцы пользователей</h2>
+            <div id="pets-zoo-list" style="min-height:80px;"></div>
+            <div class="modal-actions" style="margin-top:14px;">
+                <button class="modal-btn modal-btn-secondary" id="pet-zoo-close">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== МОДАЛКА ВЗАИМОДЕЙСТВИЯ С ПИТОМЦЕМ ===== -->
+    <div class="modal" id="pet-interact-modal">
+        <div class="modal-content" style="max-width:370px;text-align:center;">
+            <h2 class="modal-title">🐾 <span id="pet-interact-name">Питомец</span></h2>
+            <div id="pet-interact-emoji" style="font-size:5rem;margin:10px 0 6px;display:block;animation:petBounce 2s ease-in-out infinite;transition:transform 0.15s;">🐱</div>
+            <span id="pet-interact-stage" style="font-size:0.78rem;font-weight:700;padding:3px 12px;border-radius:20px;background:linear-gradient(90deg,#a29bfe,#6c5ce7);color:#fff;display:inline-block;margin-bottom:12px;">Яйцо</span>
+            <div id="pet-interact-speech" style="min-height:24px;font-size:0.93rem;color:var(--text-light);margin-bottom:14px;font-style:italic;">...</div>
+            <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px;text-align:left;">
+                <div>
+                    <div style="display:flex;justify-content:space-between;font-size:0.76rem;font-weight:600;color:var(--text-light);margin-bottom:3px;"><span>🍖 Сытость</span><span id="pet-hunger-pct">100%</span></div>
+                    <div style="height:8px;background:var(--border-color);border-radius:10px;overflow:hidden;"><div id="pet-hunger-bar" style="height:100%;border-radius:10px;background:linear-gradient(90deg,#fd79a8,#e17055);transition:width 0.5s;width:100%;"></div></div>
+                </div>
+                <div>
+                    <div style="display:flex;justify-content:space-between;font-size:0.76rem;font-weight:600;color:var(--text-light);margin-bottom:3px;"><span>😊 Настроение</span><span id="pet-mood-pct">100%</span></div>
+                    <div style="height:8px;background:var(--border-color);border-radius:10px;overflow:hidden;"><div id="pet-mood-bar" style="height:100%;border-radius:10px;background:linear-gradient(90deg,#a29bfe,#6c5ce7);transition:width 0.5s;width:100%;"></div></div>
+                </div>
+                <div>
+                    <div style="display:flex;justify-content:space-between;font-size:0.76rem;font-weight:600;color:var(--text-light);margin-bottom:3px;"><span>⚡ Энергия</span><span id="pet-energy-pct">100%</span></div>
+                    <div style="height:8px;background:var(--border-color);border-radius:10px;overflow:hidden;"><div id="pet-energy-bar" style="height:100%;border-radius:10px;background:linear-gradient(90deg,#55efc4,#00b894);transition:width 0.5s;width:100%;"></div></div>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+                <button onclick="petAction('feed')"  style="padding:10px;border:1.5px solid rgba(108,92,231,0.25);background:rgba(108,92,231,0.07);border-radius:12px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-color);">🍖 Покормить</button>
+                <button onclick="petAction('play')"  style="padding:10px;border:1.5px solid rgba(108,92,231,0.25);background:rgba(108,92,231,0.07);border-radius:12px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-color);">🎾 Поиграть</button>
+                <button onclick="petAction('sleep')" style="padding:10px;border:1.5px solid rgba(108,92,231,0.25);background:rgba(108,92,231,0.07);border-radius:12px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-color);">💤 Поспать</button>
+                <button onclick="petAction('pat')"   style="padding:10px;border:1.5px solid rgba(108,92,231,0.25);background:rgba(108,92,231,0.07);border-radius:12px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-color);">❤️ Погладить</button>
+            </div>
+            <div id="pet-last-fed-label" style="font-size:0.74rem;color:var(--text-light);margin-bottom:10px;"></div>
+            <div class="modal-actions" style="justify-content:space-between;">
+                <button class="modal-btn modal-btn-secondary" onclick="document.getElementById('pet-interact-modal').classList.remove('active')">Закрыть</button>
+                <button class="modal-btn" onclick="document.getElementById('pet-interact-modal').classList.remove('active');openPetSetup();" style="font-size:0.82rem;">✏️ Изменить</button>
             </div>
         </div>
     </div>
@@ -3340,62 +3704,73 @@
                 if (typeof themeToggle !== 'undefined' && themeToggle) themeToggle.checked = false;
             }
 
-            // Инициализируем систему подарков
-            initGiftSystem();
-
             // Проверяем, есть ли сохраненный пользователь
             const savedUser = localStorage.getItem('messenger_user');
             if (savedUser) {
-                try {
-                    const userData = JSON.parse(savedUser);
-                    if (userData && userData.username && userData.password) {
-                        // Автоматический вход
-                        const userRef = database.ref('users/' + encodeURIComponent(userData.username));
-                        const snapshot = await userRef.once('value');
+                let userData = null;
+                try { userData = JSON.parse(savedUser); } catch(e) {}
 
-                        if (snapshot.exists()) {
-                            const dbUserData = snapshot.val();
-                            if (dbUserData.password === userData.password) {
-                                currentUser = userData.username;
+                if (userData && userData.username && userData.password) {
+                    // Ждём Firebase до 5 секунд
+                    let dbWait = 0;
+                    while (typeof database === 'undefined' && dbWait < 10) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        dbWait++;
+                    }
+
+                    // Входим сразу по локальным данным — не ждём Firebase.
+                    // Это решает проблему с GitHub Pages где Firebase WebSocket ненадёжен.
+                    currentUser = userData.username;
+                    userEmoji = '😊';
+                    currentUserEl.querySelector('span:last-child').textContent = userData.username;
+                    userEmojiEl.textContent = userEmoji;
+
+                    // Загружаем актуальные данные из Firebase в фоне
+                    if (typeof database !== 'undefined') {
+                        try {
+                            const userRef = database.ref('users/' + encodeURIComponent(userData.username));
+                            const snapshot = await userRef.once('value');
+                            if (snapshot.exists()) {
+                                const dbUserData = snapshot.val();
+                                // Если пароль не совпадает — выходим
+                                if (dbUserData.password !== userData.password) {
+                                    currentUser = null;
+                                    localStorage.removeItem('messenger_user');
+                                    requestUsername();
+                                    return;
+                                }
                                 currentUserData = dbUserData;
                                 userEmoji = dbUserData.emoji || '😊';
                                 blockedUsers = dbUserData.blockedUsers || [];
                                 subscribedChannels = dbUserData.subscribedChannels || [];
-
                                 currentUserEl.querySelector('span:last-child').textContent = dbUserData.name || userData.username;
                                 userEmojiEl.textContent = userEmoji;
-
-                                await updateUserStatus(true);
-                                loadRecentChats();
-                                loadGroups();
-                                loadChannels();
-
-                                // Загружаем подарки пользователя
-                                await loadUserGifts();
-                                await loadReceivedGifts();
-
-                                startBackgroundChecks();
-                                trackUserStatus();
-                                // Запускаем прослушивание входящих звонков
-                                setTimeout(() => { if (typeof listenForIncomingCalls === 'function') listenForIncomingCalls(); }, 1500);
-                            } else {
-                                localStorage.removeItem('messenger_user');
-                                requestUsername();
                             }
-                        } else {
-                            localStorage.removeItem('messenger_user');
-                            requestUsername();
+                        } catch (e) {
+                            console.error('Firebase fetch error (non-critical):', e);
+                            // Не выкидываем пользователя при сетевой ошибке
                         }
-                    } else {
-                        localStorage.removeItem('messenger_user');
-                        requestUsername();
                     }
-                } catch (e) {
+
+                    await updateUserStatus(true);
+                    loadRecentChats();
+                    loadGroups();
+                    loadChannels();
+                    setTimeout(function() { if (typeof initBotsSystem === 'function') initBotsSystem(); }, 500);
+                    initGiftSystem();
+                    await loadUserGifts();
+                    await loadReceivedGifts();
+                    startBackgroundChecks();
+                    trackUserStatus();
+                    setTimeout(() => { if (typeof listenForIncomingCalls === 'function') listenForIncomingCalls(); }, 1500);
+                    setTimeout(() => { if (typeof checkPetHungerNotification === 'function') checkPetHungerNotification(); }, 4000);
+                    return; // успешный вход
+
+                } else {
                     localStorage.removeItem('messenger_user');
                     requestUsername();
                 }
             } else {
-                // Если пользователя нет, запрашиваем вход/регистрацию
                 requestUsername();
             }
 
@@ -3478,6 +3853,8 @@
                 addGiftsButtonToProfile();
                 // Загружаем подарки
                 loadUserGifts();
+                // Загружаем карточку питомца
+                loadMyPetCard();
             }
         }
 
@@ -3644,6 +4021,32 @@
             document.getElementById('profile-settings-btn').addEventListener('click', openProfileSettings);
             document.getElementById('cancel-profile-settings-btn').addEventListener('click', closeProfileSettings);
             document.getElementById('save-profile-settings-btn').addEventListener('click', saveProfileSettings);
+
+            // Питомцы — кнопки модалки
+            document.getElementById('pet-setup-cancel').addEventListener('click', () => {
+                document.getElementById('pet-setup-modal').classList.remove('active');
+                const profileModal = document.getElementById('profile-settings-modal');
+                if (profileModal) profileModal.classList.add('active');
+            });
+            document.getElementById('pet-setup-save').addEventListener('click', savePetSetup);
+            document.getElementById('pet-zoo-close').addEventListener('click', () => {
+                document.getElementById('pet-zoo-modal').classList.remove('active');
+            });
+            document.getElementById('pet-zoo-modal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('pet-zoo-modal'))
+                    document.getElementById('pet-zoo-modal').classList.remove('active');
+            });
+            document.getElementById('pet-setup-modal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('pet-setup-modal')) {
+                    document.getElementById('pet-setup-modal').classList.remove('active');
+                    const profileModal = document.getElementById('profile-settings-modal');
+                    if (profileModal) profileModal.classList.add('active');
+                }
+            });
+            document.getElementById('pet-interact-modal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('pet-interact-modal'))
+                    document.getElementById('pet-interact-modal').classList.remove('active');
+            });
 
             createGroupBtn.addEventListener('click', openCreateGroup);
             cancelGroupBtn.addEventListener('click', closeCreateGroup);
@@ -4047,6 +4450,22 @@
             activeTab = tab;
 
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+            if (tab === 'bots') {
+                const bt = document.getElementById('bots-tab');
+                if (bt) bt.classList.add('active');
+                const bp = document.getElementById('bots-panel');
+                if (bp) { bp.style.display = 'flex'; bp.classList.add('active'); }
+                const sr = document.getElementById('search-results');
+                if (sr) sr.style.display = 'none';
+                return;
+            }
+
+            // Hide bots panel when switching away
+            const bp2 = document.getElementById('bots-panel');
+            if (bp2) { bp2.style.display = 'none'; bp2.classList.remove('active'); }
+            const sr2 = document.getElementById('search-results');
+            if (sr2) sr2.style.display = '';
 
             if (tab === 'chats') {
                 chatsTab.classList.add('active');
@@ -5410,6 +5829,10 @@
                     chatMessages.appendChild(buildChannelPostElement(msg));
                 }
                 loadAllCommentCounts();
+                loadAllPostLikes();
+                loadAllPostViews();
+                // Регистрируем просмотры для всех видимых постов
+                sortedMessages.forEach(msg => registerPostView(msg.id));
                 return;
             }
 
@@ -5419,6 +5842,7 @@
                 if (!existingIds.has(msg.id)) {
                     chatMessages.appendChild(buildChannelPostElement(msg));
                     addedNew = true;
+                    registerPostView(msg.id);
                 }
             }
 
@@ -5431,6 +5855,8 @@
 
             if (addedNew) {
                 loadAllCommentCounts();
+                loadAllPostLikes();
+                loadAllPostViews();
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
         }
@@ -5482,9 +5908,15 @@
                 </div>
                 <div class="post-body">${postContent}</div>
                 <div class="post-footer">
+                    <button class="post-like-btn" id="like-btn-${safeId}" onclick="togglePostLike('${message.id}')">
+                        🤍&nbsp;<span class="like-count" id="like-count-${safeId}">0</span>
+                    </button>
                     <button class="post-comment-toggle" onclick="toggleComments('${message.id}')">
                         💬&nbsp;<span class="cmt-count" id="cmt-count-${safeId}">0</span>&nbsp;комментариев
                     </button>
+                    <span class="post-views">
+                        👁&nbsp;<span class="views-count" id="views-count-${safeId}">0</span>
+                    </span>
                 </div>
                 <div class="comments-section" id="comments-${safeId}">
                     <div class="comments-divider">Комментарии</div>
@@ -5782,6 +6214,120 @@
         };
 
         // ==================== КОНЕЦ СИСТЕМЫ КОММЕНТАРИЕВ ====================
+
+        // ==================== СИСТЕМА ЛАЙКОВ И ПРОСМОТРОВ ПОСТОВ ====================
+
+        /**
+         * Ставит / снимает лайк с поста (1 пользователь = 1 лайк).
+         */
+        window.togglePostLike = async function(postId) {
+            if (!currentUser || !currentChat) return;
+            const safeId = safePostId(postId);
+            const userKey = encodeURIComponent(currentUser);
+            const likeRef = database.ref('postLikes/' + currentChat + '/' + postId + '/' + userKey);
+
+            try {
+                const snap = await likeRef.once('value');
+                const btn = document.getElementById('like-btn-' + safeId);
+
+                if (snap.exists()) {
+                    await likeRef.remove();
+                } else {
+                    await likeRef.set(true);
+                }
+                // Обновляем счётчик после изменения
+                await refreshPostLikes(postId);
+            } catch(e) {
+                showNotification('Ошибка: ' + e.message);
+            }
+        };
+
+        /**
+         * Загружает и обновляет счётчик лайков поста.
+         */
+        async function refreshPostLikes(postId) {
+            if (!currentChat) return;
+            const safeId = safePostId(postId);
+            try {
+                const snap = await database.ref('postLikes/' + currentChat + '/' + postId).once('value');
+                const likes = snap.val() || {};
+                const count = Object.keys(likes).length;
+                const userKey = encodeURIComponent(currentUser || '');
+                const isLiked = !!likes[userKey];
+
+                const countEl = document.getElementById('like-count-' + safeId);
+                const btn = document.getElementById('like-btn-' + safeId);
+
+                if (countEl) countEl.textContent = count > 0 ? count : '';
+                if (btn) {
+                    btn.innerHTML = (isLiked ? '❤️' : '🤍') + '&nbsp;<span class="like-count" id="like-count-' + safeId + '">' + (count > 0 ? count : '') + '</span>';
+                    btn.classList.toggle('liked', isLiked);
+                }
+            } catch(e) {}
+        }
+
+        /**
+         * Загружает счётчики лайков для всех постов канала.
+         */
+        async function loadAllPostLikes() {
+            if (!currentChat || currentChatType !== 'channel') return;
+            try {
+                const snap = await database.ref('postLikes/' + currentChat).once('value');
+                const all = snap.val() || {};
+                const userKey = encodeURIComponent(currentUser || '');
+                Object.keys(all).forEach(postId => {
+                    const likes = all[postId] || {};
+                    const count = Object.keys(likes).length;
+                    const isLiked = !!likes[userKey];
+                    const safeId = safePostId(postId);
+                    const btn = document.getElementById('like-btn-' + safeId);
+                    if (btn) {
+                        btn.innerHTML = (isLiked ? '❤️' : '🤍') + '&nbsp;<span class="like-count" id="like-count-' + safeId + '">' + (count > 0 ? count : '') + '</span>';
+                        btn.classList.toggle('liked', isLiked);
+                    }
+                });
+            } catch(e) {}
+        }
+
+        /**
+         * Регистрирует просмотр поста текущим пользователем (1 просмотр на человека).
+         */
+        async function registerPostView(postId) {
+            if (!currentUser || !currentChat) return;
+            const userKey = encodeURIComponent(currentUser);
+            const viewRef = database.ref('postViews/' + currentChat + '/' + postId + '/' + userKey);
+            try {
+                const snap = await viewRef.once('value');
+                if (!snap.exists()) {
+                    await viewRef.set(true);
+                }
+                // Обновляем счётчик в UI
+                const totalSnap = await database.ref('postViews/' + currentChat + '/' + postId).once('value');
+                const count = Object.keys(totalSnap.val() || {}).length;
+                const safeId = safePostId(postId);
+                const el = document.getElementById('views-count-' + safeId);
+                if (el) el.textContent = count;
+            } catch(e) {}
+        }
+
+        /**
+         * Загружает счётчики просмотров для всех постов канала.
+         */
+        async function loadAllPostViews() {
+            if (!currentChat || currentChatType !== 'channel') return;
+            try {
+                const snap = await database.ref('postViews/' + currentChat).once('value');
+                const all = snap.val() || {};
+                Object.keys(all).forEach(postId => {
+                    const count = Object.keys(all[postId] || {}).length;
+                    const safeId = safePostId(postId);
+                    const el = document.getElementById('views-count-' + safeId);
+                    if (el) el.textContent = count;
+                });
+            } catch(e) {}
+        }
+
+        // ==================== КОНЕЦ СИСТЕМЫ ЛАЙКОВ И ПРОСМОТРОВ ПОСТОВ ====================
 
         function escapeHtml(unsafe) {
             if (!unsafe) return '';
@@ -8073,58 +8619,178 @@
             modal.style.alignItems = 'center';
             modal.style.zIndex = '1000';
 
+            // Инжектим стили для auth-modal один раз
+            if (!document.getElementById('auth-modal-styles')) {
+                const s = document.createElement('style');
+                s.id = 'auth-modal-styles';
+                s.textContent = `
+                    #auth-modal-content {
+                        background: var(--modal-bg);
+                        color: var(--text-color);
+                        padding: 28px 24px 24px;
+                        border-radius: 16px;
+                        width: 90%;
+                        max-width: 400px;
+                        max-height: 90vh;
+                        overflow-y: auto;
+                        box-shadow: 0 8px 40px rgba(0,0,0,0.28);
+                        border: 1px solid var(--border-color);
+                    }
+                    #auth-modal-content h2 {
+                        margin-bottom: 20px;
+                        text-align: center;
+                        font-size: 1.25rem;
+                        color: var(--text-color);
+                    }
+                    #auth-tabs {
+                        display: flex;
+                        margin-bottom: 20px;
+                        border-bottom: 2px solid var(--border-color);
+                        gap: 2px;
+                    }
+                    .auth-tab-btn {
+                        flex: 1;
+                        padding: 10px;
+                        border: none;
+                        background: transparent;
+                        color: var(--text-light);
+                        cursor: pointer;
+                        font-size: 0.95rem;
+                        font-family: inherit;
+                        font-weight: 600;
+                        border-bottom: 2px solid transparent;
+                        margin-bottom: -2px;
+                        transition: color 0.15s, border-color 0.15s;
+                    }
+                    .auth-tab-btn.active {
+                        color: var(--primary-color);
+                        border-bottom-color: var(--primary-color);
+                    }
+                    .auth-input {
+                        width: 100%;
+                        padding: 12px 14px;
+                        border: 1.5px solid var(--border-color);
+                        border-radius: 10px;
+                        margin-bottom: 10px;
+                        font-size: 15px;
+                        font-family: inherit;
+                        background: var(--input-bg);
+                        color: var(--text-color);
+                        outline: none;
+                        transition: border-color 0.15s, box-shadow 0.15s;
+                        box-sizing: border-box;
+                    }
+                    .auth-input:focus {
+                        border-color: var(--primary-color);
+                        box-shadow: 0 0 0 3px rgba(108,92,231,0.13);
+                    }
+                    .auth-input::placeholder { color: var(--text-light); }
+                    .auth-btn-primary {
+                        width: 100%;
+                        padding: 13px;
+                        background: var(--primary-color);
+                        color: #fff;
+                        border: none;
+                        border-radius: 10px;
+                        cursor: pointer;
+                        font-size: 1rem;
+                        font-family: inherit;
+                        font-weight: 700;
+                        transition: background 0.15s, transform 0.1s;
+                        margin-top: 4px;
+                    }
+                    .auth-btn-primary:hover { background: var(--primary-dark); }
+                    .auth-btn-primary:active { transform: scale(0.98); }
+                    .auth-btn-register {
+                        background: var(--success-color);
+                    }
+                    .auth-btn-register:hover { background: var(--success-dark); }
+                    .auth-nonlatin-warn {
+                        display: none;
+                        background: rgba(255,193,7,0.15);
+                        color: #b8860b;
+                        border: 1px solid rgba(255,193,7,0.5);
+                        border-radius: 8px;
+                        padding: 8px 12px;
+                        font-size: 13px;
+                        margin-bottom: 8px;
+                        line-height: 1.4;
+                    }
+                    body.dark-theme .auth-nonlatin-warn {
+                        background: rgba(255,193,7,0.12);
+                        color: #ffd060;
+                        border-color: rgba(255,193,7,0.35);
+                    }
+                    .auth-emoji-label {
+                        display: block;
+                        margin-bottom: 8px;
+                        font-size: 0.88rem;
+                        color: var(--text-light);
+                        font-weight: 600;
+                    }
+                    .emoji-option {
+                        font-size: 1.5rem;
+                        cursor: pointer;
+                        padding: 5px 7px;
+                        border-radius: 8px;
+                        transition: background 0.12s, transform 0.1s;
+                        border: 2px solid transparent;
+                    }
+                    .emoji-option:hover { background: var(--message-hover); transform: scale(1.1); }
+                    .emoji-option.selected {
+                        background: rgba(108,92,231,0.15);
+                        border-color: var(--primary-color);
+                    }
+                `;
+                document.head.appendChild(s);
+            }
+
             const modalContent = document.createElement('div');
-            modalContent.style.backgroundColor = 'white';
-            modalContent.style.padding = '20px';
-            modalContent.style.borderRadius = '10px';
-            modalContent.style.width = '90%';
-            modalContent.style.maxWidth = '400px';
-            modalContent.style.maxHeight = '90vh';
-            modalContent.style.overflowY = 'auto';
+            modalContent.id = 'auth-modal-content';
 
             modalContent.innerHTML = `
-                <h2 style="margin-bottom: 15px; text-align: center;">Вход / Регистрация</h2>
-                <div id="auth-tabs" style="display: flex; margin-bottom: 15px; border-bottom: 1px solid #ddd;">
-                    <button id="login-tab" style="flex: 1; padding: 10px; border: none; background: #6c5ce7; color: white; cursor: pointer;">Вход</button>
-                    <button id="register-tab" style="flex: 1; padding: 10px; border: none; background: #f0f0f0; color: #333; cursor: pointer;">Регистрация</button>
+                <h2>Вход / Регистрация</h2>
+                <div id="auth-tabs">
+                    <button id="login-tab" class="auth-tab-btn active">Вход</button>
+                    <button id="register-tab" class="auth-tab-btn">Регистрация</button>
                 </div>
                 <div id="login-form">
-                    <input type="text" id="login-username" 
-                           style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px; font-size: 16px;"
+                    <input type="text" id="login-username" class="auth-input"
                            placeholder="Юзернейм" autocomplete="off">
-                    <input type="password" id="login-password" 
-                           style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 15px; font-size: 16px;"
+                    <input type="password" id="login-password" class="auth-input" style="margin-bottom:4px;"
                            placeholder="Пароль">
-                    <button id="submit-login" 
-                            style="width: 100%; padding: 12px; background: #6c5ce7; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                        Войти
-                    </button>
+                    <div id="login-password-nonlatin" class="auth-nonlatin-warn">
+                        ⚠️ Пароль содержит <b>не латинские</b> символы. Проверьте раскладку клавиатуры!
+                    </div>
+                    <button id="submit-login" class="auth-btn-primary">Войти</button>
                 </div>
                 <div id="register-form" style="display: none;">
-                    <input type="text" id="reg-name" 
-                           style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px; font-size: 16px;"
+                    <input type="text" id="reg-name" class="auth-input"
                            placeholder="Имя" autocomplete="off">
-                    <input type="text" id="reg-username" 
-                           style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px; font-size: 16px;"
+                    <input type="text" id="reg-username" class="auth-input"
                            placeholder="Юзернейм (уникальный)" autocomplete="off">
-                    <input type="password" id="reg-password" 
-                           style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 15px; font-size: 16px;"
+                    <input type="password" id="reg-password" class="auth-input" style="margin-bottom:6px;"
                            placeholder="Пароль">
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px;">Выберите статус:</label>
-                        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                            <span class="emoji-option" data-emoji="😊" style="font-size: 1.5rem; cursor: pointer; padding: 5px; border-radius: 5px;">😊</span>
-                            <span class="emoji-option" data-emoji="😎" style="font-size: 1.5rem; cursor: pointer; padding: 5px; border-radius: 5px;">😎</span>
-                            <span class="emoji-option" data-emoji="🤔" style="font-size: 1.5rem; cursor: pointer; padding: 5px; border-radius: 5px;">🤔</span>
-                            <span class="emoji-option" data-emoji="😴" style="font-size: 1.5rem; cursor: pointer; padding: 5px; border-radius: 5px;">😴</span>
-                            <span class="emoji-option" data-emoji="😢" style="font-size: 1.5rem; cursor: pointer; padding: 5px; border-radius: 5px;">😢</span>
-                            <span class="emoji-option" data-emoji="😡" style="font-size: 1.5rem; cursor: pointer; padding: 5px; border-radius: 5px;">😡</span>
-                            <span class="emoji-option" data-emoji="🥳" style="font-size: 1.5rem; cursor: pointer; padding: 5px; border-radius: 5px;">🥳</span>
-                            <span class="emoji-option" data-emoji="😍" style="font-size: 1.5rem; cursor: pointer; padding: 5px; border-radius: 5px;">😍</span>
+                    <div id="reg-password-nonlatin" class="auth-nonlatin-warn">
+                        ⚠️ Пароль содержит <b>не латинские</b> символы. Проверьте раскладку клавиатуры!
+                    </div>
+                    <input type="password" id="reg-password-confirm" class="auth-input" style="margin-bottom:6px;"
+                           placeholder="Повторите пароль">
+                    <div id="reg-password-match-msg" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;"></div>
+                    <div style="margin-bottom: 18px;">
+                        <span class="auth-emoji-label">Выберите статус:</span>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            <span class="emoji-option" data-emoji="😊">😊</span>
+                            <span class="emoji-option" data-emoji="😎">😎</span>
+                            <span class="emoji-option" data-emoji="🤔">🤔</span>
+                            <span class="emoji-option" data-emoji="😴">😴</span>
+                            <span class="emoji-option" data-emoji="😢">😢</span>
+                            <span class="emoji-option" data-emoji="😡">😡</span>
+                            <span class="emoji-option" data-emoji="🥳">🥳</span>
+                            <span class="emoji-option" data-emoji="😍">😍</span>
                         </div>
                     </div>
-                    <button id="submit-register" 
-                            style="width: 100%; padding: 12px; background: #2ecc71; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    <button id="submit-register" class="auth-btn-primary auth-btn-register">
                         Зарегистрироваться
                     </button>
                 </div>
@@ -8141,26 +8807,76 @@
             loginTab.addEventListener('click', () => {
                 loginForm.style.display = 'block';
                 registerForm.style.display = 'none';
-                loginTab.style.background = '#6c5ce7';
-                loginTab.style.color = 'white';
-                registerTab.style.background = '#f0f0f0';
-                registerTab.style.color = '#333';
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
             });
 
             registerTab.addEventListener('click', () => {
                 loginForm.style.display = 'none';
                 registerForm.style.display = 'block';
-                registerTab.style.background = '#6c5ce7';
-                registerTab.style.color = 'white';
-                loginTab.style.background = '#f0f0f0';
-                loginTab.style.color = '#333';
+                registerTab.classList.add('active');
+                loginTab.classList.remove('active');
             });
 
             // Регистрация
             const regName = document.getElementById('reg-name');
             const regUsername = document.getElementById('reg-username');
             const regPassword = document.getElementById('reg-password');
+            const regPasswordConfirm = document.getElementById('reg-password-confirm');
+            const regPasswordMatchMsg = document.getElementById('reg-password-match-msg');
+            const regPasswordNonLatin = document.getElementById('reg-password-nonlatin');
+            const loginPasswordNonLatin = document.getElementById('login-password-nonlatin');
             const submitRegister = document.getElementById('submit-register');
+
+            // Функция проверки нелатинских символов
+            function hasNonLatin(str) {
+                return /[^\u0000-\u007F]/.test(str) || /[а-яёА-ЯЁ]/.test(str);
+            }
+
+            // Live-проверка нелатиницы в поле пароля при регистрации
+            regPassword.addEventListener('input', function() {
+                regPasswordNonLatin.style.display = (this.value.length > 0 && hasNonLatin(this.value)) ? 'block' : 'none';
+                this.style.borderColor = (this.value.length > 0 && hasNonLatin(this.value))
+                    ? 'var(--warning-color, #ffc107)' : '';
+                checkPasswordMatch();
+            });
+
+            // Live-проверка совпадения паролей
+            regPasswordConfirm.addEventListener('input', checkPasswordMatch);
+
+            function checkPasswordMatch() {
+                const p1 = regPassword.value;
+                const p2 = regPasswordConfirm.value;
+                if (!p2) {
+                    regPasswordMatchMsg.style.display = 'none';
+                    regPasswordConfirm.style.borderColor = '';
+                    return;
+                }
+                if (p1 === p2) {
+                    regPasswordMatchMsg.style.display = 'block';
+                    regPasswordMatchMsg.style.background = 'rgba(46,204,113,0.13)';
+                    regPasswordMatchMsg.style.color = 'var(--success-color)';
+                    regPasswordMatchMsg.style.border = '1px solid rgba(46,204,113,0.4)';
+                    regPasswordMatchMsg.textContent = '✅ Пароли совпадают';
+                    regPasswordConfirm.style.borderColor = 'var(--success-color)';
+                } else {
+                    regPasswordMatchMsg.style.display = 'block';
+                    regPasswordMatchMsg.style.background = 'rgba(231,76,60,0.1)';
+                    regPasswordMatchMsg.style.color = 'var(--danger-color)';
+                    regPasswordMatchMsg.style.border = '1px solid rgba(231,76,60,0.35)';
+                    regPasswordMatchMsg.textContent = '❌ Пароли не совпадают';
+                    regPasswordConfirm.style.borderColor = 'var(--danger-color)';
+                }
+            }
+
+            // Live-проверка нелатиницы в поле пароля при входе
+            document.getElementById('login-password').addEventListener('input', function() {
+                loginPasswordNonLatin.style.display = (this.value.length > 0 && hasNonLatin(this.value)) ? 'block' : 'none';
+                this.style.borderColor = (this.value.length > 0 && hasNonLatin(this.value))
+                    ? 'var(--warning-color, #ffc107)' : '';
+            });
+
+
             const emojiOptions = registerForm.querySelectorAll('.emoji-option');
 
             // Проверяем, что emoji-опции найдены
@@ -8183,6 +8899,7 @@
                 const name = regName.value.trim();
                 const username = regUsername.value.trim().toLowerCase();
                 const password = regPassword.value.trim();
+                const passwordConfirm = regPasswordConfirm.value.trim();
 
                 if (!name || !username || !password) {
                     showNotification('Пожалуйста, заполните все поля');
@@ -8196,6 +8913,19 @@
 
                 if (password.length < 4) {
                     showNotification('Пароль должен быть не менее 4 символов');
+                    return;
+                }
+
+                if (!passwordConfirm) {
+                    showNotification('Пожалуйста, повторите пароль');
+                    regPasswordConfirm.focus();
+                    return;
+                }
+
+                if (password !== passwordConfirm) {
+                    showNotification('❌ Пароли не совпадают. Проверьте введённые данные');
+                    regPasswordConfirm.style.borderColor = '#e74c3c';
+                    regPasswordConfirm.focus();
                     return;
                 }
 
@@ -8236,12 +8966,16 @@
 
                     await updateUserStatus(true);
 
+                    document.body.removeChild(modal);
+
                     loadRecentChats();
                     loadGroups();
                     loadChannels();
+                    setTimeout(function(){ if(typeof initBotsSystem==='function') initBotsSystem(currentUser); }, 700);
 
                     // Загружаем полученные подарки
                     await loadReceivedGifts();
+                    showNotification('Регистрация прошла успешно!');
                     // Запускаем прослушивание входящих звонков
                     setTimeout(() => { if (typeof listenForIncomingCalls === 'function') listenForIncomingCalls(); }, 1500);
                 } catch (error) {
@@ -8312,6 +9046,7 @@
                     loadRecentChats();
                     loadGroups();
                     loadChannels();
+                    setTimeout(function(){ if(typeof initBotsSystem==='function') initBotsSystem(currentUser); }, 700);
 
                     // Загружаем полученные подарки
                     await loadReceivedGifts();
@@ -8321,6 +9056,7 @@
                     showNotification('Вход выполнен успешно!');
                     // Запускаем прослушивание входящих звонков
                     setTimeout(() => { if (typeof listenForIncomingCalls === 'function') listenForIncomingCalls(); }, 1500);
+                    setTimeout(() => { if (typeof checkPetHungerNotification === 'function') checkPetHungerNotification(); }, 4000);
                 } catch (error) {
                     showNotification('Ошибка: ' + error.message);
                 }
@@ -8334,6 +9070,18 @@
                 if (e.key === 'Enter') submitRegister.click();
             });
 
+            // Автозаполнение если данные уже сохранены
+            try {
+                const _sv = localStorage.getItem('messenger_user');
+                if (_sv) {
+                    const _d = JSON.parse(_sv);
+                    if (_d && _d.username) {
+                        loginUsername.value = _d.username;
+                        const _lp = document.getElementById('login-password');
+                        if (_lp && _d.password) _lp.value = _d.password;
+                    }
+                }
+            } catch(e) {}
             loginUsername.focus();
         }
 
@@ -8983,6 +9731,8 @@
                         ${giftsHTML}
                     </div>
                     
+                    <div id="profile-pet-section-${username.replace(/[^a-z0-9]/gi,'_')}" style="margin: 0 0 16px;"></div>
+                    
                     <div class="modal-actions" style="padding: 15px 20px; border-top: 1px solid var(--border-color);">
                         <button class="modal-btn modal-btn-primary" id="close-profile-btn" style="flex: 1; padding: 12px;">
                             Закрыть
@@ -8993,6 +9743,9 @@
 
                     // Обработчик закрытия
                     document.getElementById('close-profile-btn').onclick = () => modal.remove();
+
+                    // Загружаем питомца пользователя
+                    loadAndRenderPetForProfile(username, `profile-pet-section-${username.replace(/[^a-z0-9]/gi,'_')}`);
 
                     // Закрытие по клику на фон
                     modal.onclick = (e) => {
@@ -9132,7 +9885,264 @@
                 return []; // Возвращаем пустой массив при ошибке
             }
         }
-        // ==================== СИСТЕМА ПОДАРКОВ И ВАЛЮТЫ ====================
+        // ==================== СИСТЕМА ВИРТУАЛЬНЫХ ПИТОМЦЕВ ====================
+
+        const PET_TYPES = [
+            { emoji: '🐱', label: 'Котик', stages: ['🥚','🐱','🐈','👑🐱'] },
+            { emoji: '🐶', label: 'Собака', stages: ['🥚','🐶','🦮','👑🐶'] },
+            { emoji: '🐉', label: 'Дракон', stages: ['🥚','🐣','🐲','👑🐉'] },
+            { emoji: '🦊', label: 'Лиса',  stages: ['🥚','🦊','🦊','👑🦊'] },
+            { emoji: '🐼', label: 'Панда',  stages: ['🥚','🐼','🐼','👑🐼'] },
+            { emoji: '🦄', label: 'Единорог', stages: ['🥚','🦄','🦄','👑🦄'] },
+            { emoji: '🐸', label: 'Лягушка', stages: ['🥚','🐸','🐸','👑🐸'] },
+            { emoji: '🦋', label: 'Бабочка', stages: ['🥚','🐛','🦋','👑🦋'] },
+        ];
+
+        const PET_STAGE_NAMES = ['Яйцо', 'Детёныш', 'Взрослый', 'Легенда ✨'];
+        // Стадии по часам: 0–48ч → яйцо, 48–336ч → детёныш, 336–1440ч → взрослый, 1440+ → легенда
+        function getPetStageIndex(hours) {
+            if (hours < 48) return 0;
+            if (hours < 336) return 1;
+            if (hours < 1440) return 2;
+            return 3;
+        }
+        function getPetStageProgress(hours) {
+            if (hours < 48) return (hours / 48) * 100;
+            if (hours < 336) return ((hours - 48) / 288) * 100;
+            if (hours < 1440) return ((hours - 336) / 1104) * 100;
+            return 100;
+        }
+
+        function getPetEmoji(typeEmoji, hours) {
+            const def = PET_TYPES.find(p => p.emoji === typeEmoji) || PET_TYPES[0];
+            return def.stages[getPetStageIndex(hours)] || typeEmoji;
+        }
+
+        let _selectedPetType = PET_TYPES[0].emoji;
+
+        function buildPetTypeGrid() {
+            const grid = document.getElementById('pet-type-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            PET_TYPES.forEach(pt => {
+                const btn = document.createElement('button');
+                btn.className = 'pet-type-btn' + (_selectedPetType === pt.emoji ? ' selected' : '');
+                btn.innerHTML = `<span class="pt-emoji">${pt.emoji}</span><span class="pt-label">${pt.label}</span>`;
+                btn.addEventListener('click', () => {
+                    _selectedPetType = pt.emoji;
+                    document.querySelectorAll('.pet-type-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    updatePetSetupPreview();
+                });
+                grid.appendChild(btn);
+            });
+        }
+
+        function updatePetSetupPreview() {
+            const preview = document.getElementById('pet-setup-preview');
+            if (!preview) return;
+            const def = PET_TYPES.find(p => p.emoji === _selectedPetType) || PET_TYPES[0];
+            preview.textContent = def.stages[0]; // показываем яйцо при настройке
+        }
+
+        function openPetSetup() {
+            // Закрываем профиль
+            const profileModal = document.getElementById('profile-settings-modal');
+            if (profileModal) profileModal.classList.remove('active');
+
+            buildPetTypeGrid();
+
+            // Подгружаем текущие данные
+            if (currentUser) {
+                database.ref('users/' + encodeURIComponent(currentUser) + '/pet').once('value').then(snap => {
+                    const pet = snap.val();
+                    if (pet) {
+                        _selectedPetType = pet.type || PET_TYPES[0].emoji;
+                        const inp = document.getElementById('pet-name-input');
+                        if (inp) inp.value = pet.name || '';
+                        // Перерисовываем грид с нужным выбором
+                        buildPetTypeGrid();
+                        updatePetSetupPreview();
+                    } else {
+                        updatePetSetupPreview();
+                    }
+                });
+            } else {
+                updatePetSetupPreview();
+            }
+
+            document.getElementById('pet-setup-modal').classList.add('active');
+        }
+
+        async function savePetSetup() {
+            if (!currentUser) return;
+            const nameInput = document.getElementById('pet-name-input');
+            const name = nameInput ? nameInput.value.trim() : '';
+            if (!name) { showNotification('Введите имя питомца'); return; }
+
+            try {
+                // Проверяем, есть ли уже питомец (чтобы не сбрасывать дату рождения)
+                const snap = await database.ref('users/' + encodeURIComponent(currentUser) + '/pet').once('value');
+                const existing = snap.val();
+                const bornAt = existing && existing.bornAt ? existing.bornAt : Date.now();
+
+                await database.ref('users/' + encodeURIComponent(currentUser) + '/pet').set({
+                    name: name,
+                    type: _selectedPetType,
+                    bornAt: bornAt
+                });
+
+                showNotification('🐾 Питомец сохранён!');
+                document.getElementById('pet-setup-modal').classList.remove('active');
+
+                // Обновляем карточку в профиле
+                loadMyPetCard();
+
+                // Открываем профиль обратно
+                setTimeout(() => {
+                    const profileModal = document.getElementById('profile-settings-modal');
+                    if (profileModal) profileModal.classList.add('active');
+                }, 200);
+            } catch(e) {
+                showNotification('Ошибка: ' + e.message);
+            }
+        }
+
+        async function loadMyPetCard() {
+            if (!currentUser) return;
+            try {
+                const snap = await database.ref('users/' + encodeURIComponent(currentUser) + '/pet').once('value');
+                const pet = snap.val();
+                const cardWrap = document.getElementById('my-pet-card-profile');
+                const noPet = document.getElementById('no-pet-profile');
+                if (!cardWrap || !noPet) return;
+
+                if (!pet || !pet.name) {
+                    cardWrap.style.display = 'none';
+                    noPet.style.display = 'block';
+                    return;
+                }
+
+                cardWrap.style.display = 'block';
+                noPet.style.display = 'none';
+
+                const hours = Math.floor((Date.now() - (pet.bornAt || Date.now())) / 3600000);
+                const stageIdx = getPetStageIndex(hours);
+                const progress = getPetStageProgress(hours);
+                const petEmoji = getPetEmoji(pet.type, hours);
+                const typeLabel = (PET_TYPES.find(p => p.emoji === pet.type) || PET_TYPES[0]).label;
+
+                document.getElementById('my-pet-avatar-prof').textContent = petEmoji;
+                document.getElementById('my-pet-name-prof').textContent = pet.name;
+                document.getElementById('my-pet-type-prof').textContent = typeLabel;
+                document.getElementById('my-pet-age-fill').style.width = progress + '%';
+                document.getElementById('my-pet-age-label').textContent = hours + ' ч.';
+                document.getElementById('my-pet-stage-badge').textContent = PET_STAGE_NAMES[stageIdx];
+            } catch(e) {
+                console.error('loadMyPetCard:', e);
+            }
+        }
+
+        async function loadAndRenderPetForProfile(username, containerId) {
+            try {
+                const snap = await database.ref('users/' + encodeURIComponent(username) + '/pet').once('value');
+                const pet = snap.val();
+                const container = document.getElementById(containerId);
+                if (!container) return;
+
+                if (!pet || !pet.name) {
+                    container.innerHTML = '';
+                    return;
+                }
+
+                const hours = Math.floor((Date.now() - (pet.bornAt || Date.now())) / 3600000);
+                const stageIdx = getPetStageIndex(hours);
+                const progress = getPetStageProgress(hours);
+                const petEmoji = getPetEmoji(pet.type, hours);
+                const typeLabel = (PET_TYPES.find(p => p.emoji === pet.type) || PET_TYPES[0]).label;
+
+                container.innerHTML = `
+                    <div style="margin: 0 20px 16px;">
+                        <h3 style="font-size:1.1rem;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border-color);padding-bottom:10px;margin-bottom:14px;">
+                            <span>🐾</span><span>Питомец</span>
+                        </h3>
+                        <div class="pet-card" style="margin:0;cursor:default;">
+                            <div class="pet-avatar" style="animation:petBounce 3s ease-in-out infinite;">${petEmoji}</div>
+                            <div class="pet-info">
+                                <div class="pet-name">${escapeHtml(pet.name)}</div>
+                                <div class="pet-type">${typeLabel}</div>
+                                <div class="pet-age-bar-wrap">
+                                    <div class="pet-age-bar"><div class="pet-age-fill" style="width:${progress}%"></div></div>
+                                    <span class="pet-age-label">${hours} ч.</span>
+                                </div>
+                                <span class="pet-stage-badge">${PET_STAGE_NAMES[stageIdx]}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch(e) {
+                console.error('loadAndRenderPetForProfile:', e);
+            }
+        }
+
+        async function openPetZoo() {
+            const modal = document.getElementById('pet-zoo-modal');
+            const list = document.getElementById('pets-zoo-list');
+            if (!modal || !list) return;
+
+            list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-light);">⏳ Загрузка...</div>';
+            modal.classList.add('active');
+
+            // Закрываем профиль если открыт
+            const profileModal = document.getElementById('profile-settings-modal');
+            if (profileModal) profileModal.classList.remove('active');
+
+            try {
+                const snap = await database.ref('users').once('value');
+                const allUsers = snap.val() || {};
+                const pets = [];
+                Object.keys(allUsers).forEach(key => {
+                    const u = allUsers[key];
+                    if (u && u.pet && u.pet.name) {
+                        pets.push({ username: u.username || key, displayName: u.name || u.username || key, pet: u.pet });
+                    }
+                });
+
+                if (pets.length === 0) {
+                    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-light);"><div style="font-size:3rem;margin-bottom:10px;">🥚</div><p>Пока ни у кого нет питомца</p></div>';
+                    return;
+                }
+
+                // Сортируем по возрасту (старейшие первые)
+                pets.sort((a, b) => (a.pet.bornAt || 0) - (b.pet.bornAt || 0));
+
+                let html = '<div class="pets-list-grid">';
+                pets.forEach(({ username, displayName, pet }) => {
+                    const hours = Math.floor((Date.now() - (pet.bornAt || Date.now())) / 3600000);
+                    const stageIdx = getPetStageIndex(hours);
+                    const petEmoji = getPetEmoji(pet.type, hours);
+                    html += `
+                        <div class="pets-list-card" onclick="openUserProfile('${escapeHtml(username)}')">
+                            <span class="plc-emoji">${petEmoji}</span>
+                            <div class="plc-pet-name">${escapeHtml(pet.name)}</div>
+                            <div class="plc-owner">@${escapeHtml(username)}</div>
+                            <div style="font-size:0.72rem;color:var(--text-light);margin-bottom:5px;">${hours} ч.</div>
+                            <span class="plc-stage">${PET_STAGE_NAMES[stageIdx]}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                list.innerHTML = html;
+            } catch(e) {
+                list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--danger-color);">Ошибка загрузки</div>';
+            }
+        }
+
+        // Экспортируем в window
+        window.openPetSetup = openPetSetup;
+        window.openPetZoo = openPetZoo;
+
+        // ==================== КОНЕЦ СИСТЕМЫ ПИТОМЦЕВ ====================
 
         // Глобальные переменные
         let userGifts = [];
@@ -9347,6 +10357,129 @@
             } catch (error) {
                 showNotification('Ошибка: ' + error.message);
             }
+        }
+
+        // ======================================================
+        // ВЗАИМОДЕЙСТВИЕ С ПИТОМЦЕМ (кормление, игры, настроение)
+        // ======================================================
+
+        const PET_PHRASES = {
+            happy:   ['Мур-мур~ 😻', 'Я счастлив!', 'Обожаю тебя! ❤️', 'Это лучший день!', 'Ты лучший хозяин! ✨'],
+            hungry:  ['Есть хочу... 🍖', 'Живот урчит...', 'Покорми меня, пожалуйста!', 'Голодааааю! 😿'],
+            bored:   ['Скучно... 😒', 'Поиграй со мной!', 'Может, поиграем? 🎾', 'Хочу веселья!'],
+            tired:   ['Зеваю... 😴', 'Хочу спать...', 'Устал немного...', 'Дай поспать чуть-чуть...'],
+            neutral: ['...', '*смотрит на тебя*', '*виляет хвостом*', 'Мяу~'],
+            feed:    ['Ням-ням! Спасибо! 😋', 'Вкусняшка! 🎉', 'Объеденье!', 'Так вкусно! Ещё?'],
+            play:    ['Ура! Играем! 🎾', 'Вжух-вжух! Поймал!', 'Это так весело! 😄', 'Ещё-ещё-ещё!'],
+            sleep:   ['Zzz... 💤', '*сладко засыпает*', 'Спокойной ночи~ 🌙', 'Zzz... хрр...'],
+            pat:     ['Мррр~ ❤️', '*мурлычет*', 'Ещё-ещё! 🥰', 'Тепло и уютно...'],
+        };
+        function petRandPhrase(key) {
+            const arr = PET_PHRASES[key] || PET_PHRASES.neutral;
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+        function calcPetStats(pet) {
+            const now = Date.now();
+            const hungerDecay = Math.floor((now - (pet.lastFed    || now)) / (4*3600000)) * 10;
+            const moodDecay   = Math.floor((now - (pet.lastPlayed || now)) / (3*3600000)) * 10;
+            const energyDecay = Math.floor((now - (pet.lastSlept  || now)) / (5*3600000)) * 10;
+            return {
+                hunger: Math.max(0, Math.min(100, (pet.hunger ?? 100) - hungerDecay)),
+                mood:   Math.max(0, Math.min(100, (pet.mood   ?? 100) - moodDecay)),
+                energy: Math.max(0, Math.min(100, (pet.energy ?? 100) - energyDecay)),
+            };
+        }
+        function petStatPhrase(stats) {
+            if (stats.hunger < 20) return petRandPhrase('hungry');
+            if (stats.mood   < 20) return petRandPhrase('bored');
+            if (stats.energy < 20) return petRandPhrase('tired');
+            if (stats.hunger > 80 && stats.mood > 80 && stats.energy > 80) return petRandPhrase('happy');
+            return petRandPhrase('neutral');
+        }
+        function updatePetInteractUI(pet, stats) {
+            const setBar = (barId, pctId, val) => {
+                const b = document.getElementById(barId); if (b) b.style.width = val + '%';
+                const p = document.getElementById(pctId); if (p) p.textContent = val + '%';
+            };
+            setBar('pet-hunger-bar', 'pet-hunger-pct', stats.hunger);
+            setBar('pet-mood-bar',   'pet-mood-pct',   stats.mood);
+            setBar('pet-energy-bar', 'pet-energy-pct', stats.energy);
+            const hours = Math.floor((Date.now() - (pet.bornAt || Date.now())) / 3600000);
+            const idx = getPetStageIndex(hours);
+            const el = (id) => document.getElementById(id);
+            if (el('pet-interact-emoji'))  el('pet-interact-emoji').textContent  = getPetEmoji(pet.type, hours);
+            if (el('pet-interact-name'))   el('pet-interact-name').textContent   = pet.name || 'Питомец';
+            if (el('pet-interact-stage'))  el('pet-interact-stage').textContent  = PET_STAGE_NAMES[idx];
+            if (el('pet-interact-speech')) el('pet-interact-speech').textContent = petStatPhrase(stats);
+            if (el('pet-last-fed-label') && pet.lastFed) {
+                const mins = Math.floor((Date.now() - pet.lastFed) / 60000);
+                el('pet-last-fed-label').textContent = mins < 60
+                    ? `Кормил ${mins} мин. назад`
+                    : mins < 1440 ? `Кормил ${Math.floor(mins/60)} ч. назад`
+                    : `Кормил ${Math.floor(mins/1440)} дн. назад`;
+            }
+        }
+        window.openPetInteract = async function() {
+            if (!currentUser) return;
+            const profileModal = document.getElementById('profile-settings-modal');
+            if (profileModal) profileModal.classList.remove('active');
+            try {
+                const snap = await database.ref('users/' + encodeURIComponent(currentUser) + '/pet').once('value');
+                const pet = snap.val();
+                if (!pet || !pet.name) { openPetSetup(); return; }
+                updatePetInteractUI(pet, calcPetStats(pet));
+                document.getElementById('pet-interact-modal').classList.add('active');
+            } catch(e) { showNotification('Ошибка загрузки питомца'); }
+        };
+        window.petAction = async function(action) {
+            if (!currentUser) return;
+            try {
+                const snap = await database.ref('users/' + encodeURIComponent(currentUser) + '/pet').once('value');
+                const pet = snap.val(); if (!pet) return;
+                const stats = calcPetStats(pet);
+                const now = Date.now();
+                let newHunger = stats.hunger, newMood = stats.mood, newEnergy = stats.energy;
+                let phrase = '', lastFed = pet.lastFed||now, lastPlayed = pet.lastPlayed||now, lastSlept = pet.lastSlept||now;
+                if (action === 'feed') {
+                    if (stats.hunger >= 95) { showNotification('Питомец уже сыт! 😋'); return; }
+                    newHunger = Math.min(100, stats.hunger + 30); newMood = Math.min(100, stats.mood + 5);
+                    lastFed = now; phrase = petRandPhrase('feed');
+                } else if (action === 'play') {
+                    if (stats.energy < 15) { showNotification('Питомец слишком устал! 😴'); return; }
+                    newMood = Math.min(100, stats.mood + 30); newHunger = Math.max(0, stats.hunger - 10);
+                    newEnergy = Math.max(0, stats.energy - 20); lastPlayed = now; phrase = petRandPhrase('play');
+                } else if (action === 'sleep') {
+                    if (stats.energy >= 95) { showNotification('Питомец уже бодр! ⚡'); return; }
+                    newEnergy = Math.min(100, stats.energy + 40); lastSlept = now; phrase = petRandPhrase('sleep');
+                } else if (action === 'pat') {
+                    newMood = Math.min(100, stats.mood + 15); phrase = petRandPhrase('pat');
+                }
+                await database.ref('users/' + encodeURIComponent(currentUser) + '/pet').update({
+                    hunger: newHunger, mood: newMood, energy: newEnergy,
+                    lastFed, lastPlayed, lastSlept
+                });
+                const mergedPet = {...pet, lastFed, lastPlayed, lastSlept};
+                updatePetInteractUI(mergedPet, {hunger: newHunger, mood: newMood, energy: newEnergy});
+                const speechEl = document.getElementById('pet-interact-speech');
+                if (speechEl) {
+                    speechEl.textContent = phrase;
+                    speechEl.style.cssText = 'color:var(--primary-color);font-weight:700;font-style:italic;';
+                    setTimeout(() => { speechEl.style.cssText = 'font-style:italic;'; speechEl.textContent = petStatPhrase({hunger:newHunger,mood:newMood,energy:newEnergy}); }, 2200);
+                }
+                const emojiEl = document.getElementById('pet-interact-emoji');
+                if (emojiEl) { emojiEl.style.transform = 'scale(1.4)'; setTimeout(() => emojiEl.style.transform = '', 300); }
+                loadMyPetCard();
+            } catch(e) { showNotification('Ошибка: ' + e.message); }
+        };
+        async function checkPetHungerNotification() {
+            if (!currentUser) return;
+            try {
+                const snap = await database.ref('users/' + encodeURIComponent(currentUser) + '/pet').once('value');
+                const pet = snap.val(); if (!pet || !pet.name) return;
+                const s = calcPetStats(pet);
+                if (s.hunger < 25) setTimeout(() => showNotification('🍖 ' + (pet.name||'Питомец') + ' голодает! Покорми его!'), 3000);
+                else if (s.mood < 25) setTimeout(() => showNotification('😿 ' + (pet.name||'Питомец') + ' скучает! Поиграй с ним!'), 3500);
+            } catch(e) {}
         }
 
     </script>
@@ -10335,4 +11468,485 @@
 
 </script>
 
+    <!-- ==================== БОТЫ: МОДАЛКИ ==================== -->
+
+    <!-- Dev Registration -->
+    <div class="modal" id="dev-reg-modal">
+      <div class="modal-content" style="max-width:420px">
+        <div style="text-align:center;font-size:2.8rem;margin-bottom:6px">🤖</div>
+        <h2 class="modal-title" style="margin-top:0">Стать разработчиком</h2>
+        <p style="text-align:center;font-size:.83rem;color:var(--text-light);margin-bottom:16px;line-height:1.5">
+          Создавай ботов как отдельные мини-сайты на <b>HTML + CSS + JS</b>.<br>
+          Каждый бот открывается по своей ссылке.
+        </p>
+        <div class="dreg-row"><label>Ваше имя</label>
+          <input type="text" class="modal-input" id="dev-reg-name" placeholder="Иван Dev" style="margin:0">
+        </div>
+        <div class="dreg-row"><label>Email (необязательно)</label>
+          <input type="email" class="modal-input" id="dev-reg-email" placeholder="ivan@example.com" style="margin:0">
+        </div>
+        <div class="modal-actions" style="margin-top:16px">
+          <button class="modal-btn modal-btn-secondary" onclick="document.getElementById('dev-reg-modal').classList.remove('active')">Отмена</button>
+          <button class="modal-btn modal-btn-primary" id="dev-reg-ok-btn">🚀 Зарегистрироваться</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Bot — HTML Editor -->
+    <div class="modal" id="create-bot-modal">
+      <div class="modal-content">
+        <div class="cb-hdr">
+          <h2>⚙️ Создать бота</h2>
+          <button class="cb-x" onclick="document.getElementById('create-bot-modal').classList.remove('active')">✕</button>
+        </div>
+        <div class="cb-meta">
+          <div class="cb-field" style="max-width:160px">
+            <label>Имя бота</label>
+            <input class="cb-inp" id="cb-name" type="text" placeholder="WeatherBot">
+          </div>
+          <div class="cb-field" style="max-width:160px">
+            <label>Юзернейм (без @)</label>
+            <input class="cb-inp" id="cb-username" type="text" placeholder="weather_bot" autocorrect="off" autocapitalize="none">
+          </div>
+          <div class="cb-field" style="max-width:80px">
+            <label>Аватар</label>
+            <input class="cb-inp" id="cb-emoji" type="text" placeholder="🤖" maxlength="4">
+          </div>
+          <div class="cb-field">
+            <label>Описание</label>
+            <input class="cb-inp" id="cb-desc" type="text" placeholder="Краткое описание...">
+          </div>
+        </div>
+        <div class="cb-editor-wrap">
+          <div class="cb-lnums" id="cb-lnums"></div>
+          <textarea id="cb-code" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"
+            oninput="cbCodeInput()" onscroll="cbSyncScroll()" onkeydown="cbTab(event)"></textarea>
+        </div>
+        <div class="cb-toolbar">
+          <button class="cb-btn cb-ok" id="cb-save-btn" onclick="createBot()">🚀 Создать и открыть</button>
+          <button class="cb-btn cb-tpl" onclick="cbLoadTpl()">📋 Шаблон бота</button>
+          <button class="cb-btn cb-preview" onclick="cbPreview()">👁 Превью</button>
+          <span class="cb-st" id="cb-st"></span>
+          <button class="cb-btn cb-cancel" onclick="document.getElementById('create-bot-modal').classList.remove('active')" style="margin-left:auto">Отмена</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bot View Modal -->
+    <div class="modal" id="bot-view-modal">
+      <div class="modal-content">
+        <div class="bv-hdr">
+          <div class="bv-ava" id="bv-ava">🤖</div>
+          <div class="bv-nm" id="bv-nm">—</div>
+          <div class="bv-un" id="bv-un">@—</div>
+          <div class="bv-ds" id="bv-ds">—</div>
+        </div>
+        <div class="bv-meta">
+          <div class="bv-mi"><div class="n" id="bv-views">0</div><div class="l">Просмотров</div></div>
+          <div class="bv-mi"><div class="n" id="bv-date">—</div><div class="l">Создан</div></div>
+          <div class="bv-mi"><div class="n" id="bv-size">—</div><div class="l">Размер</div></div>
+        </div>
+        <div class="bv-link">
+          <input id="bv-link-inp" type="text" readonly onclick="this.select()" placeholder="Ссылка на бота">
+          <button class="bv-link-copy" onclick="bvCopyLink()">📋 Скопировать</button>
+        </div>
+        <div class="bv-act">
+          <button class="modal-btn modal-btn-primary" id="bv-open-btn" style="width:100%">🌐 Открыть бота</button>
+          <button class="modal-btn" id="bv-edit-btn" style="width:100%;display:none;background:rgba(108,92,231,.1);color:var(--primary-color)">✏️ Редактировать код</button>
+          <button class="modal-btn modal-btn-secondary" onclick="document.getElementById('bot-view-modal').classList.remove('active')" style="width:100%">Закрыть</button>
+        </div>
+      </div>
+    </div>
+    <!-- ==================== КОНЕЦ МОДАЛОК БОТОВ ==================== -->
+
+    <script>
+    /* ==================== TWIN BOTS SYSTEM v5 ==================== */
+    (function() {
+        'use strict';
+
+        /* ─ state ─ */
+        var _bots    = [];
+        var _botUser = null;
+        var _editBotId = null;   // bot being edited in create modal
+
+        /* ─ HTML template for new bot ─ */
+        var HTML_TPL = [
+            '<!DOCTYPE html>',
+            '<html lang="ru">',
+            '<head>',
+            '<meta charset="UTF-8">',
+            '<meta name="viewport" content="width=device-width,initial-scale=1">',
+            '<title>MyBot</title>',
+            '<style>',
+            '  * { box-sizing: border-box; margin: 0; padding: 0; }',
+            '  body { font-family: system-ui, sans-serif; background: #0f0f18;',
+            '         color: #e8e6f4; height: 100vh; display: flex;',
+            '         flex-direction: column; align-items: center; justify-content: center; }',
+            '  .card { background: #1a1a28; border: 1px solid rgba(255,255,255,.1);',
+            '          border-radius: 20px; padding: 32px; width: 90%; max-width: 400px;',
+            '          text-align: center; }',
+            '  .ava { font-size: 56px; margin-bottom: 16px; }',
+            '  h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }',
+            '  p { font-size: 14px; color: #9896aa; line-height: 1.6; margin-bottom: 24px; }',
+            '  .btn { display: inline-block; padding: 12px 28px; background: #7c6ef7;',
+            '         color: #fff; border-radius: 12px; text-decoration: none;',
+            '         font-weight: 600; transition: background .2s; }',
+            '  .btn:hover { background: #6558e0; }',
+            '</style>',
+            '</head>',
+            '<body>',
+            '  <div class="card">',
+            '    <div class="ava">🤖</div>',
+            '    <h1>Привет!</h1>',
+            '    <p>Это страница бота. Отредактируй HTML чтобы сделать что угодно —',
+            '       чат, игру, утилиту или мини-сайт.</p>',
+            '    <a class="btn" href="index.html">← Вернуться в Twin</a>',
+            '  </div>',
+            '</body>',
+            '</html>'
+        ].join('\n');
+
+        /* ─ utils ─ */
+        function $(id) { return document.getElementById(id); }
+        function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+        function txt(id,v) { var e=$(id); if(e) e.textContent=v; }
+        function val(id)  { var e=$(id); return e?e.value.trim():''; }
+        function openM(id)  { var e=$(id); if(e) e.classList.add('active'); }
+        function closeM(id) { var e=$(id); if(e) e.classList.remove('active'); }
+        function getDB() { if(typeof database!=='undefined') return database; try{return firebase.database();}catch(e){return null;} }
+        function findBot(id) { for(var i=0;i<_bots.length;i++) if(_bots[i].id===id) return i; return -1; }
+        function toast(m) {
+            if(typeof showNotification==='function'){showNotification(m);return;}
+            var n=$('notification'); if(!n)return;
+            n.textContent=m; n.classList.add('show');
+            clearTimeout(n._bt); n._bt=setTimeout(function(){n.classList.remove('show');},2600);
+        }
+
+        /* ── BOT PAGE URL ──
+           Ссылка на бота: bot.html?id=BOT_ID
+           Если bot.html рядом с index.html — работает автоматически.
+        ────────────────── */
+        function getBotUrl(botId) {
+            var base = location.href.split('?')[0].replace(/\/[^/]*$/, '/');
+            return base + 'bot.html?id=' + botId;
+        }
+
+        /* ─────────────────────────────────────────
+           LOAD & RENDER BOTS LIST
+        ───────────────────────────────────────── */
+        function loadBots() {
+            var db = getDB(); if(!db){renderList('');return;}
+            db.ref('bots').orderByChild('createdAt').limitToLast(100).once('value')
+                .then(function(snap){
+                    _bots = [];
+                    snap.forEach(function(c){
+                        _bots.unshift(Object.assign({id:c.key}, c.val()));
+                    });
+                    renderList('');
+                }).catch(function(){ renderList(''); });
+        }
+
+        function renderList(q) {
+            var el = $('bots-list'); if(!el) return;
+            q = (q||'').trim().toLowerCase();
+            var list = q ? _bots.filter(function(b){
+                return (b.username||'').toLowerCase().indexOf(q)!==-1 ||
+                       (b.name||'').toLowerCase().indexOf(q)!==-1 ||
+                       (b.description||'').toLowerCase().indexOf(q)!==-1;
+            }) : _bots;
+
+            if(!list.length){
+                el.innerHTML = '<div class="bots-empty-msg"><div class="bee">🤖</div>' +
+                    '<p>Ботов пока нет.<br>Введи <b>create_bot</b> и создай первого!</p></div>';
+                return;
+            }
+            var h = '';
+            list.forEach(function(b){
+                var mine = _botUser && b.ownerName === _botUser;
+                h += '<div class="bi" data-bid="'+esc(b.id)+'">';
+                h += '<div class="bi-ava">'+(b.emoji||'🤖');
+                if(mine) h += '<div class="bi-mine">★</div>';
+                h += '</div>';
+                h += '<div class="bi-info">';
+                h += '<div class="bi-name">'+esc(b.name||'Bot')+'</div>';
+                h += '<div class="bi-un">@'+esc(b.username||'?')+'</div>';
+                h += '<div class="bi-ds">'+esc(b.description||'мини-сайт')+'</div>';
+                h += '</div>';
+                h += '<button class="bi-open" data-bid="'+esc(b.id)+'">Открыть ↗</button>';
+                h += '</div>';
+            });
+            el.innerHTML = h;
+
+            el.querySelectorAll('.bi').forEach(function(item){
+                item.addEventListener('click', function(e){
+                    if(e.target.classList.contains('bi-open')) return;
+                    openBotView(item.dataset.bid);
+                });
+            });
+            el.querySelectorAll('.bi-open').forEach(function(btn){
+                btn.addEventListener('click', function(e){
+                    e.stopPropagation();
+                    window.open(getBotUrl(btn.dataset.bid), '_blank');
+                });
+            });
+        }
+
+        /* ─────────────────────────────────────────
+           DEV REGISTRATION
+        ───────────────────────────────────────── */
+        function checkDevThenCreate() {
+            var db = getDB();
+            if(!db || !_botUser){ openCreateModal(); return; }
+            db.ref('devProfiles/'+encodeURIComponent(_botUser)).once('value')
+                .then(function(s){ openM(s.exists() ? 'create-bot-modal' : 'dev-reg-modal'); })
+                .catch(function(){ openCreateModal(); });
+        }
+
+        function openCreateModal() {
+            _editBotId = null;
+            var ta = $('cb-code');
+            if(ta && !ta.value) ta.value = HTML_TPL;
+            if(!$('cb-code').value) $('cb-code').value = HTML_TPL;
+            $('cb-name').value = '';
+            $('cb-username').value = '';
+            $('cb-emoji').value = '🤖';
+            $('cb-desc').value = '';
+            cbUpdateLN();
+            setCbSt('','');
+            document.getElementById('cb-save-btn').textContent = '🚀 Создать и открыть';
+            openM('create-bot-modal');
+        }
+
+        function regDev() {
+            var name = val('dev-reg-name'); if(!name){toast('Введите имя');return;}
+            var db = getDB();
+            if(!db){ closeM('dev-reg-modal'); openCreateModal(); return; }
+            db.ref('devProfiles/'+encodeURIComponent(_botUser)).set({
+                name:name, email:val('dev-reg-email'),
+                ownerName:_botUser, registeredAt:Date.now()
+            }).then(function(){
+                closeM('dev-reg-modal');
+                toast('✅ Вы зарегистрированы как разработчик!');
+                setTimeout(openCreateModal, 350);
+            }).catch(function(e){ toast('Ошибка: '+e.message); });
+        }
+
+        /* ─────────────────────────────────────────
+           CREATE / SAVE BOT
+        ───────────────────────────────────────── */
+        function createBot() {
+            var name     = val('cb-name');
+            var username = val('cb-username').replace(/[^a-zA-Z0-9_]/g,'');
+            var emoji    = val('cb-emoji') || '🤖';
+            var desc     = val('cb-desc');
+            var code     = $('cb-code') ? $('cb-code').value : HTML_TPL;
+
+            if(!name)     { toast('Введите имя бота'); return; }
+            if(!username) { toast('Введите юзернейм (латиница/цифры/_)'); return; }
+            var db = getDB(); if(!db){ toast('Firebase недоступен'); return; }
+
+            /* UPDATE existing bot */
+            if(_editBotId) {
+                db.ref('bots/'+_editBotId).update({name:name,username:username,emoji:emoji,description:desc,htmlCode:code,updatedAt:Date.now()})
+                    .then(function(){
+                        var idx = findBot(_editBotId);
+                        if(idx!==-1) Object.assign(_bots[idx],{name:name,username:username,emoji:emoji,description:desc,htmlCode:code});
+                        renderList('');
+                        closeM('create-bot-modal');
+                        toast('💾 Бот обновлён!');
+                        window.open(getBotUrl(_editBotId),'_blank');
+                    }).catch(function(e){ toast('Ошибка: '+e.message); });
+                return;
+            }
+
+            /* CREATE new bot */
+            db.ref('bots').orderByChild('username').equalTo(username).once('value').then(function(snap){
+                if(snap.exists()){ toast('Юзернейм уже занят'); return; }
+                var data = {
+                    name:name, username:username, emoji:emoji, description:desc,
+                    htmlCode:code, ownerName:_botUser||'Dev',
+                    createdAt:Date.now(), views:0,
+                    lang:'html'   /* маркер: это HTML-бот */
+                };
+                var ref = db.ref('bots').push();
+                ref.set(data).then(function(){
+                    var newBot = Object.assign({id:ref.key}, data);
+                    _bots.unshift(newBot);
+                    renderList('');
+                    closeM('create-bot-modal');
+                    toast('🤖 Бот создан!');
+                    /* Открываем сразу в новой вкладке */
+                    window.open(getBotUrl(ref.key), '_blank');
+                }).catch(function(e){ toast('Ошибка: '+e.message); });
+            });
+        }
+
+        /* ─────────────────────────────────────────
+           EDIT BOT (open create modal prefilled)
+        ───────────────────────────────────────── */
+        function openEditModal(botId) {
+            var db = getDB(); if(!botId) return;
+            var b = null; for(var i=0;i<_bots.length;i++) if(_bots[i].id===botId){b=_bots[i];break;}
+            if(!b){
+                db.ref('bots/'+botId).once('value').then(function(s){
+                    if(s.exists()) openEditModalWithBot(Object.assign({id:s.key},s.val()));
+                }); return;
+            }
+            openEditModalWithBot(b);
+        }
+
+        function openEditModalWithBot(b) {
+            if(b.ownerName && b.ownerName !== _botUser){ toast('Только владелец может редактировать'); return; }
+            _editBotId = b.id;
+            $('cb-name').value     = b.name || '';
+            $('cb-username').value = b.username || '';
+            $('cb-emoji').value    = b.emoji || '🤖';
+            $('cb-desc').value     = b.description || '';
+            $('cb-code').value     = b.htmlCode || HTML_TPL;
+            cbUpdateLN();
+            setCbSt('','');
+            document.getElementById('cb-save-btn').textContent = '💾 Сохранить';
+            closeM('bot-view-modal');
+            openM('create-bot-modal');
+        }
+
+        /* ─────────────────────────────────────────
+           INLINE PREVIEW (открывает в blob-окне)
+        ───────────────────────────────────────── */
+        window.cbPreview = function() {
+            var code = $('cb-code') ? $('cb-code').value : '';
+            if(!code.trim()){ toast('Код пустой'); return; }
+            var blob = new Blob([code], {type:'text/html'});
+            var url  = URL.createObjectURL(blob);
+            var w = window.open(url,'_blank');
+            if(!w){ toast('Разрешите всплывающие окна'); return; }
+            setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+        };
+
+        /* ─────────────────────────────────────────
+           CB EDITOR helpers
+        ───────────────────────────────────────── */
+        window.cbCodeInput = function() { cbUpdateLN(); setCbSt('Не сохранено',''); };
+        window.cbSyncScroll = function() {
+            var ta=$('cb-code'), ln=$('cb-lnums');
+            if(ta&&ln) ln.scrollTop=ta.scrollTop;
+        };
+        window.cbTab = function(e) {
+            if(e.key!=='Tab') return;
+            e.preventDefault();
+            var ta=e.target, s=ta.selectionStart, end=ta.selectionEnd;
+            ta.value=ta.value.slice(0,s)+'  '+ta.value.slice(end);
+            ta.selectionStart=ta.selectionEnd=s+2;
+            cbUpdateLN();
+        };
+        function cbUpdateLN() {
+            var ta=$('cb-code'), ln=$('cb-lnums'); if(!ta||!ln) return;
+            ln.innerHTML=(ta.value||'').split('\n').map(function(_,i){return '<span>'+(i+1)+'</span>';}).join('');
+        }
+        function setCbSt(t,c) {
+            var e=$('cb-st'); if(!e)return;
+            e.textContent=t; e.style.color=c==='ok'?'#2ecc71':c==='er'?'#e74c3c':'';
+        }
+        window.cbLoadTpl = function() {
+            if($('cb-code').value.trim() && !confirm('Заменить код шаблоном?')) return;
+            $('cb-code').value = HTML_TPL;
+            cbUpdateLN(); setCbSt('Шаблон загружен','');
+        };
+
+        /* ─────────────────────────────────────────
+           BOT VIEW MODAL
+        ───────────────────────────────────────── */
+        function openBotView(botId) {
+            var b = null; for(var i=0;i<_bots.length;i++) if(_bots[i].id===botId){b=_bots[i];break;}
+            if(!b) return;
+
+            txt('bv-ava',  b.emoji||'🤖');
+            txt('bv-nm',   b.name||'Bot');
+            txt('bv-un',   '@'+(b.username||''));
+            txt('bv-ds',   b.description||'HTML мини-сайт');
+            txt('bv-views',b.views||0);
+            txt('bv-date', b.createdAt ? new Date(b.createdAt).toLocaleDateString('ru-RU') : '—');
+
+            var kb = b.htmlCode ? Math.ceil(b.htmlCode.length/1024) : 0;
+            txt('bv-size', kb ? kb+'кб' : '—');
+
+            var link = getBotUrl(botId);
+            var li = $('bv-link-inp'); if(li) li.value = link;
+
+            var isOwner = _botUser && b.ownerName===_botUser;
+            var editBtn = $('bv-edit-btn');
+            if(editBtn) editBtn.style.display = isOwner ? '' : 'none';
+
+            var openBtn = $('bv-open-btn');
+            if(openBtn){ openBtn.onclick = function(){ window.open(link,'_blank'); }; }
+
+            if(editBtn){ editBtn.onclick = function(){ openEditModal(botId); }; }
+
+            openM('bot-view-modal');
+        }
+        window._bView = openBotView;
+
+        /* copy link */
+        window.bvCopyLink = function() {
+            var v = $('bv-link-inp') ? $('bv-link-inp').value : '';
+            if(!v) return;
+            if(navigator.clipboard){ navigator.clipboard.writeText(v).then(function(){toast('🔗 Ссылка скопирована!');}); }
+            else { var ta=document.createElement('textarea');ta.value=v;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('🔗 Скопировано'); }
+        };
+
+        /* ─────────────────────────────────────────
+           BIND EVENTS
+        ───────────────────────────────────────── */
+        function bindAll() {
+            var on = function(id,ev,fn){ var e=$(id); if(e) e.addEventListener(ev,fn); };
+
+            on('dev-reg-ok-btn','click', regDev);
+            on('cb-save-btn','click', createBot);
+
+            /* bots search */
+            var si = $('bots-search'); if(si){
+                si.addEventListener('input', function(){
+                    var v = this.value.trim();
+                    if(v.toLowerCase()==='create_bot'){ checkDevThenCreate(); }
+                    else { renderList(v); }
+                });
+            }
+
+            /* backdrop close */
+            ['dev-reg-modal','create-bot-modal','bot-view-modal'].forEach(function(id){
+                var el=$(id); if(!el) return;
+                el.addEventListener('click',function(e){ if(e.target===el) closeM(id); });
+            });
+
+            /* bots-tab */
+            var bt = $('bots-tab'); if(bt){
+                bt.addEventListener('click', function(){
+                    if(typeof switchTab==='function') switchTab('bots');
+                });
+            }
+
+            /* init code editor on modal open */
+            var cbModal = $('create-bot-modal');
+            if(cbModal){
+                var obs = new MutationObserver(function(){
+                    if(cbModal.classList.contains('active')) cbUpdateLN();
+                });
+                obs.observe(cbModal, {attributes:true, attributeFilter:['class']});
+            }
+        }
+
+        /* ─────────────────────────────────────────
+           PUBLIC INIT
+        ───────────────────────────────────────── */
+        window.initBotsSystem = function(username) {
+            if(username) _botUser = username;
+            else if(typeof currentUser!=='undefined' && currentUser) _botUser = currentUser;
+            if(!_botUser){ setTimeout(function(){ window.initBotsSystem(); }, 600); return; }
+            loadBots();
+            bindAll();
+        };
+
+    })();
+    /* ==================== КОНЕЦ TWIN BOTS SYSTEM ==================== */
+    </script>
 </html>
