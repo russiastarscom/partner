@@ -59,6 +59,28 @@
     <link rel="manifest" href="/partner/manifest.json">
 
     <link rel="stylesheet" href="gift_animations.css">
+    
+    <!-- ========== EmailJS — уведомления о новых сообщениях ========== -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>
+        (function(){
+            emailjs.init('b-7sGhKAUanUDN9HX');
+        })();
+
+        // Универсальная функция отправки через EmailJS
+        // ВАЖНО: в шаблоне EmailJS поле "Отправить электронное письмо" (To) должно быть {{to_email}}
+        async function ejsSend(toEmail, toName, subject, body) {
+            return emailjs.send('service_rttja94', 'template_cngvu5j', {
+                to_email:  toEmail,
+                to_name:   toName,
+                from_name: 'Twin Messenger',
+                message:   body,
+                time:      subject  // используем поле time как доп. заголовок
+            });
+        }
+    </script>
+    <!-- ========== конец EmailJS ========== -->
+    
     <title>Twin</title>
     <style>
         :root {
@@ -726,6 +748,404 @@
             border-radius: 8px;
             padding: 2px 6px;
             display: inline-block;
+        }
+
+        /* ============================================================
+           STORIES — ПОЛОСА ИСТОРИЙ
+           ============================================================ */
+        .stories-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+            overflow-y: hidden;
+            flex-shrink: 0;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .stories-bar::-webkit-scrollbar { display: none; }
+
+        .story-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+            min-width: 56px;
+        }
+
+        .story-avatar-wrap {
+            position: relative;
+            width: 50px;
+            height: 50px;
+        }
+
+        .story-avatar-ring {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            padding: 2.5px;
+            background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            box-shadow: 0 2px 8px rgba(220,39,67,0.3);
+            transition: transform 0.18s;
+        }
+        .story-avatar-ring.seen {
+            background: var(--border-color);
+            box-shadow: none;
+        }
+        .story-item:hover .story-avatar-ring { transform: scale(1.06); }
+
+        .story-avatar-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), #a29bfe);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: 700;
+            overflow: hidden;
+            border: 2px solid var(--sidebar-bg);
+        }
+        .story-avatar-inner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .story-add-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: #fff;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--sidebar-bg);
+            font-weight: 700;
+        }
+
+        .story-name {
+            font-size: 0.67rem;
+            color: var(--text-color);
+            text-align: center;
+            max-width: 54px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+
+        /* Модалка просмотра истории */
+        #story-viewer-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 9000;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #story-viewer-modal.active { display: flex; }
+
+        .story-viewer-bg {
+            position: absolute;
+            inset: 0;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+        .story-viewer-bg img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .story-viewer-content {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            height: 100%;
+            max-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .story-progress-bar {
+            display: flex;
+            gap: 4px;
+            padding: 10px 12px 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+        }
+        .story-progress-seg {
+            flex: 1;
+            height: 3px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.3);
+            overflow: hidden;
+        }
+        .story-progress-fill {
+            height: 100%;
+            background: #fff;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        .story-progress-fill.done { width: 100%; }
+
+        .story-viewer-header {
+            position: absolute;
+            top: 22px;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            z-index: 20;
+        }
+        .sv-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), #a29bfe);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.4);
+        }
+        .sv-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .sv-name { color: #fff; font-weight: 700; font-size: 0.95rem; flex: 1; text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+        .sv-time { color: rgba(255,255,255,0.7); font-size: 0.75rem; }
+        .sv-close {
+            background: rgba(0,0,0,0.4);
+            border: none;
+            color: #fff;
+            font-size: 1.3rem;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Навигация по story (тап-зоны) */
+        .story-tap-prev, .story-tap-next {
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 40%;
+            z-index: 13;
+            cursor: pointer;
+        }
+        .story-tap-prev { left: 0; }
+        .story-tap-next { right: 0; }
+
+        /* Модалка создания истории */
+        #story-create-modal .modal-content {
+            max-width: 440px;
+        }
+        .story-create-preview {
+            width: 100%;
+            max-height: 240px;
+            border-radius: 14px;
+            overflow: hidden;
+            background: var(--bg-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+            border: 2px dashed var(--border-color);
+            min-height: 100px;
+            position: relative;
+            cursor: pointer;
+        }
+        .story-create-preview img {
+            max-width: 100%;
+            max-height: 240px;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+        .story-create-preview-placeholder {
+            color: var(--text-light);
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+        }
+        .story-upload-btn-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .story-upload-photo-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--input-bg);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.88rem;
+            color: var(--text-color);
+            transition: border-color 0.15s, background 0.15s;
+            font-weight: 600;
+        }
+        .story-upload-photo-btn:hover {
+            border-color: var(--primary-color);
+            background: rgba(108,92,231,0.06);
+        }
+
+        /* ============================================================
+           КОНЕЦ STORIES CSS
+           ============================================================ */
+
+        /* Нижняя панель просмотрщика */
+        .story-viewer-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            padding: 12px 16px 28px;
+            background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .story-viewer-footer > * { pointer-events: auto; }
+
+        /* Блок просмотров */
+        .sv-views {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255,255,255,0.85);
+            font-size: 0.82rem;
+        }
+        .sv-views-icon { font-size: 1rem; }
+        .sv-views-count { font-weight: 700; font-size: 0.95rem; }
+        .sv-views-label { color: rgba(255,255,255,0.65); }
+        .sv-viewers-list {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-left: 8px;
+        }
+        .sv-viewer-badge {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 2px 8px;
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.9);
+        }
+
+        /* Реакции */
+        .sv-reactions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .sv-react-btn {
+            background: rgba(255,255,255,0.18);
+            border: 1.5px solid rgba(255,255,255,0.25);
+            border-radius: 24px;
+            padding: 7px 12px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.15s, background 0.15s;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        .sv-react-btn:hover {
+            background: rgba(255,255,255,0.32);
+            transform: scale(1.18);
+        }
+        .sv-react-btn:active { transform: scale(0.92); }
+        .sv-react-btn.reacted {
+            background: rgba(255,255,255,0.4);
+            border-color: rgba(255,255,255,0.6);
+        }
+
+        /* Анимация реакции при отправке */
+        @keyframes reactionPop {
+            0%   { transform: translateY(0) scale(1); opacity: 1; }
+            60%  { transform: translateY(-80px) scale(1.6); opacity: 1; }
+            100% { transform: translateY(-160px) scale(0.8); opacity: 0; }
+        }
+        .sv-reaction-float {
+            position: fixed;
+            font-size: 2.2rem;
+            pointer-events: none;
+            z-index: 9999;
+            animation: reactionPop 1s ease forwards;
+        }
+
+        /* Кнопка удаления истории */
+        .sv-delete-btn {
+            background: rgba(231,76,60,0.25);
+            border: 1.5px solid rgba(231,76,60,0.5);
+            color: #fff;
+            font-size: 1rem;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+            margin-right: 6px;
+        }
+        .sv-delete-btn:hover { background: rgba(231,76,60,0.55); }
+
+        /* header info wrap */
+        .sv-header-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .sv-name { color: #fff; font-weight: 700; font-size: 0.95rem; text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+        .sv-time { color: rgba(255,255,255,0.7); font-size: 0.75rem; }
+
+        /* Темная тема */
+        .story-viewer-text-overlay {
+            position: absolute;
+            bottom: 110px;
+            left: 0; right: 0;
+            padding: 14px 20px;
+            z-index: 15;
+            color: #fff;
+            font-size: 1.05rem;
+            line-height: 1.5;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.7);
+            word-break: break-word;
+            white-space: pre-wrap;
+            pointer-events: none;
         }
 
         /* Темная тема */
@@ -2947,6 +3367,20 @@
                     <input type="text" class="search-box" id="search-input" placeholder="Поиск по юзернейму...">
                 </div>
 
+                <!-- ===== ПОЛОСА ИСТОРИЙ ===== -->
+                <div class="stories-bar" id="stories-bar" style="display:none;">
+                    <div class="story-item" id="my-story-item">
+                        <div class="story-avatar-wrap" onclick="handleMyStoryClick()">
+                            <div class="story-avatar-ring seen" id="my-story-ring">
+                                <div class="story-avatar-inner" id="my-story-avatar">😊</div>
+                            </div>
+                            <div class="story-add-btn" id="my-story-add-btn">+</div>
+                        </div>
+                        <span class="story-name">Моя история</span>
+                    </div>
+                </div>
+                <!-- ===== КОНЕЦ ПОЛОСЫ ИСТОРИЙ ===== -->
+
                 <div class="search-results" id="search-results">
                     <!-- Результаты поиска будут здесь -->
                 </div>
@@ -3127,6 +3561,93 @@
 
 
 
+
+    <!-- ===== ПРОСМОТРЩИК ИСТОРИЙ ===== -->
+    <div id="story-viewer-modal">
+        <div class="story-viewer-content">
+            <div class="story-progress-bar" id="story-progress-bar"></div>
+            <div class="story-viewer-header">
+                <div class="sv-avatar" id="sv-avatar">?</div>
+                <div class="sv-header-info">
+                    <span class="sv-name" id="sv-name">User</span>
+                    <span class="sv-time" id="sv-time"></span>
+                </div>
+                <!-- Кнопка удаления (только для своих историй) -->
+                <button class="sv-delete-btn" id="sv-delete-btn" onclick="deleteCurrentStory()" style="display:none;" title="Удалить историю">🗑️</button>
+                <button class="sv-close" onclick="closeStoryViewer()">✕</button>
+            </div>
+            <div class="story-viewer-bg" id="sv-bg">
+                <img id="sv-img" src="" style="display:none;max-width:100%;max-height:100%;object-fit:contain;">
+            </div>
+            <div class="story-viewer-text-overlay" id="sv-text"></div>
+
+            <!-- Нижняя панель: просмотры + реакции -->
+            <div class="story-viewer-footer" id="sv-footer">
+                <!-- Блок просмотров (только для своих историй) -->
+                <div class="sv-views" id="sv-views" style="display:none;">
+                    <span class="sv-views-icon">👁️</span>
+                    <span class="sv-views-count" id="sv-views-count">0</span>
+                    <span class="sv-views-label">просмотров</span>
+                    <div class="sv-viewers-list" id="sv-viewers-list"></div>
+                </div>
+                <!-- Реакции (только для чужих историй) -->
+                <div class="sv-reactions" id="sv-reactions" style="display:none;">
+                    <button class="sv-react-btn" onclick="sendStoryReaction('❤️')">❤️</button>
+                    <button class="sv-react-btn" onclick="sendStoryReaction('🔥')">🔥</button>
+                    <button class="sv-react-btn" onclick="sendStoryReaction('😂')">😂</button>
+                    <button class="sv-react-btn" onclick="sendStoryReaction('😮')">😮</button>
+                    <button class="sv-react-btn" onclick="sendStoryReaction('👏')">👏</button>
+                </div>
+            </div>
+
+            <div class="story-tap-prev" onclick="storyNavPrev()"></div>
+            <div class="story-tap-next" onclick="storyNavNext()"></div>
+        </div>
+    </div>
+
+    <!-- ===== СОЗДАНИЕ ИСТОРИИ ===== -->
+    <div class="modal" id="story-create-modal">
+        <div class="modal-content" style="max-width:440px;">
+            <h2 class="modal-title">📸 Новая история</h2>
+            <input type="file" id="story-image-input" accept="image/*" style="display:none">
+            <div class="story-create-preview" id="story-create-preview" onclick="document.getElementById('story-image-input').click()">
+                <div class="story-create-preview-placeholder" id="story-preview-placeholder">
+                    <div style="font-size:2rem;margin-bottom:8px;">🖼️</div>
+                    <div>Нажмите чтобы добавить фото</div>
+                    <div style="font-size:0.78rem;margin-top:4px;color:var(--text-light);">Необязательно</div>
+                </div>
+                <img id="story-preview-img" src="" style="display:none;max-width:100%;max-height:240px;border-radius:12px;">
+            </div>
+            <div class="story-upload-btn-row">
+                <button class="story-upload-photo-btn" onclick="document.getElementById('story-image-input').click()">📷 Выбрать фото</button>
+                <button class="story-upload-photo-btn" id="story-remove-photo-btn" onclick="removeStoryPhoto()" style="display:none;border-color:#e74c3c;color:#e74c3c;">✕ Убрать фото</button>
+            </div>
+            <textarea id="story-text-input" class="modal-input" placeholder="Напишите текст для истории... (необязательно)" rows="3" style="resize:vertical;font-family:inherit;min-height:80px;"></textarea>
+            <div style="font-size:0.77rem;color:var(--text-light);margin-bottom:10px;">История будет доступна 24 часа</div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" onclick="closeStoryCreate()">Отмена</button>
+                <button class="modal-btn modal-btn-primary" onclick="publishStory()">📤 Опубликовать</button>
+            </div>
+        </div>
+    </div>
+    <!-- ===== МОДАЛКА "МОЯ ИСТОРИЯ" ===== -->
+    <div class="modal" id="my-story-modal">
+        <div class="modal-content" style="max-width:360px;">
+            <h2 class="modal-title">📸 Моя история</h2>
+            <div style="display:flex;flex-direction:column;gap:10px;margin:10px 0 18px;">
+                <button class="modal-btn modal-btn-primary" style="display:flex;align-items:center;gap:10px;font-size:1rem;padding:14px 18px;border-radius:14px;" onclick="closeMyStoryModal();viewMyStory();">
+                    <span style="font-size:1.4rem;">👁️</span>
+                    <span>Посмотреть историю</span>
+                </button>
+                <button class="modal-btn" style="display:flex;align-items:center;gap:10px;font-size:1rem;padding:14px 18px;border-radius:14px;background:rgba(108,92,231,0.1);color:var(--primary-color);border:1.5px solid rgba(108,92,231,0.25);" onclick="closeMyStoryModal();openStoryCreate();">
+                    <span style="font-size:1.4rem;">➕</span>
+                    <span>Добавить новую историю</span>
+                </button>
+            </div>
+            <button class="modal-btn modal-btn-secondary" style="width:100%;" onclick="closeMyStoryModal()">Закрыть</button>
+        </div>
+    </div>
+    <!-- ===== КОНЕЦ МОДАЛКИ "МОЯ ИСТОРИЯ" ===== -->
 
     <!-- ===== ОВЕРЛЕЙ ДЛЯ ЗВОНКА JaaS ===== -->
     <div id="call-overlay">
@@ -3668,6 +4189,7 @@
         let lastMessageTimestamp = 0;
         let backgroundCheckIntervals = [];
         let notifiedMessageIds = new Set();
+        let currentUserData = null; // ✅ ИСПРАВЛЕНО: переменная не была объявлена
 
         // Функция показа уведомлений
         function showNotification(message) {
@@ -3752,7 +4274,7 @@
                         }
                     }
 
-                    await updateUserStatus(true);
+                    await updateUserStatus(true, true); // silent — автовход, не показываем тост
                     loadRecentChats();
                     loadGroups();
                     loadChannels();
@@ -4467,9 +4989,14 @@
             const sr2 = document.getElementById('search-results');
             if (sr2) sr2.style.display = '';
 
+            // Stories bar: only on chats tab
+            const storiesBar = document.getElementById('stories-bar');
+            if (storiesBar) storiesBar.style.display = (tab === 'chats') ? 'flex' : 'none';
+
             if (tab === 'chats') {
                 chatsTab.classList.add('active');
                 loadRecentChats();
+                if (typeof window.loadStories === 'function') window.loadStories();
             } else if (tab === 'users') {
                 usersTab.classList.add('active');
                 loadUsers();
@@ -4613,7 +5140,7 @@
             }
         }
 
-        async function updateUserStatus(online) {
+        async function updateUserStatus(online, silent = false) {
             if (!currentUser) return;
 
             try {
@@ -4622,11 +5149,13 @@
                     lastSeen: Date.now()
                 });
 
-                // Уведомление о смене статуса
-                if (online) {
-                    showNotification('🟢 Вы в сети');
-                } else {
-                    showNotification('🔴 Вы не в сети');
+                // ✅ ИСПРАВЛЕНО: уведомление только при явном изменении статуса, не при фоновых вызовах
+                if (!silent) {
+                    if (online) {
+                        showNotification('🟢 Вы в сети');
+                    } else {
+                        showNotification('🔴 Вы не в сети');
+                    }
                 }
             } catch (error) {
                 console.error('Ошибка обновления статуса:', error);
@@ -6493,6 +7022,32 @@
         }
 
         // Создание уведомления для получателя
+        // ========== EMAILJS: отправка email-уведомления ==========
+        async function sendEmailNotification(toUsername, fromName, messageText) {
+            try {
+                // Получаем email получателя из Firebase
+                const snap = await database.ref('users/' + encodeURIComponent(toUsername) + '/email').once('value');
+                const toEmail = snap.val();
+                if (!toEmail) return; // email не указан — пропускаем
+
+                // Получаем настройку "получать уведомления"
+                const notifySnap = await database.ref('users/' + encodeURIComponent(toUsername) + '/emailNotify').once('value');
+                if (notifySnap.val() === false) return; // уведомления отключены
+
+                await emailjs.send('service_rttja94', 'template_cngvu5j', {
+                    to_email:  toEmail,
+                    to_name:   toUsername,
+                    from_name: fromName || currentUser,
+                    message:   messageText,
+                    time:      new Date().toLocaleString('ru-RU')
+                });
+                console.log('📧 Email-уведомление отправлено →', toEmail);
+            } catch (err) {
+                console.warn('EmailJS ошибка:', err);
+            }
+        }
+        // ========== конец EMAILJS ==========
+
         async function createNotificationForReceiver(text) {
             if (!currentChat) return;
 
@@ -6507,6 +7062,8 @@
                         timestamp: Date.now(),
                         read: false
                     });
+                    // 📧 Email-уведомление
+                    sendEmailNotification(currentChat, currentUser, text);
                 } else if (currentChatType === 'group') {
                     // Групповое сообщение - создаем уведомление для всех участников
                     if (currentGroup && currentGroup.participants) {
@@ -6521,6 +7078,8 @@
                                     timestamp: Date.now(),
                                     read: false
                                 });
+                                // 📧 Email-уведомление участникам группы
+                                sendEmailNotification(participant, currentUser + ' (группа: ' + (currentGroup.name||'') + ')', text);
                             }
                         }
                     }
@@ -6650,7 +7209,7 @@
 
         async function handleLogout() {
             if (confirm('Вы уверены, что хотите выйти из аккаунта ' + (currentUser || '') + '?')) {
-                try { await unsubscribeFromPushNotifications(); } catch(e) {}
+                // ✅ ИСПРАВЛЕНО: unsubscribeFromPushNotifications не существует — убрана несуществующая функция
                 try { await updateUserStatus(false); } catch(e) {}
 
                 // Удаляем текущий аккаунт из списка сохранённых
@@ -8765,34 +9324,70 @@
                     <button id="submit-login" class="auth-btn-primary">Войти</button>
                 </div>
                 <div id="register-form" style="display: none;">
-                    <input type="text" id="reg-name" class="auth-input"
-                           placeholder="Имя" autocomplete="off">
-                    <input type="text" id="reg-username" class="auth-input"
-                           placeholder="Юзернейм (уникальный)" autocomplete="off">
-                    <input type="password" id="reg-password" class="auth-input" style="margin-bottom:6px;"
-                           placeholder="Пароль">
-                    <div id="reg-password-nonlatin" class="auth-nonlatin-warn">
-                        ⚠️ Пароль содержит <b>не латинские</b> символы. Проверьте раскладку клавиатуры!
-                    </div>
-                    <input type="password" id="reg-password-confirm" class="auth-input" style="margin-bottom:6px;"
-                           placeholder="Повторите пароль">
-                    <div id="reg-password-match-msg" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;"></div>
-                    <div style="margin-bottom: 18px;">
-                        <span class="auth-emoji-label">Выберите статус:</span>
-                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                            <span class="emoji-option" data-emoji="😊">😊</span>
-                            <span class="emoji-option" data-emoji="😎">😎</span>
-                            <span class="emoji-option" data-emoji="🤔">🤔</span>
-                            <span class="emoji-option" data-emoji="😴">😴</span>
-                            <span class="emoji-option" data-emoji="😢">😢</span>
-                            <span class="emoji-option" data-emoji="😡">😡</span>
-                            <span class="emoji-option" data-emoji="🥳">🥳</span>
-                            <span class="emoji-option" data-emoji="😍">😍</span>
+                    <!-- ШАГ 1: основные поля -->
+                    <div id="reg-step-1">
+                        <input type="text" id="reg-name" class="auth-input"
+                               placeholder="Имя" autocomplete="off">
+                        <input type="text" id="reg-username" class="auth-input"
+                               placeholder="Юзернейм (уникальный)" autocomplete="off">
+                        <input type="password" id="reg-password" class="auth-input" style="margin-bottom:6px;"
+                               placeholder="Пароль">
+                        <div id="reg-password-nonlatin" class="auth-nonlatin-warn">
+                            ⚠️ Пароль содержит <b>не латинские</b> символы. Проверьте раскладку клавиатуры!
                         </div>
+                        <input type="password" id="reg-password-confirm" class="auth-input" style="margin-bottom:6px;"
+                               placeholder="Повторите пароль">
+                        <div id="reg-password-match-msg" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;"></div>
+                        <input type="email" id="reg-email" class="auth-input" style="margin-bottom:6px;"
+                               placeholder="Email (обязательно)" required>
+                        <div id="reg-email-warn" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid rgba(231,76,60,0.35);">
+                            ⚠️ Введите корректный email
+                        </div>
+                        <div style="margin-bottom: 18px;">
+                            <span class="auth-emoji-label">Выберите статус:</span>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                <span class="emoji-option" data-emoji="😊">😊</span>
+                                <span class="emoji-option" data-emoji="😎">😎</span>
+                                <span class="emoji-option" data-emoji="🤔">🤔</span>
+                                <span class="emoji-option" data-emoji="😴">😴</span>
+                                <span class="emoji-option" data-emoji="😢">😢</span>
+                                <span class="emoji-option" data-emoji="😡">😡</span>
+                                <span class="emoji-option" data-emoji="🥳">🥳</span>
+                                <span class="emoji-option" data-emoji="😍">😍</span>
+                            </div>
+                        </div>
+                        <button id="submit-register" class="auth-btn-primary auth-btn-register">
+                            Получить код подтверждения
+                        </button>
                     </div>
-                    <button id="submit-register" class="auth-btn-primary auth-btn-register">
-                        Зарегистрироваться
-                    </button>
+                    <!-- ШАГ 2: ввод кода -->
+                    <div id="reg-step-2" style="display:none;">
+                        <div style="text-align:center;margin-bottom:16px;">
+                            <div style="font-size:2.5rem;margin-bottom:8px;">📧</div>
+                            <div style="font-weight:700;font-size:1rem;color:var(--text-color);margin-bottom:6px;">Проверьте почту</div>
+                            <div id="reg-email-sent-to" style="font-size:0.85rem;color:var(--text-light);margin-bottom:4px;word-break:break-all;"></div>
+                            <div style="font-size:0.78rem;color:var(--text-light);">Код действителен 10 минут · Проверьте папку «Спам»</div>
+                        </div>
+                        <div style="margin-bottom:12px;">
+                            <label style="font-size:0.82rem;color:var(--text-light);margin-bottom:6px;display:block;">Код подтверждения</label>
+                            <input type="text" id="reg-code-input" class="auth-input"
+                                   placeholder="• • • • • •"
+                                   maxlength="6"
+                                   inputmode="numeric"
+                                   autocomplete="one-time-code"
+                                   style="text-align:center;font-size:1.8rem;letter-spacing:10px;font-weight:800;padding:14px;">
+                        </div>
+                        <div id="reg-code-msg" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;"></div>
+                        <button id="confirm-code-btn" class="auth-btn-primary auth-btn-register">
+                            ✅ Подтвердить и зарегистрироваться
+                        </button>
+                        <button id="resend-code-btn" style="width:100%;margin-top:8px;padding:10px;border:none;background:transparent;color:var(--primary-color);cursor:pointer;font-size:0.9rem;font-family:inherit;">
+                            🔄 Отправить код повторно
+                        </button>
+                        <button id="back-to-reg-btn" style="width:100%;padding:8px;border:none;background:transparent;color:var(--text-light);cursor:pointer;font-size:0.85rem;font-family:inherit;">
+                            ← Назад к форме
+                        </button>
+                    </div>
                 </div>
             `;
 
@@ -8900,6 +9495,7 @@
                 const username = regUsername.value.trim().toLowerCase();
                 const password = regPassword.value.trim();
                 const passwordConfirm = regPasswordConfirm.value.trim();
+                const regEmailVal = (document.getElementById('reg-email') ? document.getElementById('reg-email').value.trim() : '');
 
                 if (!name || !username || !password) {
                     showNotification('Пожалуйста, заполните все поля');
@@ -8929,43 +9525,191 @@
                     return;
                 }
 
+                // Проверка email — теперь обязателен
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                const emailWarn = document.getElementById('reg-email-warn');
+                if (!regEmailVal || !emailRegex.test(regEmailVal)) {
+                    if (emailWarn) emailWarn.style.display = 'block';
+                    document.getElementById('reg-email').focus();
+                    return;
+                }
+                if (emailWarn) emailWarn.style.display = 'none';
+
                 try {
+                    // Проверяем занятость юзернейма до отправки кода
                     const userRef = database.ref('users/' + encodeURIComponent(username));
                     const snapshot = await userRef.once('value');
-
                     if (snapshot.exists()) {
                         showNotification('Этот юзернейм уже занят');
                         return;
                     }
 
-                    currentUser = username;
+                    // Генерируем 6-значный код
+                    const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+                    const codeExpiry = Date.now() + 10 * 60 * 1000; // 10 минут
+
+                    // Сохраняем код и данные регистрации во временные переменные
+                    window._pendingReg = {
+                        name, username, password, email: regEmailVal,
+                        emoji: userEmoji, code: verifyCode, expiry: codeExpiry
+                    };
+
+                    // Отправляем код через EmailJS
+                    submitRegister.disabled = true;
+                    submitRegister.textContent = 'Отправка...';
+
+                    // Параметры письма: имена переменных должны совпадать с шаблоном EmailJS
+                    const emailParams = {
+                        to_email:  regEmailVal,   // {{to_email}} в шаблоне — поле "Кому"
+                        to_name:   name,           // {{to_name}}
+                        from_name: 'Twin Messenger', // {{from_name}}
+                        message:   '🔐 Ваш код подтверждения для Twin: ' + verifyCode + '\n\nКод действителен 10 минут. Не передавайте его никому.',
+                        time:      new Date().toLocaleString('ru-RU')
+                    };
+
+                    console.log('[EmailJS] Отправка кода на:', regEmailVal, '| Параметры:', emailParams);
+
+                    let emailSent = false;
+                    let emailError = null;
+
+                    try {
+                        const result = await emailjs.send('service_rttja94', 'template_cngvu5j', emailParams);
+                        console.log('[EmailJS] Успех:', result);
+                        emailSent = true;
+                    } catch (ejsErr) {
+                        console.error('[EmailJS] Ошибка:', ejsErr);
+                        emailError = ejsErr;
+                    }
+
+                    submitRegister.disabled = false;
+                    submitRegister.textContent = 'Получить код подтверждения';
+
+                    if (!emailSent) {
+                        showNotification('⚠️ Не удалось отправить письмо. Проверьте правильность email или попробуйте позже.');
+                    }
+
+                    // Переключаемся на шаг 2
+                    document.getElementById('reg-step-1').style.display = 'none';
+                    document.getElementById('reg-step-2').style.display = 'block';
+                    const sentToEl = document.getElementById('reg-email-sent-to');
+                    if (sentToEl) {
+                        sentToEl.textContent = emailSent
+                            ? 'Код отправлен на ' + regEmailVal
+                            : '⚠️ Не удалось отправить на ' + regEmailVal + '. Проверьте шаблон EmailJS.';
+                    }
+                    document.getElementById('reg-code-input').focus();
+
+                } catch (error) {
+                    submitRegister.disabled = false;
+                    submitRegister.textContent = 'Получить код подтверждения';
+                    showNotification('Ошибка: ' + error.message);
+                }
+            });
+
+            // ── Кнопка «Назад» ──
+            const backBtn = document.getElementById('back-to-reg-btn');
+            if (backBtn) backBtn.addEventListener('click', () => {
+                document.getElementById('reg-step-2').style.display = 'none';
+                document.getElementById('reg-step-1').style.display = 'block';
+            });
+
+            // ── Повторная отправка кода ──
+            const resendBtn = document.getElementById('resend-code-btn');
+            if (resendBtn) resendBtn.addEventListener('click', async () => {
+                const pr = window._pendingReg;
+                if (!pr) return;
+                const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+                pr.code = newCode;
+                pr.expiry = Date.now() + 10 * 60 * 1000;
+                resendBtn.disabled = true;
+                resendBtn.textContent = 'Отправка...';
+                try {
+                    await emailjs.send('service_rttja94', 'template_cngvu5j', {
+                        to_email:  pr.email,
+                        to_name:   pr.name,
+                        from_name: 'Twin Messenger',
+                        message:   'Ваш новый код подтверждения: ' + newCode + '\n\nКод действителен 10 минут.',
+                        time:      new Date().toLocaleString('ru-RU')
+                    });
+                    showNotification('📧 Код отправлен повторно');
+                } catch(e) {
+                    showNotification('Ошибка: ' + e.message);
+                }
+                resendBtn.disabled = false;
+                resendBtn.textContent = 'Отправить код повторно';
+            });
+
+            // ── Подтверждение кода и финальная регистрация ──
+            const confirmCodeBtn = document.getElementById('confirm-code-btn');
+            if (confirmCodeBtn) confirmCodeBtn.addEventListener('click', async () => {
+                const pr = window._pendingReg;
+                const codeInput = document.getElementById('reg-code-input');
+                const codeMsg   = document.getElementById('reg-code-msg');
+                const enteredCode = codeInput ? codeInput.value.trim() : '';
+
+                const showCodeMsg = (text, ok) => {
+                    codeMsg.style.display = 'block';
+                    codeMsg.textContent = text;
+                    codeMsg.style.background = ok ? 'rgba(46,204,113,0.13)' : 'rgba(231,76,60,0.1)';
+                    codeMsg.style.color = ok ? '#2ecc71' : '#e74c3c';
+                    codeMsg.style.border = ok ? '1px solid rgba(46,204,113,0.4)' : '1px solid rgba(231,76,60,0.35)';
+                };
+
+                if (!enteredCode || enteredCode.length < 6) {
+                    showCodeMsg('❌ Введите 6-значный код', false);
+                    return;
+                }
+
+                if (!pr) {
+                    showCodeMsg('❌ Ошибка: начните регистрацию заново', false);
+                    return;
+                }
+
+                if (Date.now() > pr.expiry) {
+                    showCodeMsg('❌ Код истёк. Запросите новый', false);
+                    return;
+                }
+
+                if (enteredCode !== pr.code) {
+                    showCodeMsg('❌ Неверный код. Проверьте почту', false);
+                    codeInput.style.borderColor = '#e74c3c';
+                    return;
+                }
+
+                showCodeMsg('✅ Код верный! Создаём аккаунт...', true);
+                confirmCodeBtn.disabled = true;
+
+                try {
+                    const userRef = database.ref('users/' + encodeURIComponent(pr.username));
+
+                    currentUser = pr.username;
                     currentUserData = {
-                        name: name,
-                        username: username,
-                        password: password,
-                        emoji: userEmoji,
+                        name: pr.name,
+                        username: pr.username,
+                        password: pr.password,
+                        emoji: pr.emoji,
                         online: true,
                         lastSeen: Date.now(),
                         blockedUsers: [],
                         subscribedChannels: [],
-                        recentChats: []
+                        recentChats: [],
+                        email: pr.email,
+                        emailVerified: true,
+                        emailNotify: true
                     };
 
                     await userRef.set(currentUserData);
-                    localStorage.setItem('messenger_user', JSON.stringify({ username: username, password: password }));
-                    saveAccountToList(username, password);
+                    localStorage.setItem('messenger_user', JSON.stringify({ username: pr.username, password: pr.password }));
+                    saveAccountToList(pr.username, pr.password);
+                    window._pendingReg = null;
 
-                    // Обновляем UI с проверкой существования элементов
                     if (currentUserEl) {
                         const nameSpan = currentUserEl.querySelector('span:last-child');
-                        if (nameSpan) nameSpan.textContent = name;
+                        if (nameSpan) nameSpan.textContent = pr.name;
                     }
-                    if (userEmojiEl) {
-                        userEmojiEl.textContent = userEmoji;
-                    }
+                    if (userEmojiEl) userEmojiEl.textContent = pr.emoji;
 
                     await updateUserStatus(true);
-
                     document.body.removeChild(modal);
 
                     loadRecentChats();
@@ -8973,13 +9717,18 @@
                     loadChannels();
                     setTimeout(function(){ if(typeof initBotsSystem==='function') initBotsSystem(currentUser); }, 700);
 
-                    // Загружаем полученные подарки
+                    initGiftSystem();
+                    await loadUserGifts();
                     await loadReceivedGifts();
-                    showNotification('Регистрация прошла успешно!');
-                    // Запускаем прослушивание входящих звонков
+                    startBackgroundChecks();
+                    trackUserStatus();
+
+                    showNotification('🎉 Регистрация прошла успешно!');
                     setTimeout(() => { if (typeof listenForIncomingCalls === 'function') listenForIncomingCalls(); }, 1500);
+                    setTimeout(() => { if (typeof checkPetHungerNotification === 'function') checkPetHungerNotification(); }, 4000);
                 } catch (error) {
-                    showNotification('Ошибка: ' + error.message);
+                    confirmCodeBtn.disabled = false;
+                    showCodeMsg('❌ Ошибка: ' + error.message, false);
                 }
             });
 
@@ -8996,6 +9745,9 @@
                     showNotification('Пожалуйста, введите юзернейм и пароль');
                     return;
                 }
+
+                // ✅ ИСПРАВЛЕНО: сохраняем предыдущего пользователя ДО присвоения
+                const previousUser = currentUser;
 
                 try {
                     const userRef = database.ref('users/' + encodeURIComponent(username));
@@ -9022,7 +9774,6 @@
                     localStorage.setItem('messenger_user', JSON.stringify({ username: username, password: password }));
                     saveAccountToList(username, password);
 
-                    // Обновляем UI с проверкой существования элементов
                     if (currentUserEl) {
                         const nameSpan = currentUserEl.querySelector('span:last-child');
                         if (nameSpan) nameSpan.textContent = userData.name || username;
@@ -9035,9 +9786,8 @@
 
                     document.body.removeChild(modal);
 
-                    // Если был уже залогиненный другой пользователь — перезагружаемся
-                    // чтобы корректно инициализировать новый аккаунт
-                    if (currentUser && currentUser !== username) {
+                    // ✅ ИСПРАВЛЕНО: теперь корректно сравниваем с previousUser
+                    if (previousUser && previousUser !== username) {
                         showNotification('Переключение на аккаунт ' + username + '...');
                         setTimeout(() => location.reload(), 800);
                         return;
@@ -9048,13 +9798,14 @@
                     loadChannels();
                     setTimeout(function(){ if(typeof initBotsSystem==='function') initBotsSystem(currentUser); }, 700);
 
-                    // Загружаем полученные подарки
+                    // ✅ ИСПРАВЛЕНО: добавлены недостающие вызовы (были только при автовходе)
+                    initGiftSystem();
+                    await loadUserGifts();
                     await loadReceivedGifts();
-
+                    startBackgroundChecks();
                     trackUserStatus();
 
                     showNotification('Вход выполнен успешно!');
-                    // Запускаем прослушивание входящих звонков
                     setTimeout(() => { if (typeof listenForIncomingCalls === 'function') listenForIncomingCalls(); }, 1500);
                     setTimeout(() => { if (typeof checkPetHungerNotification === 'function') checkPetHungerNotification(); }, 4000);
                 } catch (error) {
@@ -11948,5 +12699,583 @@
 
     })();
     /* ==================== КОНЕЦ TWIN BOTS SYSTEM ==================== */
+
+    /* ==================== TWIN STORIES SYSTEM v2 ==================== */
+    (function() {
+        'use strict';
+
+        var STORY_TTL = 24 * 60 * 60 * 1000; // 24 часа
+        var storyDb = null;
+        var _storyUser = null;
+
+        // Текущий просмотр
+        var _svStories = [];    // [{username, emoji, stories:[{id,text,imageUrl,ts}], isSelf}]
+        var _svUserIdx = 0;
+        var _svStoryIdx = 0;
+        var _svTimer = null;
+        var _svDuration = 5000;
+        var _svRafId = null;
+        var _svStartTime = 0;
+        var _storyImageBase64 = null;
+        var _myStoryMenuOpen = false;
+
+        function getDB() {
+            if (storyDb) return storyDb;
+            if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length > 0) {
+                storyDb = firebase.apps[0].database();
+            }
+            return storyDb;
+        }
+
+        function getUser() {
+            if (_storyUser) return _storyUser;
+            if (typeof currentUser !== 'undefined' && currentUser) _storyUser = currentUser;
+            return _storyUser;
+        }
+
+        /* ─── Показать полосу историй ─── */
+        function showStoriesBar() {
+            var bar = document.getElementById('stories-bar');
+            if (bar) bar.style.display = 'flex';
+        }
+
+        /* ─── Клик на "Моя история" ─── */
+        window.handleMyStoryClick = function() {
+            var user = getUser();
+            var db = getDB();
+            if (!user || !db) return;
+
+            db.ref('stories/' + encodeURIComponent(user)).once('value').then(function(snap) {
+                var myStories = getActiveStories(snap.val(), Date.now());
+                if (myStories.length > 0) {
+                    openMyStoryModal(myStories);
+                } else {
+                    window.openStoryCreate();
+                }
+            });
+        };
+
+        function openMyStoryModal(myStories) {
+            document.getElementById('my-story-modal').classList.add('active');
+        }
+
+        window.closeMyStoryModal = function() {
+            document.getElementById('my-story-modal').classList.remove('active');
+        };
+
+        // Заглушка для совместимости
+        window.closeMyStoryMenu = function() {};
+
+        window.viewMyStory = function() {
+            var user = getUser();
+            var db = getDB();
+            if (!user || !db) return;
+            db.ref('stories/' + encodeURIComponent(user)).once('value').then(function(snap) {
+                var myStories = getActiveStories(snap.val(), Date.now());
+                if (myStories.length > 0) {
+                    var emoji = (typeof userEmoji !== 'undefined') ? userEmoji : '😊';
+                    openStoryViewer(user, emoji, myStories, true);
+                }
+            });
+        };
+
+        /* ─── Загрузить истории ─── */
+        window.loadStories = function() {
+            var user = getUser();
+            var db = getDB();
+            if (!user || !db) {
+                setTimeout(window.loadStories, 800);
+                return;
+            }
+            showStoriesBar();
+
+            // Обновить мой аватар
+            var myAvEl = document.getElementById('my-story-avatar');
+            if (myAvEl) {
+                var emoji = (typeof userEmoji !== 'undefined') ? userEmoji : '😊';
+                myAvEl.textContent = emoji;
+            }
+
+            // Получаем список контактов из recentChats
+            db.ref('users/' + encodeURIComponent(user)).once('value').then(function(snap) {
+                var data = snap.val() || {};
+                var contacts = [];
+                if (data.recentChats) {
+                    data.recentChats.forEach(function(c) {
+                        if (c && c.username) contacts.push(c.username);
+                    });
+                }
+                renderContactStories(contacts, user, db);
+            }).catch(function() {});
+
+            // Real-time слушатель для обновления своего кольца
+            db.ref('stories/' + encodeURIComponent(user)).on('value', function(mySnap) {
+                var myStories = getActiveStories(mySnap.val(), Date.now());
+                var myRing = document.getElementById('my-story-ring');
+                if (myRing) {
+                    if (myStories.length > 0) myRing.classList.remove('seen');
+                    else myRing.classList.add('seen');
+                }
+                // Обновляем иконку добавления: показываем + всегда
+                var addBtn = document.getElementById('my-story-add-btn');
+                if (addBtn) addBtn.style.display = 'flex';
+            });
+        };
+
+        function renderContactStories(contacts, user, db) {
+            var now = Date.now();
+            var bar = document.getElementById('stories-bar');
+            if (!bar) return;
+
+            // Удаляем старые карточки (не мою кнопку)
+            Array.from(bar.children).forEach(function(el) {
+                if (el.id !== 'my-story-item') el.remove();
+            });
+
+            if (contacts.length === 0) return;
+
+            // Загружаем истории каждого контакта
+            var promises = contacts.map(function(username) {
+                return db.ref('stories/' + encodeURIComponent(username)).once('value').then(function(snap) {
+                    var stories = getActiveStories(snap.val(), now);
+                    if (stories.length === 0) return null;
+                    return db.ref('users/' + encodeURIComponent(username)).once('value').then(function(uSnap) {
+                        var uData = uSnap.val() || {};
+                        return { username: username, emoji: uData.emoji || '😊', stories: stories };
+                    });
+                });
+            });
+
+            Promise.all(promises).then(function(results) {
+                results.forEach(function(result) {
+                    if (!result) return;
+                    var item = createStoryItem(result.username, result.emoji, result.stories, user, db);
+                    bar.appendChild(item);
+                });
+            });
+
+            // Real-time слушатели для каждого контакта
+            contacts.forEach(function(username) {
+                db.ref('stories/' + encodeURIComponent(username)).on('value', function() {
+                    // Перерисовываем через небольшую задержку
+                    clearTimeout(window._storiesReloadTimer);
+                    window._storiesReloadTimer = setTimeout(function() {
+                        renderContactStories(contacts, user, db);
+                    }, 500);
+                });
+            });
+        }
+
+        function getActiveStories(data, now) {
+            if (!data) return [];
+            return Object.keys(data).map(function(k) {
+                return Object.assign({ id: k }, data[k]);
+            }).filter(function(s) {
+                return (now - s.ts) < STORY_TTL;
+            }).sort(function(a, b) { return a.ts - b.ts; });
+        }
+
+        function createStoryItem(username, emoji, stories, currentUser, db) {
+            var seenKey = 'story_seen_' + currentUser + '_' + username;
+            var lastSeenTs = parseInt(localStorage.getItem(seenKey) || '0');
+            var hasNew = stories.some(function(s) { return s.ts > lastSeenTs; });
+
+            var item = document.createElement('div');
+            item.className = 'story-item';
+            item.innerHTML =
+                '<div class="story-avatar-wrap">' +
+                    '<div class="story-avatar-ring ' + (hasNew ? '' : 'seen') + '">' +
+                        '<div class="story-avatar-inner">' + emoji + '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<span class="story-name">' + escapeHtml(username) + '</span>';
+
+            item.addEventListener('click', function() {
+                // Отмечаем как просмотренное
+                localStorage.setItem(seenKey, Date.now().toString());
+                item.querySelector('.story-avatar-ring').classList.add('seen');
+                // Регистрируем просмотр в Firebase
+                registerStoryViews(stories, username, currentUser, db);
+                openStoryViewer(username, emoji, stories, false);
+            });
+            return item;
+        }
+
+        /* ─── Регистрируем просмотры ─── */
+        function registerStoryViews(stories, storyOwner, viewer, db) {
+            if (viewer === storyOwner) return; // своё не считаем
+            stories.forEach(function(story) {
+                var viewRef = db.ref('story_views/' + encodeURIComponent(storyOwner) + '/' + story.id + '/' + encodeURIComponent(viewer));
+                viewRef.set({ ts: Date.now() });
+            });
+        }
+
+        function escapeHtml(s) {
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        /* ─── Просмотрщик историй ─── */
+        function openStoryViewer(username, emoji, stories, isSelf) {
+            _svStories = [{ username: username, emoji: emoji, stories: stories, isSelf: !!isSelf }];
+            _svUserIdx = 0;
+            _svStoryIdx = 0;
+            // Сбрасываем footer перед открытием
+            document.getElementById('sv-views').style.display = 'none';
+            document.getElementById('sv-reactions').style.display = 'none';
+            document.getElementById('sv-delete-btn').style.display = 'none';
+            showCurrentStory();
+            document.getElementById('story-viewer-modal').classList.add('active');
+        }
+
+        window.closeStoryViewer = function() {
+            document.getElementById('story-viewer-modal').classList.remove('active');
+            stopStoryTimer();
+            // Отключить слушатели просмотров
+            if (window._svViewsListener) {
+                window._svViewsListener.off();
+                window._svViewsListener = null;
+            }
+        };
+
+        function showCurrentStory() {
+            var pack = _svStories[_svUserIdx];
+            if (!pack) { window.closeStoryViewer(); return; }
+            var story = pack.stories[_svStoryIdx];
+            if (!story) { window.closeStoryViewer(); return; }
+
+            var user = getUser();
+            var db = getDB();
+
+            // Header
+            var svAvatar = document.getElementById('sv-avatar');
+            svAvatar.textContent = pack.emoji;
+            document.getElementById('sv-name').textContent = pack.isSelf ? (user || pack.username) + ' (вы)' : pack.username;
+            document.getElementById('sv-time').textContent = formatStoryTime(story.ts);
+
+            // Кнопка удаления — только для своих историй
+            var delBtn = document.getElementById('sv-delete-btn');
+            delBtn.style.display = pack.isSelf ? 'flex' : 'none';
+
+            // Image
+            var img = document.getElementById('sv-img');
+            if (story.imageUrl) {
+                img.src = story.imageUrl;
+                img.style.display = 'block';
+                document.getElementById('sv-bg').style.background = '#000';
+            } else {
+                img.style.display = 'none';
+                document.getElementById('sv-bg').style.background = 'linear-gradient(135deg, #6c5ce7, #a29bfe)';
+            }
+
+            // Text
+            document.getElementById('sv-text').textContent = story.text || '';
+
+            // Footer: views для своих (снизу), reactions всегда
+            var viewsDiv = document.getElementById('sv-views');
+            var reactionsDiv = document.getElementById('sv-reactions');
+
+            if (pack.isSelf) {
+                // Своя история: показываем просмотры И реакции скрываем
+                // Просмотры показываем как у Telegram — снизу
+                viewsDiv.style.display = 'flex';
+                reactionsDiv.style.display = 'none';
+                loadStoryViews(pack.username || user, story.id, db);
+            } else {
+                // Чужая история: только реакции
+                viewsDiv.style.display = 'none';
+                reactionsDiv.style.display = 'flex';
+                document.querySelectorAll('.sv-react-btn').forEach(function(btn) {
+                    btn.classList.remove('reacted');
+                });
+            }
+
+            // Progress bar
+            buildProgressBar(pack.stories.length, _svStoryIdx);
+            startStoryTimer();
+        }
+
+        /* ─── Загрузить просмотры ─── */
+        function loadStoryViews(owner, storyId, db) {
+            if (!db) return;
+            var ref = db.ref('story_views/' + encodeURIComponent(owner) + '/' + storyId);
+
+            // Отключить предыдущий слушатель
+            if (window._svViewsListener) {
+                window._svViewsListener.off();
+            }
+            window._svViewsListener = ref;
+
+            ref.on('value', function(snap) {
+                var views = snap.val() || {};
+                var viewers = Object.keys(views);
+                var countEl = document.getElementById('sv-views-count');
+                var listEl = document.getElementById('sv-viewers-list');
+                if (countEl) countEl.textContent = viewers.length;
+                if (listEl) {
+                    listEl.innerHTML = '';
+                    viewers.slice(0, 5).forEach(function(v) {
+                        var badge = document.createElement('span');
+                        badge.className = 'sv-viewer-badge';
+                        badge.textContent = v;
+                        listEl.appendChild(badge);
+                    });
+                    if (viewers.length > 5) {
+                        var more = document.createElement('span');
+                        more.className = 'sv-viewer-badge';
+                        more.textContent = '+' + (viewers.length - 5);
+                        listEl.appendChild(more);
+                    }
+                }
+            });
+        }
+
+        /* ─── Удаление текущей истории ─── */
+        window.deleteCurrentStory = function() {
+            var user = getUser();
+            var db = getDB();
+            if (!user || !db) return;
+            var pack = _svStories[_svUserIdx];
+            if (!pack || !pack.isSelf) return;
+            var story = pack.stories[_svStoryIdx];
+            if (!story) return;
+
+            if (!confirm('Удалить эту историю?')) return;
+            db.ref('stories/' + encodeURIComponent(user) + '/' + story.id).remove().then(function() {
+                if (typeof showNotification === 'function') showNotification('История удалена');
+                // Убираем из массива
+                pack.stories.splice(_svStoryIdx, 1);
+                if (pack.stories.length === 0) {
+                    window.closeStoryViewer();
+                    window.loadStories();
+                } else {
+                    if (_svStoryIdx >= pack.stories.length) _svStoryIdx = pack.stories.length - 1;
+                    showCurrentStory();
+                }
+            });
+        };
+
+        /* ─── Реакции ─── */
+        window.sendStoryReaction = function(emoji) {
+            var user = getUser();
+            var db = getDB();
+            if (!user || !db) return;
+            var pack = _svStories[_svUserIdx];
+            if (!pack || pack.isSelf) return;
+            var story = pack.stories[_svStoryIdx];
+            if (!story) return;
+
+            // Записываем реакцию
+            db.ref('story_reactions/' + encodeURIComponent(pack.username) + '/' + story.id + '/' + encodeURIComponent(user)).set({
+                emoji: emoji,
+                ts: Date.now()
+            });
+
+            // Визуальная анимация
+            var footer = document.getElementById('sv-footer');
+            var rect = footer.getBoundingClientRect();
+            var floatEl = document.createElement('div');
+            floatEl.className = 'sv-reaction-float';
+            floatEl.textContent = emoji;
+            floatEl.style.left = (rect.left + rect.width / 2 - 16) + 'px';
+            floatEl.style.top = (rect.top - 20) + 'px';
+            document.body.appendChild(floatEl);
+            setTimeout(function() { floatEl.remove(); }, 1100);
+
+            // Отметить кнопку как нажатую
+            document.querySelectorAll('.sv-react-btn').forEach(function(btn) {
+                if (btn.textContent === emoji) btn.classList.add('reacted');
+            });
+
+            if (typeof showNotification === 'function') showNotification('Реакция отправлена ' + emoji);
+        };
+
+        /* ─── Progress bar ─── */
+        function buildProgressBar(count, activeIdx) {
+            var bar = document.getElementById('story-progress-bar');
+            bar.innerHTML = '';
+            for (var i = 0; i < count; i++) {
+                var seg = document.createElement('div');
+                seg.className = 'story-progress-seg';
+                var fill = document.createElement('div');
+                fill.className = 'story-progress-fill' + (i < activeIdx ? ' done' : '');
+                seg.appendChild(fill);
+                bar.appendChild(seg);
+            }
+        }
+
+        function startStoryTimer() {
+            stopStoryTimer();
+            _svStartTime = Date.now();
+            var segs = document.querySelectorAll('#story-progress-bar .story-progress-seg');
+            var activeFill = segs[_svStoryIdx] ? segs[_svStoryIdx].querySelector('.story-progress-fill') : null;
+
+            function tick() {
+                var elapsed = Date.now() - _svStartTime;
+                var pct = Math.min(100, (elapsed / _svDuration) * 100);
+                if (activeFill) activeFill.style.width = pct + '%';
+                if (elapsed >= _svDuration) {
+                    storyNavNext();
+                    return;
+                }
+                _svRafId = requestAnimationFrame(tick);
+            }
+            _svRafId = requestAnimationFrame(tick);
+        }
+
+        function stopStoryTimer() {
+            if (_svRafId) { cancelAnimationFrame(_svRafId); _svRafId = null; }
+            if (_svTimer) { clearTimeout(_svTimer); _svTimer = null; }
+        }
+
+        window.storyNavNext = function() {
+            stopStoryTimer();
+            var pack = _svStories[_svUserIdx];
+            if (!pack) { window.closeStoryViewer(); return; }
+            if (_svStoryIdx < pack.stories.length - 1) {
+                _svStoryIdx++;
+                showCurrentStory();
+            } else if (_svUserIdx < _svStories.length - 1) {
+                _svUserIdx++;
+                _svStoryIdx = 0;
+                showCurrentStory();
+            } else {
+                window.closeStoryViewer();
+            }
+        };
+
+        window.storyNavPrev = function() {
+            stopStoryTimer();
+            if (_svStoryIdx > 0) {
+                _svStoryIdx--;
+            } else if (_svUserIdx > 0) {
+                _svUserIdx--;
+                _svStoryIdx = _svStories[_svUserIdx].stories.length - 1;
+            }
+            showCurrentStory();
+        };
+
+        function formatStoryTime(ts) {
+            var diff = Date.now() - ts;
+            var mins = Math.floor(diff / 60000);
+            if (mins < 1) return 'только что';
+            if (mins < 60) return mins + ' мин. назад';
+            var hrs = Math.floor(mins / 60);
+            if (hrs < 24) return hrs + ' ч. назад';
+            return '> 24ч назад';
+        }
+
+        /* ─── Создание истории ─── */
+        window.openStoryCreate = function() {
+            _storyImageBase64 = null;
+            document.getElementById('story-text-input').value = '';
+            document.getElementById('story-preview-img').style.display = 'none';
+            document.getElementById('story-preview-placeholder').style.display = 'block';
+            document.getElementById('story-remove-photo-btn').style.display = 'none';
+            document.getElementById('story-create-modal').classList.add('active');
+
+            var fileInput = document.getElementById('story-image-input');
+            fileInput.value = '';
+            fileInput.onchange = function(e) {
+                var file = e.target.files[0];
+                if (!file) return;
+                var reader = new FileReader();
+                reader.onload = function(ev) {
+                    _storyImageBase64 = ev.target.result;
+                    var img = document.getElementById('story-preview-img');
+                    img.src = _storyImageBase64;
+                    img.style.display = 'block';
+                    document.getElementById('story-preview-placeholder').style.display = 'none';
+                    document.getElementById('story-remove-photo-btn').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            };
+        };
+
+        window.closeStoryCreate = function() {
+            document.getElementById('story-create-modal').classList.remove('active');
+        };
+
+        window.removeStoryPhoto = function() {
+            _storyImageBase64 = null;
+            document.getElementById('story-preview-img').style.display = 'none';
+            document.getElementById('story-preview-placeholder').style.display = 'block';
+            document.getElementById('story-remove-photo-btn').style.display = 'none';
+            document.getElementById('story-image-input').value = '';
+        };
+
+        window.publishStory = function() {
+            var user = getUser();
+            var db = getDB();
+            if (!user || !db) { alert('Войдите в аккаунт'); return; }
+
+            var text = document.getElementById('story-text-input').value.trim();
+            if (!text && !_storyImageBase64) {
+                if (typeof showNotification === 'function') showNotification('Добавьте текст или фото');
+                else alert('Добавьте текст или фото');
+                return;
+            }
+
+            var storyData = { ts: Date.now(), text: text || '' };
+            if (_storyImageBase64) storyData.imageUrl = _storyImageBase64;
+
+            db.ref('stories/' + encodeURIComponent(user)).push(storyData).then(function() {
+                window.closeStoryCreate();
+                if (typeof showNotification === 'function') showNotification('📸 История опубликована!');
+                window.loadStories();
+            }).catch(function(e) {
+                if (typeof showNotification === 'function') showNotification('Ошибка: ' + e.message);
+            });
+        };
+
+        /* ─── Клавиша Escape ─── */
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                var sv = document.getElementById('story-viewer-modal');
+                if (sv && sv.classList.contains('active')) { window.closeStoryViewer(); return; }
+                var sc = document.getElementById('story-create-modal');
+                if (sc && sc.classList.contains('active')) { window.closeStoryCreate(); return; }
+                window.closeMyStoryMenu();
+            }
+        });
+
+        /* ─── Инициализация ─── */
+        var _origSwitchTab = null;
+        function hookSwitchTab() {
+            if (typeof switchTab === 'function' && !_origSwitchTab) {
+                _origSwitchTab = switchTab;
+                window.switchTab = function(tab) {
+                    _origSwitchTab(tab);
+                    var bar = document.getElementById('stories-bar');
+                    if (bar) bar.style.display = (tab === 'chats') ? 'flex' : 'none';
+                };
+            }
+        }
+
+        function tryInit() {
+            var user = getUser();
+            var db = getDB();
+            if (user && db) {
+                hookSwitchTab();
+                window.loadStories();
+                // Очищаем устаревшие истории при старте
+                db.ref('stories/' + encodeURIComponent(user)).once('value').then(function(snap) {
+                    var now = Date.now();
+                    snap.forEach(function(child) {
+                        if (child.val() && (now - child.val().ts) >= STORY_TTL) {
+                            child.ref.remove();
+                            // Также чистим просмотры
+                            db.ref('story_views/' + encodeURIComponent(user) + '/' + child.key).remove();
+                        }
+                    });
+                });
+            } else {
+                setTimeout(tryInit, 1000);
+            }
+        }
+
+        setTimeout(tryInit, 1500);
+
+    })();
+    /* ==================== КОНЕЦ TWIN STORIES SYSTEM v2 ==================== */
     </script>
 </html>
