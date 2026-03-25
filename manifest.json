@@ -1,12 +1,12 @@
 {
   "name": "Twin",
   "short_name": "Twin",
-  "description": "Мессенджер",
+  "description": "Twin — Современный мессенджер с подарками и AI",
   "start_url": "/partner/index.html",
   "scope": "/partner/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#ffffff",
+  "background_color": "#f8f9fa",
   "theme_color": "#6c5ce7",
   "icons": [
     {
@@ -24,9 +24,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Сообщения",
-      "short_name": "Сообщения",
-      "description": "Открыть сообщения",
+      "name": "Чаты",
+      "short_name": "Чаты",
+      "description": "Открыть чаты",
       "url": "/partner/index.html",
       "icons": [
         {
@@ -36,5 +36,8 @@
         }
       ]
     }
-  ]
+  ],
+  "categories": ["social", "communication"],
+  "lang": "ru",
+  "dir": "ltr"
 }
