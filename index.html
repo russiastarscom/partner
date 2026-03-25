@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     
     <!-- Заголовок вкладки в браузере (то, что написано на вкладке) -->
-    <title>Twin — Современный мессенджер с подарками и AI</title>
+    <title>Twin — Мессенджер</title>
     
     <!-- Описание сайта для Google и Яндекс (сниппет в поиске) -->
     <meta name="description" content="Twin — бесплатный веб-мессенджер. Общайтесь с друзьями, отправляйте подарки, создавайте группы и каналы. Встроенный AI-ассистент, темная тема и установка на телефон.">
@@ -26,8 +26,8 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="Twin — Твой новый мессенджер">
     <meta property="og:description" content="Общайся, дарить подарки и используй AI прямо в браузере. Быстро, удобно и бесплатно.">
-    <meta property="og:image" content="icon-192x192.png"> <!-- Убедись, что эта картинка существует -->
-    <meta property="og:url" content="https://russiastarscom.github.io/index.html">
+    <meta property="og:image" content="https://russiastarscom.github.io/partner/icon-192x192.png">
+    <meta property="og:url" content="https://russiastarscom.github.io/partner/index.html">
     
     <!-- Настройка для Twitter карточек -->
     <meta name="twitter:card" content="summary_large_image">
@@ -52,8 +52,8 @@
 
     <!-- Иконки (абсолютные пути) -->
     <link rel="icon" type="image/png" sizes="192x192" href="/partner/icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/partner/icon-192x192.png">
-    <link rel="apple-touch-icon" href="/partner/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/partner/icon-512x512.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/partner/icon-192x192.png">
 
     <!-- PWA manifest (абсолютный путь) -->
     <link rel="manifest" href="/partner/manifest.json">
@@ -80,8 +80,7 @@
         }
     </script>
     <!-- ========== конец EmailJS ========== -->
-    
-    <title>Twin</title>
+
     <style>
         :root {
             --primary-color: #6c5ce7;
@@ -13278,4 +13277,35 @@
     })();
     /* ==================== КОНЕЦ TWIN STORIES SYSTEM v2 ==================== */
     </script>
+
+    <!-- ========== PWA — Регистрация Service Worker ========== -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('/partner/service-worker.js', { scope: '/partner/' })
+                    .then(function (reg) {
+                        console.log('[SW] Зарегистрирован, scope:', reg.scope);
+
+                        // Проверка обновлений каждые 60 секунд
+                        setInterval(function () { reg.update(); }, 60000);
+
+                        reg.addEventListener('updatefound', function () {
+                            var newWorker = reg.installing;
+                            newWorker.addEventListener('statechange', function () {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // Новая версия готова — можно показать уведомление
+                                    if (typeof showNotification === 'function') {
+                                        showNotification('🔄 Доступно обновление. Перезагрузите приложение.');
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch(function (err) {
+                        console.warn('[SW] Ошибка регистрации:', err);
+                    });
+            });
+        }
+    </script>
+    <!-- ========== конец PWA ========== -->
 </html>

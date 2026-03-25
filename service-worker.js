@@ -1,10 +1,12 @@
-// Twin — Service Worker v12
+// Twin — Service Worker v13
 
-const CACHE_NAME = 'twin-v12';
+const CACHE_NAME = 'twin-v13';
 const CACHE_URLS = [
     '/partner/',
     '/partner/index.html',
     '/partner/manifest.json',
+    '/partner/pet-plugin.js',
+    '/partner/gift_animations.css',
     '/partner/icon-192x192.png',
     '/partner/icon-512x512.png'
 ];
@@ -36,8 +38,18 @@ self.addEventListener('fetch', e => {
         u.includes('googleapis.com') ||
         u.includes('firebaseapp.com') ||
         u.includes('8x8.vc') ||
-        u.includes('railway.app')
+        u.includes('railway.app') ||
+        u.includes('emailjs.com') ||
+        u.includes('jsdelivr.net')
     ) return;
+
+    // Для навигационных запросов (переход по страницам) — всегда отдаём index.html
+    if (e.request.mode === 'navigate') {
+        e.respondWith(
+            fetch(e.request).catch(() => caches.match('/partner/index.html'))
+        );
+        return;
+    }
 
     e.respondWith(
         caches.match(e.request).then(cached => {
