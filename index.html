@@ -9163,677 +9163,722 @@
         // Используем глобальную currentUserData, объявленную выше
 
         // Показать модальное окно входа/регистрации
-        async function requestUsername() {
-            const modal = document.createElement('div');
-            modal.id = 'auth-modal';
-            modal.style.position = 'fixed';
-            modal.style.top = '0';
-            modal.style.left = '0';
-            modal.style.right = '0';
-            modal.style.bottom = '0';
-            modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
-            modal.style.display = 'flex';
-            modal.style.justifyContent = 'center';
-            modal.style.alignItems = 'center';
-            modal.style.zIndex = '1000';
+        // Показать модальное окно входа/регистрации
+async function requestUsername() {
+    const modal = document.createElement('div');
+    modal.id = 'auth-modal';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.right = '0';
+    modal.style.bottom = '0';
+    modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+    modal.style.display = 'flex';
+    modal.style.justifyContent = 'center';
+    modal.style.alignItems = 'center';
+    modal.style.zIndex = '1000';
 
-            // Инжектим стили для auth-modal один раз
-            if (!document.getElementById('auth-modal-styles')) {
-                const s = document.createElement('style');
-                s.id = 'auth-modal-styles';
-                s.textContent = `
-                    #auth-modal-content {
-                        background: var(--modal-bg);
-                        color: var(--text-color);
-                        padding: 28px 24px 24px;
-                        border-radius: 16px;
-                        width: 90%;
-                        max-width: 400px;
-                        max-height: 90vh;
-                        overflow-y: auto;
-                        box-shadow: 0 8px 40px rgba(0,0,0,0.28);
-                        border: 1px solid var(--border-color);
-                    }
-                    #auth-modal-content h2 {
-                        margin-bottom: 20px;
-                        text-align: center;
-                        font-size: 1.25rem;
-                        color: var(--text-color);
-                    }
-                    #auth-tabs {
-                        display: flex;
-                        margin-bottom: 20px;
-                        border-bottom: 2px solid var(--border-color);
-                        gap: 2px;
-                    }
-                    .auth-tab-btn {
-                        flex: 1;
-                        padding: 10px;
-                        border: none;
-                        background: transparent;
-                        color: var(--text-light);
-                        cursor: pointer;
-                        font-size: 0.95rem;
-                        font-family: inherit;
-                        font-weight: 600;
-                        border-bottom: 2px solid transparent;
-                        margin-bottom: -2px;
-                        transition: color 0.15s, border-color 0.15s;
-                    }
-                    .auth-tab-btn.active {
-                        color: var(--primary-color);
-                        border-bottom-color: var(--primary-color);
-                    }
-                    .auth-input {
-                        width: 100%;
-                        padding: 12px 14px;
-                        border: 1.5px solid var(--border-color);
-                        border-radius: 10px;
-                        margin-bottom: 10px;
-                        font-size: 15px;
-                        font-family: inherit;
-                        background: var(--input-bg);
-                        color: var(--text-color);
-                        outline: none;
-                        transition: border-color 0.15s, box-shadow 0.15s;
-                        box-sizing: border-box;
-                    }
-                    .auth-input:focus {
-                        border-color: var(--primary-color);
-                        box-shadow: 0 0 0 3px rgba(108,92,231,0.13);
-                    }
-                    .auth-input::placeholder { color: var(--text-light); }
-                    .auth-btn-primary {
-                        width: 100%;
-                        padding: 13px;
-                        background: var(--primary-color);
-                        color: #fff;
-                        border: none;
-                        border-radius: 10px;
-                        cursor: pointer;
-                        font-size: 1rem;
-                        font-family: inherit;
-                        font-weight: 700;
-                        transition: background 0.15s, transform 0.1s;
-                        margin-top: 4px;
-                    }
-                    .auth-btn-primary:hover { background: var(--primary-dark); }
-                    .auth-btn-primary:active { transform: scale(0.98); }
-                    .auth-btn-register {
-                        background: var(--success-color);
-                    }
-                    .auth-btn-register:hover { background: var(--success-dark); }
-                    .auth-nonlatin-warn {
-                        display: none;
-                        background: rgba(255,193,7,0.15);
-                        color: #b8860b;
-                        border: 1px solid rgba(255,193,7,0.5);
-                        border-radius: 8px;
-                        padding: 8px 12px;
-                        font-size: 13px;
-                        margin-bottom: 8px;
-                        line-height: 1.4;
-                    }
-                    body.dark-theme .auth-nonlatin-warn {
-                        background: rgba(255,193,7,0.12);
-                        color: #ffd060;
-                        border-color: rgba(255,193,7,0.35);
-                    }
-                    .auth-emoji-label {
-                        display: block;
-                        margin-bottom: 8px;
-                        font-size: 0.88rem;
-                        color: var(--text-light);
-                        font-weight: 600;
-                    }
-                    .emoji-option {
-                        font-size: 1.5rem;
-                        cursor: pointer;
-                        padding: 5px 7px;
-                        border-radius: 8px;
-                        transition: background 0.12s, transform 0.1s;
-                        border: 2px solid transparent;
-                    }
-                    .emoji-option:hover { background: var(--message-hover); transform: scale(1.1); }
-                    .emoji-option.selected {
-                        background: rgba(108,92,231,0.15);
-                        border-color: var(--primary-color);
-                    }
-                `;
-                document.head.appendChild(s);
+    // Инжектим стили для auth-modal один раз
+    if (!document.getElementById('auth-modal-styles')) {
+        const s = document.createElement('style');
+        s.id = 'auth-modal-styles';
+        s.textContent = `
+            #auth-modal-content {
+                background: var(--modal-bg);
+                color: var(--text-color);
+                padding: 28px 24px 24px;
+                border-radius: 16px;
+                width: 90%;
+                max-width: 400px;
+                max-height: 90vh;
+                overflow-y: auto;
+                box-shadow: 0 8px 40px rgba(0,0,0,0.28);
+                border: 1px solid var(--border-color);
             }
+            #auth-modal-content h2 {
+                margin-bottom: 20px;
+                text-align: center;
+                font-size: 1.25rem;
+                color: var(--text-color);
+            }
+            #auth-tabs {
+                display: flex;
+                margin-bottom: 20px;
+                border-bottom: 2px solid var(--border-color);
+                gap: 2px;
+            }
+            .auth-tab-btn {
+                flex: 1;
+                padding: 10px;
+                border: none;
+                background: transparent;
+                color: var(--text-light);
+                cursor: pointer;
+                font-size: 0.95rem;
+                font-family: inherit;
+                font-weight: 600;
+                border-bottom: 2px solid transparent;
+                margin-bottom: -2px;
+                transition: color 0.15s, border-color 0.15s;
+            }
+            .auth-tab-btn.active {
+                color: var(--primary-color);
+                border-bottom-color: var(--primary-color);
+            }
+            .auth-input {
+                width: 100%;
+                padding: 12px 14px;
+                border: 1.5px solid var(--border-color);
+                border-radius: 10px;
+                margin-bottom: 10px;
+                font-size: 15px;
+                font-family: inherit;
+                background: var(--input-bg);
+                color: var(--text-color);
+                outline: none;
+                transition: border-color 0.15s, box-shadow 0.15s;
+                box-sizing: border-box;
+            }
+            .auth-input:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 3px rgba(108,92,231,0.13);
+            }
+            .auth-input::placeholder { color: var(--text-light); }
+            .auth-btn-primary {
+                width: 100%;
+                padding: 13px;
+                background: var(--primary-color);
+                color: #fff;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                font-size: 1rem;
+                font-family: inherit;
+                font-weight: 700;
+                transition: background 0.15s, transform 0.1s;
+                margin-top: 4px;
+            }
+            .auth-btn-primary:hover { background: var(--primary-dark); }
+            .auth-btn-primary:active { transform: scale(0.98); }
+            .auth-btn-register {
+                background: var(--success-color);
+            }
+            .auth-btn-register:hover { background: var(--success-dark); }
+            .auth-nonlatin-warn {
+                display: none;
+                background: rgba(255,193,7,0.15);
+                color: #b8860b;
+                border: 1px solid rgba(255,193,7,0.5);
+                border-radius: 8px;
+                padding: 8px 12px;
+                font-size: 13px;
+                margin-bottom: 8px;
+                line-height: 1.4;
+            }
+            body.dark-theme .auth-nonlatin-warn {
+                background: rgba(255,193,7,0.12);
+                color: #ffd060;
+                border-color: rgba(255,193,7,0.35);
+            }
+            .auth-emoji-label {
+                display: block;
+                margin-bottom: 8px;
+                font-size: 0.88rem;
+                color: var(--text-light);
+                font-weight: 600;
+            }
+            .emoji-option {
+                font-size: 1.5rem;
+                cursor: pointer;
+                padding: 5px 7px;
+                border-radius: 8px;
+                transition: background 0.12s, transform 0.1s;
+                border: 2px solid transparent;
+            }
+            .emoji-option:hover { background: var(--message-hover); transform: scale(1.1); }
+            .emoji-option.selected {
+                background: rgba(108,92,231,0.15);
+                border-color: var(--primary-color);
+            }
+        `;
+        document.head.appendChild(s);
+    }
 
-            const modalContent = document.createElement('div');
-            modalContent.id = 'auth-modal-content';
+    const modalContent = document.createElement('div');
+    modalContent.id = 'auth-modal-content';
 
-            modalContent.innerHTML = `
-                <h2>Вход / Регистрация</h2>
-                <div id="auth-tabs">
-                    <button id="login-tab" class="auth-tab-btn active">Вход</button>
-                    <button id="register-tab" class="auth-tab-btn">Регистрация</button>
+    modalContent.innerHTML = `
+        <h2>Вход / Регистрация</h2>
+        <div id="auth-tabs">
+            <button id="login-tab" class="auth-tab-btn active">Вход</button>
+            <button id="register-tab" class="auth-tab-btn">Регистрация</button>
+        </div>
+        
+        <!-- ФОРМА ВХОДА -->
+        <div id="login-form">
+            <input type="text" id="login-username" class="auth-input"
+                   placeholder="Юзернейм" autocomplete="off">
+            <input type="password" id="login-password" class="auth-input" 
+                   style="margin-bottom:4px;" placeholder="Пароль" autocomplete="off">
+            <div id="login-password-nonlatin" class="auth-nonlatin-warn">
+                ⚠️ Пароль содержит <b>не латинские</b> символы. Проверьте раскладку клавиатуры!
+            </div>
+            <button id="submit-login" class="auth-btn-primary">Войти</button>
+        </div>
+        
+        <!-- ФОРМА РЕГИСТРАЦИИ -->
+        <div id="register-form" style="display: none;">
+            <div id="reg-step-1">
+                <input type="text" id="reg-name" class="auth-input"
+                       placeholder="Имя" autocomplete="off">
+                <input type="text" id="reg-username" class="auth-input"
+                       placeholder="Юзернейм (уникальный)" autocomplete="off">
+                <input type="password" id="reg-password" class="auth-input" 
+                       style="margin-bottom:4px;" placeholder="Пароль" autocomplete="off">
+                <div id="reg-password-nonlatin" class="auth-nonlatin-warn">
+                    ⚠️ Пароль содержит <b>не латинские</b> символы. Проверьте раскладку клавиатуры!
                 </div>
-                <div id="login-form">
-                    <input type="text" id="login-username" class="auth-input"
-                           placeholder="Юзернейм" autocomplete="off">
-                    <input type="password" id="login-password" class="auth-input" style="margin-bottom:4px;"
-                           placeholder="Пароль">
-                    <div id="login-password-nonlatin" class="auth-nonlatin-warn">
-                        ⚠️ Пароль содержит <b>не латинские</b> символы. Проверьте раскладку клавиатуры!
-                    </div>
-                    <button id="submit-login" class="auth-btn-primary">Войти</button>
+                <input type="password" id="reg-password-confirm" class="auth-input" 
+                       style="margin-bottom:6px;" placeholder="Повторите пароль" autocomplete="off">
+                <div id="reg-password-match-msg" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;"></div>
+                <input type="email" id="reg-email" class="auth-input" style="margin-bottom:6px;"
+                       placeholder="Email (обязательно)" required>
+                <div id="reg-email-warn" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid rgba(231,76,60,0.35);">
+                    ⚠️ Введите корректный email
                 </div>
-                <div id="register-form" style="display: none;">
-                    <!-- ШАГ 1: основные поля -->
-                    <div id="reg-step-1">
-                        <input type="text" id="reg-name" class="auth-input"
-                               placeholder="Имя" autocomplete="off">
-                        <input type="text" id="reg-username" class="auth-input"
-                               placeholder="Юзернейм (уникальный)" autocomplete="off">
-                        <input type="password" id="reg-password" class="auth-input" style="margin-bottom:6px;"
-                               placeholder="Пароль">
-                        <div id="reg-password-nonlatin" class="auth-nonlatin-warn">
-                            ⚠️ Пароль содержит <b>не латинские</b> символы. Проверьте раскладку клавиатуры!
-                        </div>
-                        <input type="password" id="reg-password-confirm" class="auth-input" style="margin-bottom:6px;"
-                               placeholder="Повторите пароль">
-                        <div id="reg-password-match-msg" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;"></div>
-                        <input type="email" id="reg-email" class="auth-input" style="margin-bottom:6px;"
-                               placeholder="Email (обязательно)" required>
-                        <div id="reg-email-warn" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid rgba(231,76,60,0.35);">
-                            ⚠️ Введите корректный email
-                        </div>
-                        <div style="margin-bottom: 18px;">
-                            <span class="auth-emoji-label">Выберите статус:</span>
-                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                                <span class="emoji-option" data-emoji="😊">😊</span>
-                                <span class="emoji-option" data-emoji="😎">😎</span>
-                                <span class="emoji-option" data-emoji="🤔">🤔</span>
-                                <span class="emoji-option" data-emoji="😴">😴</span>
-                                <span class="emoji-option" data-emoji="😢">😢</span>
-                                <span class="emoji-option" data-emoji="😡">😡</span>
-                                <span class="emoji-option" data-emoji="🥳">🥳</span>
-                                <span class="emoji-option" data-emoji="😍">😍</span>
-                            </div>
-                        </div>
-                        <button id="submit-register" class="auth-btn-primary auth-btn-register">
-                            Получить код подтверждения
-                        </button>
-                    </div>
-                    <!-- ШАГ 2: ввод кода -->
-                    <div id="reg-step-2" style="display:none;">
-                        <div style="text-align:center;margin-bottom:16px;">
-                            <div style="font-size:2.5rem;margin-bottom:8px;">📧</div>
-                            <div style="font-weight:700;font-size:1rem;color:var(--text-color);margin-bottom:6px;">Проверьте почту</div>
-                            <div id="reg-email-sent-to" style="font-size:0.85rem;color:var(--text-light);margin-bottom:4px;word-break:break-all;"></div>
-                            <div style="font-size:0.78rem;color:var(--text-light);">Код действителен 10 минут · Проверьте папку «Спам»</div>
-                        </div>
-                        <div style="margin-bottom:12px;">
-                            <label style="font-size:0.82rem;color:var(--text-light);margin-bottom:6px;display:block;">Код подтверждения</label>
-                            <input type="text" id="reg-code-input" class="auth-input"
-                                   placeholder="• • • • • •"
-                                   maxlength="6"
-                                   inputmode="numeric"
-                                   autocomplete="one-time-code"
-                                   style="text-align:center;font-size:1.8rem;letter-spacing:10px;font-weight:800;padding:14px;">
-                        </div>
-                        <div id="reg-code-msg" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;"></div>
-                        <button id="confirm-code-btn" class="auth-btn-primary auth-btn-register">
-                            ✅ Подтвердить и зарегистрироваться
-                        </button>
-                        <button id="resend-code-btn" style="width:100%;margin-top:8px;padding:10px;border:none;background:transparent;color:var(--primary-color);cursor:pointer;font-size:0.9rem;font-family:inherit;">
-                            🔄 Отправить код повторно
-                        </button>
-                        <button id="back-to-reg-btn" style="width:100%;padding:8px;border:none;background:transparent;color:var(--text-light);cursor:pointer;font-size:0.85rem;font-family:inherit;">
-                            ← Назад к форме
-                        </button>
+                <div style="margin-bottom: 18px;">
+                    <span class="auth-emoji-label">Выберите статус:</span>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                        <span class="emoji-option" data-emoji="😊">😊</span>
+                        <span class="emoji-option" data-emoji="😎">😎</span>
+                        <span class="emoji-option" data-emoji="🤔">🤔</span>
+                        <span class="emoji-option" data-emoji="😴">😴</span>
+                        <span class="emoji-option" data-emoji="😢">😢</span>
+                        <span class="emoji-option" data-emoji="😡">😡</span>
+                        <span class="emoji-option" data-emoji="🥳">🥳</span>
+                        <span class="emoji-option" data-emoji="😍">😍</span>
                     </div>
                 </div>
-            `;
-
-            modal.appendChild(modalContent);
-            document.body.appendChild(modal);
-
-            const loginTab = document.getElementById('login-tab');
-            const registerTab = document.getElementById('register-tab');
-            const loginForm = document.getElementById('login-form');
-            const registerForm = document.getElementById('register-form');
-
-            loginTab.addEventListener('click', () => {
-                loginForm.style.display = 'block';
-                registerForm.style.display = 'none';
-                loginTab.classList.add('active');
-                registerTab.classList.remove('active');
-            });
-
-            registerTab.addEventListener('click', () => {
-                loginForm.style.display = 'none';
-                registerForm.style.display = 'block';
-                registerTab.classList.add('active');
-                loginTab.classList.remove('active');
-            });
-
-            // Регистрация
-            const regName = document.getElementById('reg-name');
-            const regUsername = document.getElementById('reg-username');
-            const regPassword = document.getElementById('reg-password');
-            const regPasswordConfirm = document.getElementById('reg-password-confirm');
-            const regPasswordMatchMsg = document.getElementById('reg-password-match-msg');
-            const regPasswordNonLatin = document.getElementById('reg-password-nonlatin');
-            const loginPasswordNonLatin = document.getElementById('login-password-nonlatin');
-            const submitRegister = document.getElementById('submit-register');
-
-            // Функция проверки нелатинских символов
-            function hasNonLatin(str) {
-                return /[^\u0000-\u007F]/.test(str) || /[а-яёА-ЯЁ]/.test(str);
-            }
-
-            // Live-проверка нелатиницы в поле пароля при регистрации
-            regPassword.addEventListener('input', function() {
-                regPasswordNonLatin.style.display = (this.value.length > 0 && hasNonLatin(this.value)) ? 'block' : 'none';
-                this.style.borderColor = (this.value.length > 0 && hasNonLatin(this.value))
-                    ? 'var(--warning-color, #ffc107)' : '';
-                checkPasswordMatch();
-            });
-
-            // Live-проверка совпадения паролей
-            regPasswordConfirm.addEventListener('input', checkPasswordMatch);
-
-            function checkPasswordMatch() {
-                const p1 = regPassword.value;
-                const p2 = regPasswordConfirm.value;
-                if (!p2) {
-                    regPasswordMatchMsg.style.display = 'none';
-                    regPasswordConfirm.style.borderColor = '';
-                    return;
-                }
-                if (p1 === p2) {
-                    regPasswordMatchMsg.style.display = 'block';
-                    regPasswordMatchMsg.style.background = 'rgba(46,204,113,0.13)';
-                    regPasswordMatchMsg.style.color = 'var(--success-color)';
-                    regPasswordMatchMsg.style.border = '1px solid rgba(46,204,113,0.4)';
-                    regPasswordMatchMsg.textContent = '✅ Пароли совпадают';
-                    regPasswordConfirm.style.borderColor = 'var(--success-color)';
-                } else {
-                    regPasswordMatchMsg.style.display = 'block';
-                    regPasswordMatchMsg.style.background = 'rgba(231,76,60,0.1)';
-                    regPasswordMatchMsg.style.color = 'var(--danger-color)';
-                    regPasswordMatchMsg.style.border = '1px solid rgba(231,76,60,0.35)';
-                    regPasswordMatchMsg.textContent = '❌ Пароли не совпадают';
-                    regPasswordConfirm.style.borderColor = 'var(--danger-color)';
-                }
-            }
-
-            // Live-проверка нелатиницы в поле пароля при входе
-            document.getElementById('login-password').addEventListener('input', function() {
-                loginPasswordNonLatin.style.display = (this.value.length > 0 && hasNonLatin(this.value)) ? 'block' : 'none';
-                this.style.borderColor = (this.value.length > 0 && hasNonLatin(this.value))
-                    ? 'var(--warning-color, #ffc107)' : '';
-            });
-
-
-            const emojiOptions = registerForm.querySelectorAll('.emoji-option');
-
-            // Проверяем, что emoji-опции найдены
-            if (emojiOptions.length > 0) {
-                emojiOptions[0].classList.add('selected');
-                userEmoji = emojiOptions[0].dataset.emoji;
-            } else {
-                userEmoji = '😊'; // Значение по умолчанию
-            }
-
-            emojiOptions.forEach(opt => {
-                opt.addEventListener('click', () => {
-                    emojiOptions.forEach(o => o.classList.remove('selected'));
-                    opt.classList.add('selected');
-                    userEmoji = opt.dataset.emoji;
-                });
-            });
-
-            submitRegister.addEventListener('click', async () => {
-                const name = regName.value.trim();
-                const username = regUsername.value.trim().toLowerCase();
-                const password = regPassword.value.trim();
-                const passwordConfirm = regPasswordConfirm.value.trim();
-                const regEmailVal = (document.getElementById('reg-email') ? document.getElementById('reg-email').value.trim() : '');
-
-                if (!name || !username || !password) {
-                    showNotification('Пожалуйста, заполните все поля');
-                    return;
-                }
-
-                if (username.length < 3) {
-                    showNotification('Юзернейм должен быть не менее 3 символов');
-                    return;
-                }
-
-                if (password.length < 4) {
-                    showNotification('Пароль должен быть не менее 4 символов');
-                    return;
-                }
-
-                if (!passwordConfirm) {
-                    showNotification('Пожалуйста, повторите пароль');
-                    regPasswordConfirm.focus();
-                    return;
-                }
-
-                if (password !== passwordConfirm) {
-                    showNotification('❌ Пароли не совпадают. Проверьте введённые данные');
-                    regPasswordConfirm.style.borderColor = '#e74c3c';
-                    regPasswordConfirm.focus();
-                    return;
-                }
-
-                // Проверка email — теперь обязателен
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                const emailWarn = document.getElementById('reg-email-warn');
-                if (!regEmailVal || !emailRegex.test(regEmailVal)) {
-                    if (emailWarn) emailWarn.style.display = 'block';
-                    document.getElementById('reg-email').focus();
-                    return;
-                }
-                if (emailWarn) emailWarn.style.display = 'none';
-
-                try {
-                    // Проверяем занятость юзернейма до отправки кода
-                    const userRef = database.ref('users/' + encodeURIComponent(username));
-                    const snapshot = await userRef.once('value');
-                    if (snapshot.exists()) {
-                        showNotification('Этот юзернейм уже занят');
-                        return;
-                    }
-
-                    // Генерируем 6-значный код
-                    const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
-                    const codeExpiry = Date.now() + 10 * 60 * 1000; // 10 минут
-
-                    // Сохраняем код и данные регистрации во временные переменные
-                    window._pendingReg = {
-                        name, username, password, email: regEmailVal,
-                        emoji: userEmoji, code: verifyCode, expiry: codeExpiry
-                    };
-
-                    // Отправляем код через EmailJS
-                    submitRegister.disabled = true;
-                    submitRegister.textContent = 'Отправка...';
-
-                    // Параметры письма: имена переменных должны совпадать с шаблоном EmailJS
-                    const emailParams = {
-                        to_email:  regEmailVal,   // {{to_email}} в шаблоне — поле "Кому"
-                        to_name:   name,           // {{to_name}}
-                        from_name: 'Twin Messenger', // {{from_name}}
-                        message:   '🔐 Ваш код подтверждения для Twin: ' + verifyCode + '\n\nКод действителен 10 минут. Не передавайте его никому.',
-                        time:      new Date().toLocaleString('ru-RU')
-                    };
-
-                    console.log('[EmailJS] Отправка кода на:', regEmailVal, '| Параметры:', emailParams);
-
-                    let emailSent = false;
-                    let emailError = null;
-
-                    try {
-                        const result = await emailjs.send('service_rttja94', 'template_cngvu5j', emailParams);
-                        console.log('[EmailJS] Успех:', result);
-                        emailSent = true;
-                    } catch (ejsErr) {
-                        console.error('[EmailJS] Ошибка:', ejsErr);
-                        emailError = ejsErr;
-                    }
-
-                    submitRegister.disabled = false;
-                    submitRegister.textContent = 'Получить код подтверждения';
-
-                    if (!emailSent) {
-                        showNotification('⚠️ Не удалось отправить письмо. Проверьте правильность email или попробуйте позже.');
-                    }
-
-                    // Переключаемся на шаг 2
-                    document.getElementById('reg-step-1').style.display = 'none';
-                    document.getElementById('reg-step-2').style.display = 'block';
-                    const sentToEl = document.getElementById('reg-email-sent-to');
-                    if (sentToEl) {
-                        sentToEl.textContent = emailSent
-                            ? 'Код отправлен на ' + regEmailVal
-                            : '⚠️ Не удалось отправить на ' + regEmailVal + '. Проверьте шаблон EmailJS.';
-                    }
-                    document.getElementById('reg-code-input').focus();
-
-                } catch (error) {
-                    submitRegister.disabled = false;
-                    submitRegister.textContent = 'Получить код подтверждения';
-                    showNotification('Ошибка: ' + error.message);
-                }
-            });
-
-            // ── Кнопка «Назад» ──
-            const backBtn = document.getElementById('back-to-reg-btn');
-            if (backBtn) backBtn.addEventListener('click', () => {
-                document.getElementById('reg-step-2').style.display = 'none';
-                document.getElementById('reg-step-1').style.display = 'block';
-            });
-
-            // ── Повторная отправка кода ──
-            const resendBtn = document.getElementById('resend-code-btn');
-            if (resendBtn) resendBtn.addEventListener('click', async () => {
-                const pr = window._pendingReg;
-                if (!pr) return;
-                const newCode = Math.floor(100000 + Math.random() * 900000).toString();
-                pr.code = newCode;
-                pr.expiry = Date.now() + 10 * 60 * 1000;
-                resendBtn.disabled = true;
-                resendBtn.textContent = 'Отправка...';
-                try {
-                    await emailjs.send('service_rttja94', 'template_cngvu5j', {
-                        to_email:  pr.email,
-                        to_name:   pr.name,
-                        from_name: 'Twin Messenger',
-                        message:   'Ваш новый код подтверждения: ' + newCode + '\n\nКод действителен 10 минут.',
-                        time:      new Date().toLocaleString('ru-RU')
-                    });
-                    showNotification('📧 Код отправлен повторно');
-                } catch(e) {
-                    showNotification('Ошибка: ' + e.message);
-                }
-                resendBtn.disabled = false;
-                resendBtn.textContent = 'Отправить код повторно';
-            });
-
-            // ── Подтверждение кода и финальная регистрация ──
-            const confirmCodeBtn = document.getElementById('confirm-code-btn');
-            if (confirmCodeBtn) confirmCodeBtn.addEventListener('click', async () => {
-                const pr = window._pendingReg;
-                const codeInput = document.getElementById('reg-code-input');
-                const codeMsg   = document.getElementById('reg-code-msg');
-                const enteredCode = codeInput ? codeInput.value.trim() : '';
-
-                const showCodeMsg = (text, ok) => {
-                    codeMsg.style.display = 'block';
-                    codeMsg.textContent = text;
-                    codeMsg.style.background = ok ? 'rgba(46,204,113,0.13)' : 'rgba(231,76,60,0.1)';
-                    codeMsg.style.color = ok ? '#2ecc71' : '#e74c3c';
-                    codeMsg.style.border = ok ? '1px solid rgba(46,204,113,0.4)' : '1px solid rgba(231,76,60,0.35)';
-                };
-
-                if (!enteredCode || enteredCode.length < 6) {
-                    showCodeMsg('❌ Введите 6-значный код', false);
-                    return;
-                }
-
-                if (!pr) {
-                    showCodeMsg('❌ Ошибка: начните регистрацию заново', false);
-                    return;
-                }
-
-                if (Date.now() > pr.expiry) {
-                    showCodeMsg('❌ Код истёк. Запросите новый', false);
-                    return;
-                }
-
-                if (enteredCode !== pr.code) {
-                    showCodeMsg('❌ Неверный код. Проверьте почту', false);
-                    codeInput.style.borderColor = '#e74c3c';
-                    return;
-                }
-
-                showCodeMsg('✅ Код верный! Создаём аккаунт...', true);
-                confirmCodeBtn.disabled = true;
-
-                try {
-                    const userRef = database.ref('users/' + encodeURIComponent(pr.username));
-
-                    currentUser = pr.username;
-                    currentUserData = {
-                        name: pr.name,
-                        username: pr.username,
-                        password: pr.password,
-                        emoji: pr.emoji,
-                        online: true,
-                        lastSeen: Date.now(),
-                        blockedUsers: [],
-                        subscribedChannels: [],
-                        recentChats: [],
-                        email: pr.email,
-                        emailVerified: true,
-                        emailNotify: true
-                    };
-
-                    await userRef.set(currentUserData);
-                    localStorage.setItem('messenger_user', JSON.stringify({ username: pr.username, password: pr.password }));
-                    saveAccountToList(pr.username, pr.password);
-                    window._pendingReg = null;
-
-                    if (currentUserEl) {
-                        const nameSpan = currentUserEl.querySelector('span:last-child');
-                        if (nameSpan) nameSpan.textContent = pr.name;
-                    }
-                    if (userEmojiEl) userEmojiEl.textContent = pr.emoji;
-
-                    await updateUserStatus(true);
-                    document.body.removeChild(modal);
-
-                    loadRecentChats();
-                    loadGroups();
-                    loadChannels();
-                    setTimeout(function(){ if(typeof initBotsSystem==='function') initBotsSystem(currentUser); }, 700);
-
-                    initGiftSystem();
-                    await loadUserGifts();
-                    await loadReceivedGifts();
-                    startBackgroundChecks();
-                    trackUserStatus();
-
-                    showNotification('🎉 Регистрация прошла успешно!');
-                    setTimeout(() => { if (typeof listenForIncomingCalls === 'function') listenForIncomingCalls(); }, 1500);
-                    setTimeout(() => { if (typeof checkPetHungerNotification === 'function') checkPetHungerNotification(); }, 4000);
-                } catch (error) {
-                    confirmCodeBtn.disabled = false;
-                    showCodeMsg('❌ Ошибка: ' + error.message, false);
-                }
-            });
-
-            // Вход
-            const loginUsername = document.getElementById('login-username');
-            const loginPassword = document.getElementById('login-password');
-            const submitLogin = document.getElementById('submit-login');
-
-            submitLogin.addEventListener('click', async () => {
-                const username = loginUsername.value.trim().toLowerCase();
-                const password = loginPassword.value.trim();
-
-                if (!username || !password) {
-                    showNotification('Пожалуйста, введите юзернейм и пароль');
-                    return;
-                }
-
-                // ✅ ИСПРАВЛЕНО: сохраняем предыдущего пользователя ДО присвоения
-                const previousUser = currentUser;
-
-                try {
-                    const userRef = database.ref('users/' + encodeURIComponent(username));
-                    const snapshot = await userRef.once('value');
-
-                    if (!snapshot.exists()) {
-                        showNotification('Пользователь не найден');
-                        return;
-                    }
-
-                    const userData = snapshot.val();
-
-                    if (userData.password !== password) {
-                        showNotification('Неверный пароль');
-                        return;
-                    }
-
-                    currentUser = username;
-                    currentUserData = userData;
-                    userEmoji = userData.emoji || '😊';
-                    blockedUsers = userData.blockedUsers || [];
-                    subscribedChannels = userData.subscribedChannels || [];
-
-                    localStorage.setItem('messenger_user', JSON.stringify({ username: username, password: password }));
-                    saveAccountToList(username, password);
-
-                    if (currentUserEl) {
-                        const nameSpan = currentUserEl.querySelector('span:last-child');
-                        if (nameSpan) nameSpan.textContent = userData.name || username;
-                    }
-                    if (userEmojiEl) {
-                        userEmojiEl.textContent = userEmoji;
-                    }
-
-                    await updateUserStatus(true);
-
-                    document.body.removeChild(modal);
-
-                    // ✅ ИСПРАВЛЕНО: теперь корректно сравниваем с previousUser
-                    if (previousUser && previousUser !== username) {
-                        showNotification('Переключение на аккаунт ' + username + '...');
-                        setTimeout(() => location.reload(), 800);
-                        return;
-                    }
-
-                    loadRecentChats();
-                    loadGroups();
-                    loadChannels();
-                    setTimeout(function(){ if(typeof initBotsSystem==='function') initBotsSystem(currentUser); }, 700);
-
-                    // ✅ ИСПРАВЛЕНО: добавлены недостающие вызовы (были только при автовходе)
-                    initGiftSystem();
-                    await loadUserGifts();
-                    await loadReceivedGifts();
-                    startBackgroundChecks();
-                    trackUserStatus();
-
-                    showNotification('Вход выполнен успешно!');
-                    setTimeout(() => { if (typeof listenForIncomingCalls === 'function') listenForIncomingCalls(); }, 1500);
-                    setTimeout(() => { if (typeof checkPetHungerNotification === 'function') checkPetHungerNotification(); }, 4000);
-                } catch (error) {
-                    showNotification('Ошибка: ' + error.message);
-                }
-            });
-
-            // Enter key support
-            loginPassword.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') submitLogin.click();
-            });
-            regPassword.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') submitRegister.click();
-            });
-
-            // Автозаполнение если данные уже сохранены
-            try {
-                const _sv = localStorage.getItem('messenger_user');
-                if (_sv) {
-                    const _d = JSON.parse(_sv);
-                    if (_d && _d.username) {
-                        loginUsername.value = _d.username;
-                        const _lp = document.getElementById('login-password');
-                        if (_lp && _d.password) _lp.value = _d.password;
-                    }
-                }
-            } catch(e) {}
-            loginUsername.focus();
+                <div style="margin: 12px 0 10px; font-size: 0.75rem; color: var(--text-light); text-align: center;">
+                    Нажимая «Получить код», вы соглашаетесь с 
+                    <a href="#" id="open-privacy-link" style="color: var(--primary-color); text-decoration: underline;">Политикой конфиденциальности</a>
+                </div>
+                <button id="submit-register" class="auth-btn-primary auth-btn-register">
+                    Получить код подтверждения
+                </button>
+            </div>
+            
+            <!-- ШАГ 2: ввод кода -->
+            <div id="reg-step-2" style="display:none;">
+                <div style="text-align:center;margin-bottom:16px;">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">📧</div>
+                    <div style="font-weight:700;font-size:1rem;color:var(--text-color);margin-bottom:6px;">Проверьте почту</div>
+                    <div id="reg-email-sent-to" style="font-size:0.85rem;color:var(--text-light);margin-bottom:4px;word-break:break-all;"></div>
+                    <div style="font-size:0.78rem;color:var(--text-light);">Код действителен 10 минут · Проверьте папку «Спам»</div>
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:0.82rem;color:var(--text-light);margin-bottom:6px;display:block;">Код подтверждения</label>
+                    <input type="text" id="reg-code-input" class="auth-input"
+                           placeholder="• • • • • •"
+                           maxlength="6"
+                           inputmode="numeric"
+                           autocomplete="one-time-code"
+                           style="text-align:center;font-size:1.8rem;letter-spacing:10px;font-weight:800;padding:14px;">
+                </div>
+                <div id="reg-code-msg" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;"></div>
+                <button id="confirm-code-btn" class="auth-btn-primary auth-btn-register">
+                    ✅ Подтвердить и зарегистрироваться
+                </button>
+                <button id="resend-code-btn" style="width:100%;margin-top:8px;padding:10px;border:none;background:transparent;color:var(--primary-color);cursor:pointer;font-size:0.9rem;font-family:inherit;">
+                    🔄 Отправить код повторно
+                </button>
+                <button id="back-to-reg-btn" style="width:100%;padding:8px;border:none;background:transparent;color:var(--text-light);cursor:pointer;font-size:0.85rem;font-family:inherit;">
+                    ← Назад к форме
+                </button>
+            </div>
+        </div>
+    `;
+
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+
+    // Получаем элементы
+    const loginTab = document.getElementById('login-tab');
+    const registerTab = document.getElementById('register-tab');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+
+    // Переключение между вкладками
+    loginTab.addEventListener('click', () => {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        loginTab.classList.add('active');
+        registerTab.classList.remove('active');
+    });
+
+    registerTab.addEventListener('click', () => {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        registerTab.classList.add('active');
+        loginTab.classList.remove('active');
+    });
+
+    // ========== РЕГИСТРАЦИЯ ==========
+    const regName = document.getElementById('reg-name');
+    const regUsername = document.getElementById('reg-username');
+    const regPassword = document.getElementById('reg-password');
+    const regPasswordConfirm = document.getElementById('reg-password-confirm');
+    const regPasswordMatchMsg = document.getElementById('reg-password-match-msg');
+    const regPasswordNonLatin = document.getElementById('reg-password-nonlatin');
+    const loginPasswordNonLatin = document.getElementById('login-password-nonlatin');
+    const submitRegister = document.getElementById('submit-register');
+
+    // Функция проверки нелатинских символов
+    function hasNonLatin(str) {
+        return /[^\u0000-\u007F]/.test(str) || /[а-яёА-ЯЁ]/.test(str);
+    }
+
+    // Live-проверка нелатиницы в поле пароля при регистрации
+    regPassword.addEventListener('input', function() {
+        regPasswordNonLatin.style.display = (this.value.length > 0 && hasNonLatin(this.value)) ? 'block' : 'none';
+        this.style.borderColor = (this.value.length > 0 && hasNonLatin(this.value))
+            ? 'var(--warning-color, #ffc107)' : '';
+        checkPasswordMatch();
+    });
+
+    // Live-проверка совпадения паролей
+    regPasswordConfirm.addEventListener('input', checkPasswordMatch);
+
+    function checkPasswordMatch() {
+        const p1 = regPassword.value;
+        const p2 = regPasswordConfirm.value;
+        if (!p2) {
+            regPasswordMatchMsg.style.display = 'none';
+            regPasswordConfirm.style.borderColor = '';
+            return;
         }
+        if (p1 === p2) {
+            regPasswordMatchMsg.style.display = 'block';
+            regPasswordMatchMsg.style.background = 'rgba(46,204,113,0.13)';
+            regPasswordMatchMsg.style.color = 'var(--success-color)';
+            regPasswordMatchMsg.style.border = '1px solid rgba(46,204,113,0.4)';
+            regPasswordMatchMsg.textContent = '✅ Пароли совпадают';
+            regPasswordConfirm.style.borderColor = 'var(--success-color)';
+        } else {
+            regPasswordMatchMsg.style.display = 'block';
+            regPasswordMatchMsg.style.background = 'rgba(231,76,60,0.1)';
+            regPasswordMatchMsg.style.color = 'var(--danger-color)';
+            regPasswordMatchMsg.style.border = '1px solid rgba(231,76,60,0.35)';
+            regPasswordMatchMsg.textContent = '❌ Пароли не совпадают';
+            regPasswordConfirm.style.borderColor = 'var(--danger-color)';
+        }
+    }
+
+    // Live-проверка нелатиницы в поле пароля при входе
+    document.getElementById('login-password').addEventListener('input', function() {
+        loginPasswordNonLatin.style.display = (this.value.length > 0 && hasNonLatin(this.value)) ? 'block' : 'none';
+        this.style.borderColor = (this.value.length > 0 && hasNonLatin(this.value))
+            ? 'var(--warning-color, #ffc107)' : '';
+    });
+
+    // Выбор эмодзи
+    let selectedEmoji = '😊';
+    const emojiOptions = registerForm.querySelectorAll('.emoji-option');
+    if (emojiOptions.length > 0) {
+        emojiOptions[0].classList.add('selected');
+        selectedEmoji = emojiOptions[0].dataset.emoji;
+    }
+    emojiOptions.forEach(opt => {
+        opt.addEventListener('click', () => {
+            emojiOptions.forEach(o => o.classList.remove('selected'));
+            opt.classList.add('selected');
+            selectedEmoji = opt.dataset.emoji;
+        });
+    });
+
+    // Отправка кода подтверждения
+    submitRegister.addEventListener('click', async () => {
+        const name = regName.value.trim();
+        const username = regUsername.value.trim().toLowerCase();
+        const password = regPassword.value.trim();
+        const passwordConfirm = regPasswordConfirm.value.trim();
+        const regEmailVal = document.getElementById('reg-email').value.trim();
+
+        if (!name || !username || !password) {
+            showNotification('Пожалуйста, заполните все поля');
+            return;
+        }
+
+        if (username.length < 3) {
+            showNotification('Юзернейм должен быть не менее 3 символов');
+            return;
+        }
+
+        if (password.length < 4) {
+            showNotification('Пароль должен быть не менее 4 символов');
+            return;
+        }
+
+        if (!passwordConfirm) {
+            showNotification('Пожалуйста, повторите пароль');
+            regPasswordConfirm.focus();
+            return;
+        }
+
+        if (password !== passwordConfirm) {
+            showNotification('❌ Пароли не совпадают. Проверьте введённые данные');
+            regPasswordConfirm.style.borderColor = '#e74c3c';
+            regPasswordConfirm.focus();
+            return;
+        }
+
+        // Проверка email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const emailWarn = document.getElementById('reg-email-warn');
+        if (!regEmailVal || !emailRegex.test(regEmailVal)) {
+            if (emailWarn) emailWarn.style.display = 'block';
+            document.getElementById('reg-email').focus();
+            return;
+        }
+        if (emailWarn) emailWarn.style.display = 'none';
+
+        try {
+            // Проверяем занятость юзернейма
+            const userRef = database.ref('users/' + encodeURIComponent(username));
+            const snapshot = await userRef.once('value');
+            if (snapshot.exists()) {
+                showNotification('Этот юзернейм уже занят');
+                return;
+            }
+
+            // Генерируем 6-значный код
+            const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+            const codeExpiry = Date.now() + 10 * 60 * 1000;
+
+            // Сохраняем данные
+            window._pendingReg = {
+                name, username, password, email: regEmailVal,
+                emoji: selectedEmoji, code: verifyCode, expiry: codeExpiry
+            };
+
+            // Отправляем код через EmailJS
+            submitRegister.disabled = true;
+            submitRegister.textContent = 'Отправка...';
+
+            let emailSent = false;
+            try {
+                await emailjs.send('service_rttja94', 'template_cngvu5j', {
+                    to_email: regEmailVal,
+                    to_name: name,
+                    from_name: 'Twin Messenger',
+                    message: '🔐 Ваш код подтверждения для Twin: ' + verifyCode + '\n\nКод действителен 10 минут. Не передавайте его никому.',
+                    time: new Date().toLocaleString('ru-RU')
+                });
+                emailSent = true;
+            } catch (ejsErr) {
+                console.error('EmailJS ошибка:', ejsErr);
+            }
+
+            submitRegister.disabled = false;
+            submitRegister.textContent = 'Получить код подтверждения';
+
+            if (!emailSent) {
+                showNotification('⚠️ Не удалось отправить письмо. Проверьте email или попробуйте позже.');
+            }
+
+            // Переключаемся на шаг 2
+            document.getElementById('reg-step-1').style.display = 'none';
+            document.getElementById('reg-step-2').style.display = 'block';
+            const sentToEl = document.getElementById('reg-email-sent-to');
+            if (sentToEl) {
+                sentToEl.textContent = emailSent
+                    ? 'Код отправлен на ' + regEmailVal
+                    : '⚠️ Не удалось отправить на ' + regEmailVal;
+            }
+            document.getElementById('reg-code-input').focus();
+
+        } catch (error) {
+            submitRegister.disabled = false;
+            submitRegister.textContent = 'Получить код подтверждения';
+            showNotification('Ошибка: ' + error.message);
+        }
+    });
+
+    // Кнопка «Назад»
+    document.getElementById('back-to-reg-btn').addEventListener('click', () => {
+        document.getElementById('reg-step-2').style.display = 'none';
+        document.getElementById('reg-step-1').style.display = 'block';
+    });
+
+    // Повторная отправка кода
+    document.getElementById('resend-code-btn').addEventListener('click', async () => {
+        const pr = window._pendingReg;
+        if (!pr) return;
+        const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+        pr.code = newCode;
+        pr.expiry = Date.now() + 10 * 60 * 1000;
+        const btn = document.getElementById('resend-code-btn');
+        btn.disabled = true;
+        btn.textContent = 'Отправка...';
+        try {
+            await emailjs.send('service_rttja94', 'template_cngvu5j', {
+                to_email: pr.email,
+                to_name: pr.name,
+                from_name: 'Twin Messenger',
+                message: 'Ваш новый код подтверждения: ' + newCode + '\n\nКод действителен 10 минут.',
+                time: new Date().toLocaleString('ru-RU')
+            });
+            showNotification('📧 Код отправлен повторно');
+        } catch(e) {
+            showNotification('Ошибка: ' + e.message);
+        }
+        btn.disabled = false;
+        btn.textContent = 'Отправить код повторно';
+    });
+
+    // Подтверждение кода и финальная регистрация
+    document.getElementById('confirm-code-btn').addEventListener('click', async () => {
+        const pr = window._pendingReg;
+        const codeInput = document.getElementById('reg-code-input');
+        const codeMsg = document.getElementById('reg-code-msg');
+        const enteredCode = codeInput ? codeInput.value.trim() : '';
+
+        const showCodeMsg = (text, ok) => {
+            codeMsg.style.display = 'block';
+            codeMsg.textContent = text;
+            codeMsg.style.background = ok ? 'rgba(46,204,113,0.13)' : 'rgba(231,76,60,0.1)';
+            codeMsg.style.color = ok ? '#2ecc71' : '#e74c3c';
+            codeMsg.style.border = ok ? '1px solid rgba(46,204,113,0.4)' : '1px solid rgba(231,76,60,0.35)';
+        };
+
+        if (!enteredCode || enteredCode.length < 6) {
+            showCodeMsg('❌ Введите 6-значный код', false);
+            return;
+        }
+
+        if (!pr) {
+            showCodeMsg('❌ Ошибка: начните регистрацию заново', false);
+            return;
+        }
+
+        if (Date.now() > pr.expiry) {
+            showCodeMsg('❌ Код истёк. Запросите новый', false);
+            return;
+        }
+
+        if (enteredCode !== pr.code) {
+            showCodeMsg('❌ Неверный код. Проверьте почту', false);
+            codeInput.style.borderColor = '#e74c3c';
+            return;
+        }
+
+        showCodeMsg('✅ Код верный! Создаём аккаунт...', true);
+        const confirmBtn = document.getElementById('confirm-code-btn');
+        confirmBtn.disabled = true;
+
+        try {
+            const userRef = database.ref('users/' + encodeURIComponent(pr.username));
+
+            currentUser = pr.username;
+            currentUserData = {
+                name: pr.name,
+                username: pr.username,
+                password: pr.password,
+                emoji: pr.emoji,
+                online: true,
+                lastSeen: Date.now(),
+                blockedUsers: [],
+                subscribedChannels: [],
+                recentChats: [],
+                email: pr.email,
+                emailVerified: true,
+                emailNotify: true
+            };
+
+            await userRef.set(currentUserData);
+            localStorage.setItem('messenger_user', JSON.stringify({ username: pr.username, password: pr.password }));
+            saveAccountToList(pr.username, pr.password);
+            window._pendingReg = null;
+
+            if (currentUserEl) {
+                const nameSpan = currentUserEl.querySelector('span:last-child');
+                if (nameSpan) nameSpan.textContent = pr.name;
+            }
+            if (userEmojiEl) userEmojiEl.textContent = pr.emoji;
+
+            await updateUserStatus(true);
+            document.body.removeChild(modal);
+
+            loadRecentChats();
+            loadGroups();
+            loadChannels();
+            setTimeout(function(){ if(typeof initBotsSystem==='function') initBotsSystem(currentUser); }, 700);
+
+            initGiftSystem();
+            await loadUserGifts();
+            await loadReceivedGifts();
+            startBackgroundChecks();
+            trackUserStatus();
+
+            showNotification('🎉 Регистрация прошла успешно!');
+            setTimeout(() => { if (typeof listenForIncomingCalls === 'function') listenForIncomingCalls(); }, 1500);
+            setTimeout(() => { if (typeof checkPetHungerNotification === 'function') checkPetHungerNotification(); }, 4000);
+        } catch (error) {
+            confirmBtn.disabled = false;
+            showCodeMsg('❌ Ошибка: ' + error.message, false);
+        }
+    });
+
+    // ========== ВХОД ==========
+    const loginUsername = document.getElementById('login-username');
+    const loginPassword = document.getElementById('login-password');
+    const submitLogin = document.getElementById('submit-login');
+
+    submitLogin.addEventListener('click', async () => {
+        const username = loginUsername.value.trim().toLowerCase();
+        const password = loginPassword.value.trim();
+
+        if (!username || !password) {
+            showNotification('Пожалуйста, введите юзернейм и пароль');
+            return;
+        }
+
+        const previousUser = currentUser;
+
+        try {
+            const userRef = database.ref('users/' + encodeURIComponent(username));
+            const snapshot = await userRef.once('value');
+
+            if (!snapshot.exists()) {
+                showNotification('Пользователь не найден');
+                return;
+            }
+
+            const userData = snapshot.val();
+
+            if (userData.password !== password) {
+                showNotification('Неверный пароль');
+                return;
+            }
+
+            currentUser = username;
+            currentUserData = userData;
+            userEmoji = userData.emoji || '😊';
+            blockedUsers = userData.blockedUsers || [];
+            subscribedChannels = userData.subscribedChannels || [];
+
+            localStorage.setItem('messenger_user', JSON.stringify({ username: username, password: password }));
+            saveAccountToList(username, password);
+
+            if (currentUserEl) {
+                const nameSpan = currentUserEl.querySelector('span:last-child');
+                if (nameSpan) nameSpan.textContent = userData.name || username;
+            }
+            if (userEmojiEl) userEmojiEl.textContent = userEmoji;
+
+            await updateUserStatus(true);
+            document.body.removeChild(modal);
+
+            if (previousUser && previousUser !== username) {
+                showNotification('Переключение на аккаунт ' + username + '...');
+                setTimeout(() => location.reload(), 800);
+                return;
+            }
+
+            loadRecentChats();
+            loadGroups();
+            loadChannels();
+            setTimeout(function(){ if(typeof initBotsSystem==='function') initBotsSystem(currentUser); }, 700);
+
+            initGiftSystem();
+            await loadUserGifts();
+            await loadReceivedGifts();
+            startBackgroundChecks();
+            trackUserStatus();
+
+            showNotification('Вход выполнен успешно!');
+            setTimeout(() => { if (typeof listenForIncomingCalls === 'function') listenForIncomingCalls(); }, 1500);
+            setTimeout(() => { if (typeof checkPetHungerNotification === 'function') checkPetHungerNotification(); }, 4000);
+        } catch (error) {
+            showNotification('Ошибка: ' + error.message);
+        }
+    });
+
+    // Enter key support
+    loginPassword.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') submitLogin.click();
+    });
+    regPassword.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') submitRegister.click();
+    });
+
+    // Автозаполнение если данные уже сохранены
+    try {
+        const _sv = localStorage.getItem('messenger_user');
+        if (_sv) {
+            const _d = JSON.parse(_sv);
+            if (_d && _d.username) {
+                loginUsername.value = _d.username;
+                if (loginPassword && _d.password) loginPassword.value = _d.password;
+            }
+        }
+    } catch(e) {}
+    loginUsername.focus();
+}
+
+// Функция с текстом политики (БЕЗ сторонних сервисов)
+function getPrivacyPolicyText() {
+    return `
+        <h3 style="font-size:1.1rem; margin:16px 0 8px;">1. Какие данные мы собираем</h3>
+        <ul style="margin-bottom:12px;">
+            <li><strong>Аккаунт:</strong> имя пользователя, юзернейм, пароль (в зашифрованном виде).</li>
+            <li><strong>Сообщения:</strong> текст, фото, время отправки. Все сообщения хранятся в зашифрованном виде.</li>
+            <li><strong>Подарки:</strong> информация о полученных и отправленных подарках.</li>
+            <li><strong>Питомцы:</strong> имя, тип, возраст, статистика взаимодействий.</li>
+            <li><strong>Технические данные:</strong> IP-адрес, версия браузера, тип устройства.</li>
+        </ul>
+
+        <h3 style="font-size:1.1rem; margin:16px 0 8px;">2. Как мы используем ваши данные</h3>
+        <ul>
+            <li>✅ Для обеспечения работы мессенджера — отправки сообщений, создания групп и каналов.</li>
+            <li>✅ Для улучшения интерфейса и исправления ошибок.</li>
+            <li>✅ Для реализации игровых механик (виртуальные питомцы, подарки).</li>
+            <li>❌ Мы НЕ продаём и не передаём ваши личные сообщения третьим лицам.</li>
+        </ul>
+
+        <h3 style="font-size:1.1rem; margin:16px 0 8px;">3. Хранение и защита данных</h3>
+        <p>Все данные хранятся в защищённой облачной базе данных. Мы применяем шифрование для паролей и HTTPS для передачи данных. Доступ к серверам имеют только авторизованные администраторы проекта.</p>
+
+        <h3 style="font-size:1.1rem; margin:16px 0 8px;">4. Ваши права</h3>
+        <ul>
+            <li><strong>Право на доступ:</strong> вы можете просмотреть все свои данные через профиль.</li>
+            <li><strong>Право на исправление:</strong> вы можете изменить имя, эмодзи, пароль в любой момент.</li>
+            <li><strong>Право на удаление:</strong> вы можете удалить свой аккаунт и все данные через настройки.</li>
+        </ul>
+
+        <h3 style="font-size:1.1rem; margin:16px 0 8px;">5. Дети</h3>
+        <p>Сервис не предназначен для лиц младше 13 лет.</p>
+
+        <h3 style="font-size:1.1rem; margin:16px 0 8px;">6. Контакты</h3>
+        <p style="background: #f1f2f6; padding: 12px; border-radius: 12px;">
+           <strong></strong><br>
+            👤 Администратор: <strong>@admin_twin</strong>
+        </p>
+
+        <p style="margin-top: 16px; font-size: 0.8rem; color: #636e72; text-align: center;">
+            Используя Twin, вы соглашаетесь с условиями данной Политики конфиденциальности.
+        </p>
+    `;
+}
+            // Добавляем обработчик для ссылки на политику
+const privacyLink = document.getElementById('open-privacy-link');
+if (privacyLink) {
+    privacyLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        openPrivacyPolicyModal();
+    });
+}
+        
 
         // Обработка закрытия вкладки/приложения
         window.addEventListener('beforeunload', () => {
