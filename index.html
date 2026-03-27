@@ -9342,7 +9342,7 @@ async function requestUsername() {
                        style="margin-bottom:6px;" placeholder="Повторите пароль" autocomplete="off">
                 <div id="reg-password-match-msg" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;"></div>
                 <input type="email" id="reg-email" class="auth-input" style="margin-bottom:6px;"
-                       placeholder="Email (обязательно)" required>
+                       placeholder="Email (обязательно gmail.com)" required>
                 <div id="reg-email-warn" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid rgba(231,76,60,0.35);">
                     ⚠️ Введите корректный email
                 </div>
@@ -9359,9 +9359,16 @@ async function requestUsername() {
                         <span class="emoji-option" data-emoji="😍">😍</span>
                     </div>
                 </div>
-                <div style="margin: 12px 0 10px; font-size: 0.75rem; color: var(--text-light); text-align: center;">
-                    Нажимая «Получить код», вы соглашаетесь с 
-                    <a href="#" id="open-privacy-link" style="color: var(--primary-color); text-decoration: underline;">Политикой конфиденциальности</a>
+                <div style="margin: 14px 0 6px; display: flex; align-items: flex-start; gap: 10px; background: rgba(108,92,231,0.06); border: 1px solid rgba(108,92,231,0.18); border-radius: 10px; padding: 10px 12px;">
+                    <input type="checkbox" id="privacy-agree-checkbox" style="width: 18px; height: 18px; min-width: 18px; margin-top: 2px; cursor: pointer; accent-color: var(--primary-color);">
+                    <label for="privacy-agree-checkbox" style="font-size: 0.82rem; color: var(--text-color); cursor: pointer; line-height: 1.5;">
+                        Я прочитал(а) и согласен(на) с 
+                        <a href="#" id="open-privacy-link" style="color: var(--primary-color); text-decoration: underline; font-weight: 600;">Политикой конфиденциальности</a>
+                        Twin Messenger и даю согласие на обработку персональных данных
+                    </label>
+                </div>
+                <div id="privacy-agree-warn" style="display:none; font-size:0.8rem; color:#e74c3c; margin: 4px 0 8px 2px;">
+                    ⚠️ Необходимо согласиться с Политикой конфиденциальности
                 </div>
                 <button id="submit-register" class="auth-btn-primary auth-btn-register">
                     Получить код подтверждения
@@ -9531,6 +9538,16 @@ async function requestUsername() {
             regPasswordConfirm.focus();
             return;
         }
+
+        // Проверка чекбокса политики конфиденциальности
+        const privacyCheckbox = document.getElementById('privacy-agree-checkbox');
+        const privacyWarn = document.getElementById('privacy-agree-warn');
+        if (privacyCheckbox && !privacyCheckbox.checked) {
+            if (privacyWarn) privacyWarn.style.display = 'block';
+            privacyCheckbox.focus();
+            return;
+        }
+        if (privacyWarn) privacyWarn.style.display = 'none';
 
         // Проверка email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -9829,55 +9846,239 @@ async function requestUsername() {
 // Функция с текстом политики (БЕЗ сторонних сервисов)
 function getPrivacyPolicyText() {
     return `
-        <h3 style="font-size:1.1rem; margin:16px 0 8px;">1. Какие данные мы собираем</h3>
-        <ul style="margin-bottom:12px;">
-            <li><strong>Аккаунт:</strong> имя пользователя, юзернейм, пароль (в зашифрованном виде).</li>
-            <li><strong>Сообщения:</strong> текст, фото, время отправки. Все сообщения хранятся в зашифрованном виде.</li>
-            <li><strong>Подарки:</strong> информация о полученных и отправленных подарках.</li>
-            <li><strong>Питомцы:</strong> имя, тип, возраст, статистика взаимодействий.</li>
-            <li><strong>Технические данные:</strong> IP-адрес, версия браузера, тип устройства.</li>
-        </ul>
+        <style>
+            .pp-section {
+                background: var(--bg-color, #f8f9fa);
+                border-radius: 14px;
+                padding: 14px 16px;
+                margin-bottom: 12px;
+            }
+            .pp-section-title {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 0.95rem;
+                font-weight: 700;
+                color: var(--primary-color, #6c5ce7);
+                margin-bottom: 10px;
+            }
+            .pp-section-title .pp-num {
+                width: 24px; height: 24px;
+                border-radius: 50%;
+                background: var(--primary-color, #6c5ce7);
+                color: #fff;
+                font-size: 0.75rem;
+                font-weight: 800;
+                display: flex; align-items: center; justify-content: center;
+                flex-shrink: 0;
+            }
+            .pp-row {
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+                padding: 7px 0;
+                border-bottom: 1px solid var(--border-color, #e9ecef);
+                font-size: 0.875rem;
+                color: var(--text-color, #2d3436);
+                line-height: 1.5;
+            }
+            .pp-row:last-child { border-bottom: none; }
+            .pp-row .pp-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+            .pp-row strong { color: var(--text-color, #2d3436); }
+            .pp-tag-no {
+                display: inline-block;
+                background: #ffeaea;
+                color: #e74c3c;
+                font-size: 0.72rem;
+                font-weight: 700;
+                padding: 1px 7px;
+                border-radius: 20px;
+                margin-left: 4px;
+                vertical-align: middle;
+            }
+            .pp-tag-yes {
+                display: inline-block;
+                background: #eafaf1;
+                color: #27ae60;
+                font-size: 0.72rem;
+                font-weight: 700;
+                padding: 1px 7px;
+                border-radius: 20px;
+                margin-left: 4px;
+                vertical-align: middle;
+            }
+            .pp-rights-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .pp-right-card {
+                background: var(--modal-bg, #fff);
+                border: 1.5px solid var(--border-color, #e9ecef);
+                border-radius: 12px;
+                padding: 10px 12px;
+                font-size: 0.82rem;
+                color: var(--text-color, #2d3436);
+                line-height: 1.4;
+            }
+            .pp-right-card .pp-right-icon { font-size: 1.2rem; display: block; margin-bottom: 4px; }
+            .pp-right-card strong { font-size: 0.82rem; display: block; margin-bottom: 2px; }
+            .pp-footer-note {
+                margin-top: 14px;
+                padding: 12px 16px;
+                background: linear-gradient(135deg, rgba(108,92,231,0.08), rgba(162,155,254,0.12));
+                border-radius: 12px;
+                font-size: 0.8rem;
+                color: var(--text-light, #636e72);
+                text-align: center;
+                line-height: 1.5;
+            }
+        </style>
 
-        <h3 style="font-size:1.1rem; margin:16px 0 8px;">2. Как мы используем ваши данные</h3>
-        <ul>
-            <li>✅ Для обеспечения работы мессенджера — отправки сообщений, создания групп и каналов.</li>
-            <li>✅ Для улучшения интерфейса и исправления ошибок.</li>
-            <li>✅ Для реализации игровых механик (виртуальные питомцы, подарки).</li>
-            <li>❌ Мы НЕ продаём и не передаём ваши личные сообщения третьим лицам.</li>
-        </ul>
+        <!-- Блок 1 -->
+        <div class="pp-section">
+            <div class="pp-section-title"><span class="pp-num">1</span> Какие данные мы собираем</div>
+            <div class="pp-row"><span class="pp-icon">👤</span><span><strong>Аккаунт:</strong> имя пользователя, юзернейм, пароль (в зашифрованном виде)</span></div>
+            <div class="pp-row"><span class="pp-icon">💬</span><span><strong>Сообщения:</strong> текст, фото, время отправки — хранятся в зашифрованном виде</span></div>
+            <div class="pp-row"><span class="pp-icon">🎁</span><span><strong>Подарки:</strong> информация о полученных и отправленных подарках</span></div>
+            <div class="pp-row"><span class="pp-icon">🐾</span><span><strong>Питомцы:</strong> имя, тип, возраст, статистика взаимодействий</span></div>
+            <div class="pp-row"><span class="pp-icon">🖥️</span><span><strong>Технические данные:</strong> IP-адрес, версия браузера, тип устройства</span></div>
+        </div>
 
-        <h3 style="font-size:1.1rem; margin:16px 0 8px;">3. Хранение и защита данных</h3>
-        <p>Все данные хранятся в защищённой облачной базе данных. Мы применяем шифрование для паролей и HTTPS для передачи данных. Доступ к серверам имеют только авторизованные администраторы проекта.</p>
+        <!-- Блок 2 -->
+        <div class="pp-section">
+            <div class="pp-section-title"><span class="pp-num">2</span> Как мы используем данные</div>
+            <div class="pp-row"><span class="pp-icon">✅</span><span>Обеспечение работы мессенджера — отправка сообщений, группы и каналы<span class="pp-tag-yes">ДА</span></span></div>
+            <div class="pp-row"><span class="pp-icon">✅</span><span>Улучшение интерфейса и исправление ошибок<span class="pp-tag-yes">ДА</span></span></div>
+            <div class="pp-row"><span class="pp-icon">✅</span><span>Реализация игровых механик (питомцы, подарки)<span class="pp-tag-yes">ДА</span></span></div>
+            <div class="pp-row"><span class="pp-icon">🚫</span><span>Продажа или передача личных сообщений третьим лицам<span class="pp-tag-no">НИКОГДА</span></span></div>
+        </div>
 
-        <h3 style="font-size:1.1rem; margin:16px 0 8px;">4. Ваши права</h3>
-        <ul>
-            <li><strong>Право на доступ:</strong> вы можете просмотреть все свои данные через профиль.</li>
-            <li><strong>Право на исправление:</strong> вы можете изменить имя, эмодзи, пароль в любой момент.</li>
-            <li><strong>Право на удаление:</strong> вы можете удалить свой аккаунт и все данные через настройки.</li>
-        </ul>
+        <!-- Блок 3 -->
+        <div class="pp-section">
+            <div class="pp-section-title"><span class="pp-num">3</span> Хранение и защита</div>
+            <div class="pp-row"><span class="pp-icon">🔒</span><span>Защищённая облачная база данных с шифрованием паролей</span></div>
+            <div class="pp-row"><span class="pp-icon">🔐</span><span>HTTPS для всей передачи данных</span></div>
+            <div class="pp-row"><span class="pp-icon">👥</span><span>Доступ к серверам — только авторизованные администраторы</span></div>
+        </div>
 
-        <h3 style="font-size:1.1rem; margin:16px 0 8px;">5. Дети</h3>
-        <p>Сервис не предназначен для лиц младше 13 лет.</p>
+        <!-- Блок 4 -->
+        <div class="pp-section">
+            <div class="pp-section-title"><span class="pp-num">4</span> Ваши права</div>
+            <div class="pp-rights-grid">
+                <div class="pp-right-card"><span class="pp-right-icon">👁️</span><strong>Доступ</strong>Просмотр своих данных через профиль</div>
+                <div class="pp-right-card"><span class="pp-right-icon">✏️</span><strong>Исправление</strong>Изменение имени, эмодзи и пароля</div>
+                <div class="pp-right-card" style="grid-column: 1 / -1;"><span class="pp-right-icon">🗑️</span><strong>Удаление</strong>Удаление аккаунта и всех данных через настройки</div>
+            </div>
+        </div>
 
-        <h3 style="font-size:1.1rem; margin:16px 0 8px;">6. Контакты</h3>
-        <p style="background: #f1f2f6; padding: 12px; border-radius: 12px;">
-           <strong></strong><br>
-            👤 Администратор: <strong>@admin_twin</strong>
-        </p>
+        <!-- Блок 5 -->
+        <div class="pp-section">
+            <div class="pp-section-title"><span class="pp-num">5</span> Возрастные ограничения</div>
+            <div class="pp-row"><span class="pp-icon">🔞</span><span>Сервис не предназначен для лиц <strong>младше 13 лет</strong></span></div>
+        </div>
 
-        <p style="margin-top: 16px; font-size: 0.8rem; color: #636e72; text-align: center;">
-            Используя Twin, вы соглашаетесь с условиями данной Политики конфиденциальности.
-        </p>
+        <div class="pp-footer-note">
+            🔒 Используя Twin, вы соглашаетесь с условиями данной Политики конфиденциальности.
+        </div>
     `;
 }
-            // Добавляем обработчик для ссылки на политику
-const privacyLink = document.getElementById('open-privacy-link');
-if (privacyLink) {
-    privacyLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        openPrivacyPolicyModal();
+
+function openPrivacyPolicyModal() {
+    // Удаляем старую модалку если есть
+    const existing = document.getElementById('privacy-policy-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'privacy-policy-modal';
+    modal.style.cssText = `
+        position: fixed; inset: 0; z-index: 99999;
+        background: rgba(0,0,0,0.55);
+        display: flex; align-items: center; justify-content: center;
+        padding: 16px;
+        animation: fadeIn 0.2s ease;
+    `;
+
+    modal.innerHTML = `
+        <div style="
+            background: var(--modal-bg, #fff);
+            border-radius: 20px;
+            max-width: 520px;
+            width: 100%;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            overflow: hidden;
+        ">
+            <div style="
+                padding: 20px 24px 16px;
+                border-bottom: 1px solid var(--border-color, #e9ecef);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-shrink: 0;
+            ">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:1.6rem;">🔒</span>
+                    <div>
+                        <div style="font-weight:700;font-size:1.05rem;color:var(--text-color);">Политика конфиденциальности</div>
+                        <div style="font-size:0.75rem;color:var(--text-light);">Twin Messenger</div>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('privacy-policy-modal').remove()" style="
+                    background: var(--border-color, #e9ecef);
+                    border: none;
+                    border-radius: 50%;
+                    width: 34px; height: 34px;
+                    font-size: 1.1rem;
+                    cursor: pointer;
+                    display: flex; align-items: center; justify-content: center;
+                    color: var(--text-light);
+                    transition: background 0.2s;
+                " onmouseover="this.style.background='#d0d3d9'" onmouseout="this.style.background='var(--border-color,#e9ecef)'">✕</button>
+            </div>
+            <div style="
+                overflow-y: auto;
+                padding: 16px 24px 20px;
+                font-size: 0.9rem;
+                color: var(--text-color);
+                line-height: 1.6;
+            ">
+                ${getPrivacyPolicyText()}
+            </div>
+            <div style="padding:14px 24px;border-top:1px solid var(--border-color,#e9ecef);flex-shrink:0;">
+                <button onclick="document.getElementById('privacy-policy-modal').remove()" style="
+                    width:100%;padding:12px;
+                    background:var(--primary-color,#6c5ce7);
+                    color:#fff;border:none;border-radius:12px;
+                    font-size:0.95rem;font-weight:600;cursor:pointer;
+                    transition:background 0.2s;
+                " onmouseover="this.style.background='var(--primary-dark,#5a4fcf)'" onmouseout="this.style.background='var(--primary-color,#6c5ce7)'">
+                    Понятно
+                </button>
+            </div>
+        </div>
+    `;
+
+    // Закрытие по клику вне модалки
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) modal.remove();
     });
+
+    document.body.appendChild(modal);
 }
+
+            // Добавляем обработчик для ссылки на политику
+// Делегирование: ссылка создаётся динамически, поэтому вешаем обработчик на document
+document.addEventListener('click', function(e) {
+    const link = e.target.closest('#open-privacy-link');
+    if (link) {
+        e.preventDefault();
+        e.stopPropagation();
+        openPrivacyPolicyModal();
+    }
+});
         
 
         // Обработка закрытия вкладки/приложения
