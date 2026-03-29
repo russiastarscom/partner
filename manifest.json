@@ -1,10 +1,10 @@
 {
-  "id": "/partner/",
+  "id": "/",
   "name": "Twin",
   "short_name": "Twin",
   "description": "Мессенджер",
-  "start_url": "/partner/index.html",
-  "scope": "/partner/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "portrait-primary",
@@ -14,13 +14,13 @@
   "categories": ["social", "utilities"],
   "icons": [
     {
-      "src": "/partner/icon-192x192.png",
+      "src": "/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/partner/icon-512x512.png",
+      "src": "/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -31,10 +31,10 @@
       "name": "Сообщения",
       "short_name": "Сообщения",
       "description": "Открыть сообщения",
-      "url": "/partner/index.html",
+      "url": "/",
       "icons": [
         {
-          "src": "/partner/icon-192x192.png",
+          "src": "/icon-192x192.png",
           "sizes": "96x96",
           "type": "image/png"
         }

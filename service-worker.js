@@ -1,14 +1,14 @@
-// Twin — Service Worker v13
+// Twin — Service Worker v14 (twiin.ru)
 
-const CACHE_NAME = 'twin-v13';
+const CACHE_NAME = 'twin-v14';
 const CACHE_URLS = [
-    '/partner/',
-    '/partner/index.html',
-    '/partner/manifest.json',
-    '/partner/pet-plugin.js',
-    '/partner/gift_animations.css',
-    '/partner/icon-192x192.png',
-    '/partner/icon-512x512.png'
+    '/',
+    '/index.html',
+    '/manifest.json',
+    '/pet-plugin.js',
+    '/gift_animations.css',
+    '/icon-192x192.png',
+    '/icon-512x512.png'
 ];
 
 self.addEventListener('install', e => {
@@ -43,10 +43,10 @@ self.addEventListener('fetch', e => {
         u.includes('jsdelivr.net')
     ) return;
 
-    // Для навигационных запросов (переход по страницам) — всегда отдаём index.html
+    // Для навигационных запросов — всегда отдаём index.html
     if (e.request.mode === 'navigate') {
         e.respondWith(
-            fetch(e.request).catch(() => caches.match('/partner/index.html'))
+            fetch(e.request).catch(() => caches.match('/index.html'))
         );
         return;
     }
@@ -61,6 +61,6 @@ self.addEventListener('fetch', e => {
                 }
                 return res;
             });
-        }).catch(() => caches.match('/partner/index.html'))
+        }).catch(() => caches.match('/index.html'))
     );
 });
