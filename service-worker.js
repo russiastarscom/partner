@@ -1,6 +1,6 @@
-// Twin — Service Worker v14 (twiin.ru)
+// Twiin — Service Worker v15 (twiin.ru)
 
-const CACHE_NAME = 'twin-v14';
+const CACHE_NAME = 'twiin-v15';
 const CACHE_URLS = [
     '/',
     '/index.html',
