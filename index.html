@@ -8,13 +8,13 @@
     <meta charset="UTF-8">
     
     <!-- Заголовок вкладки в браузере (то, что написано на вкладке) -->
-    <title>Twin — Мессенджер</title>
+    <title>Twiin — Мессенджер</title>
     
     <!-- Описание сайта для Google и Яндекс (сниппет в поиске) -->
-    <meta name="description" content="Twin — бесплатный веб-мессенджер. Общайтесь с друзьями, отправляйте подарки, создавайте группы и каналы. Встроенный AI-ассистент, темная тема и установка на телефон.">
+    <meta name="description" content="Twiin — бесплатный веб-мессенджер. Общайтесь с друзьями, отправляйте подарки, создавайте группы и каналы. Встроенный AI-ассистент, темная тема и установка на телефон.">
     
     <!-- Ключевые слова (помогают понять тематику) -->
-    <meta name="keywords" content="мессенджер, чат, twin, общение, веб-чат, ai ассистент, подарки, группы, каналы, бесплатный чат">
+    <meta name="keywords" content="мессенджер, чат, twiin, общение, веб-чат, ai ассистент, подарки, группы, каналы, бесплатный чат">
     
     <!-- Инструкция для роботов: индексировать сайт и переходить по ссылкам -->
     <meta name="robots" content="index, follow">
@@ -24,14 +24,14 @@
     
     <!-- Настройка для красивого отображения ссылки в соцсетях (Open Graph) -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Twin — Твой новый мессенджер">
+    <meta property="og:title" content="Twiin — Твой новый мессенджер">
     <meta property="og:description" content="Общайся, дарить подарки и используй AI прямо в браузере. Быстро, удобно и бесплатно.">
     <meta property="og:image" content="https://twiin.ru/icon-192x192.png">
     <meta property="og:url" content="https://twiin.ru/">
     
     <!-- Настройка для Twitter карточек -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Twin Messenger">
+    <meta name="twitter:title" content="Twiin Messenger">
     <meta name="twitter:description" content="Современный чат с уникальными функциями.">
     
     <!-- === КОНЕЦ БЛОКА SEO === -->
@@ -40,7 +40,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Twin">
+    <meta name="apple-mobile-web-app-title" content="Twiin">
     <meta name="theme-color" content="#6c5ce7">
     <meta name="msapplication-navbutton-color" content="#6c5ce7">
     <meta name="msapplication-TileColor" content="#6c5ce7">
@@ -73,7 +73,7 @@
             return emailjs.send('service_rttja94', 'template_cngvu5j', {
                 to_email:  toEmail,
                 to_name:   toName,
-                from_name: 'Twin Messenger',
+                from_name: 'Twiin Messenger',
                 message:   body,
                 time:      subject  // используем поле time как доп. заголовок
             });
@@ -3335,7 +3335,7 @@
     <div class="container">
         <div class="mobile-header">
             <button class="mobile-menu-btn" id="menu-btn">☰</button>
-            <h1 id="mobile-title">Twin</h1>
+            <h1 id="mobile-title">Twiin</h1>
             <button class="mobile-menu-btn" id="install-btn-header"
                 style="display: none; color: #fff; font-size: 1.3rem;" title="Установить приложение">⬇️</button>
         </div>
@@ -4297,7 +4297,7 @@
 
             // Адаптация для мобильных
             if (window.innerWidth <= 768) {
-                mobileTitle.textContent = 'Twin';
+                mobileTitle.textContent = 'Twiin';
             }
 
             // Оптимизация для Android
@@ -5688,7 +5688,7 @@
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + apiKey,
                         'HTTP-Referer': window.location.origin,
-                        'X-Title': 'Twin Messenger AI'
+                        'X-Title': 'Twiin Messenger AI'
                     },
                     body: JSON.stringify({
                         model: 'z-ai/glm-4.5-air:free',
@@ -6152,7 +6152,7 @@
                 chatHeader.style.display = 'none';
                 chatMessages.style.display = 'none';
                 messageInputContainer.style.display = 'none';
-                mobileTitle.textContent = 'Twin';
+                mobileTitle.textContent = 'Twiin';
                 openSidebar();
             } else {
                 emptyState.style.display = 'flex';
@@ -9364,7 +9364,7 @@ async function requestUsername() {
                     <label for="privacy-agree-checkbox" style="font-size: 0.82rem; color: var(--text-color); cursor: pointer; line-height: 1.5;">
                         Я прочитал(а) и согласен(на) с 
                         <a href="#" id="open-privacy-link" style="color: var(--primary-color); text-decoration: underline; font-weight: 600;">Политикой конфиденциальности</a>
-                        Twin Messenger и даю согласие на обработку персональных данных
+                        Twiin Messenger и даю согласие на обработку персональных данных
                     </label>
                 </div>
                 <div id="privacy-agree-warn" style="display:none; font-size:0.8rem; color:#e74c3c; margin: 4px 0 8px 2px;">
@@ -9587,8 +9587,8 @@ async function requestUsername() {
                 await emailjs.send('service_rttja94', 'template_cngvu5j', {
                     to_email: regEmailVal,
                     to_name: name,
-                    from_name: 'Twin Messenger',
-                    message: '🔐 Ваш код подтверждения для Twin: ' + verifyCode + '\n\nКод действителен 10 минут. Не передавайте его никому.',
+                    from_name: 'Twiin Messenger',
+                    message: '🔐 Ваш код подтверждения для Twiin: ' + verifyCode + '\n\nКод действителен 10 минут. Не передавайте его никому.',
                     time: new Date().toLocaleString('ru-RU')
                 });
                 emailSent = true;
@@ -9641,7 +9641,7 @@ async function requestUsername() {
             await emailjs.send('service_rttja94', 'template_cngvu5j', {
                 to_email: pr.email,
                 to_name: pr.name,
-                from_name: 'Twin Messenger',
+                from_name: 'Twiin Messenger',
                 message: 'Ваш новый код подтверждения: ' + newCode + '\n\nКод действителен 10 минут.',
                 time: new Date().toLocaleString('ru-RU')
             });
@@ -9979,7 +9979,7 @@ function getPrivacyPolicyText() {
         </div>
 
         <div class="pp-footer-note">
-            🔒 Используя Twin, вы соглашаетесь с условиями данной Политики конфиденциальности.
+            🔒 Используя Twiin, вы соглашаетесь с условиями данной Политики конфиденциальности.
         </div>
     `;
 }
@@ -10023,7 +10023,7 @@ function openPrivacyPolicyModal() {
                     <span style="font-size:1.6rem;">🔒</span>
                     <div>
                         <div style="font-weight:700;font-size:1.05rem;color:var(--text-color);">Политика конфиденциальности</div>
-                        <div style="font-size:0.75rem;color:var(--text-light);">Twin Messenger</div>
+                        <div style="font-size:0.75rem;color:var(--text-light);">Twiin Messenger</div>
                     </div>
                 </div>
                 <button onclick="document.getElementById('privacy-policy-modal').remove()" style="
@@ -12596,7 +12596,7 @@ document.addEventListener('click', function(e) {
             '    <h1>Привет!</h1>',
             '    <p>Это страница бота. Отредактируй HTML чтобы сделать что угодно —',
             '       чат, игру, утилиту или мини-сайт.</p>',
-            '    <a class="btn" href="index.html">← Вернуться в Twin</a>',
+            '    <a class="btn" href="index.html">← Вернуться в Twiin</a>',
             '  </div>',
             '</body>',
             '</html>'
