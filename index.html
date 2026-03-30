@@ -4248,6 +4248,145 @@
         let backgroundCheckIntervals = [];
         let notifiedMessageIds = new Set();
         let currentUserData = null; // ✅ ИСПРАВЛЕНО: переменная не была объявлена
+        let _chatListRendering = false; // мьютекс: предотвращает параллельный рендер списка чатов
+
+        // ============================================================
+        // 🚀 СИСТЕМА ХЕШИРОВАНИЯ И КЭШИРОВАНИЯ ДАННЫХ
+        // Обеспечивает мгновенную загрузку: данные берутся из кэша,
+        // обновляются только при изменении хэша (содержимого)
+        // ============================================================
+        const _dataCache = {
+            store: {},          // key → { hash, data, ts }
+            listeners: {},      // key → Firebase unsubscribe ref
+            pendingLoads: {},   // key → Promise (дедупликация параллельных запросов)
+
+            /** Быстрый FNV-1a хэш строки */
+            _hash(str) {
+                let h = 2166136261 >>> 0;
+                for (let i = 0; i < str.length; i++) {
+                    h ^= str.charCodeAt(i);
+                    h = Math.imul(h, 16777619) >>> 0;
+                }
+                return h.toString(16);
+            },
+
+            /** Сохранить данные в кэш и в localStorage */
+            set(key, data) {
+                const json = JSON.stringify(data);
+                const hash = this._hash(json);
+                this.store[key] = { hash, data, ts: Date.now() };
+                try {
+                    localStorage.setItem('_dc_' + key, JSON.stringify({ hash, data, ts: Date.now() }));
+                } catch(e) { /* квота */ }
+                return hash;
+            },
+
+            /** Получить данные из памяти или localStorage */
+            get(key) {
+                if (this.store[key]) return this.store[key];
+                try {
+                    const raw = localStorage.getItem('_dc_' + key);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        this.store[key] = parsed; // перенести в память
+                        return parsed;
+                    }
+                } catch(e) {}
+                return null;
+            },
+
+            /** Проверить, изменились ли данные */
+            hasChanged(key, newData) {
+                const cached = this.get(key);
+                if (!cached) return true;
+                const newHash = this._hash(JSON.stringify(newData));
+                return cached.hash !== newHash;
+            },
+
+            /** Подписаться на Firebase ref с кэшированием.
+             *  cb(data, fromCache) вызывается:
+             *  - сразу с кэшированными данными (fromCache=true)
+             *  - затем при каждом изменении в Firebase (fromCache=false)
+             */
+            subscribe(key, fbRef, cb) {
+                // Мгновенно отдаём кэш
+                const cached = this.get(key);
+                if (cached) {
+                    try { cb(cached.data, true); } catch(e) {}
+                }
+                // Отписываем старый listener если был
+                if (this.listeners[key]) {
+                    try { this.listeners[key].off(); } catch(e) {}
+                }
+                // Подписываемся на realtime updates
+                const handler = (snap) => {
+                    const data = snap.val();
+                    if (this.hasChanged(key, data)) {
+                        this.set(key, data);
+                        try { cb(data, false); } catch(e) { console.error('[Cache] cb error:', e); }
+                    }
+                };
+                fbRef.on('value', handler);
+                this.listeners[key] = fbRef;
+            },
+
+            /** Разовое чтение с кэшем — возвращает кэш немедленно,
+             *  параллельно проверяет свежесть и обновляет если нужно.
+             *  cb(data, fromCache)
+             */
+            async fetchWithCache(key, fbRef, cb) {
+                // Мгновенный ответ из кэша
+                const cached = this.get(key);
+                if (cached) {
+                    try { cb(cached.data, true); } catch(e) {}
+                }
+                // Дедупликация: если уже идёт запрос — ждём его
+                if (this.pendingLoads[key]) {
+                    const data = await this.pendingLoads[key];
+                    if (this.hasChanged(key, data)) {
+                        this.set(key, data);
+                        try { cb(data, false); } catch(e) {}
+                    }
+                    return;
+                }
+                // Новый запрос
+                this.pendingLoads[key] = fbRef.once('value').then(s => s.val());
+                try {
+                    const data = await this.pendingLoads[key];
+                    if (this.hasChanged(key, data)) {
+                        this.set(key, data);
+                        try { cb(data, false); } catch(e) {}
+                    }
+                } finally {
+                    delete this.pendingLoads[key];
+                }
+            },
+
+            /** Очистить всех слушателей (при logout) */
+            unsubscribeAll() {
+                Object.values(this.listeners).forEach(ref => {
+                    try { ref.off(); } catch(e) {}
+                });
+                this.listeners = {};
+                this.pendingLoads = {};
+            },
+
+            /** Очистить кэш конкретного ключа (после записи) */
+            invalidate(key) {
+                delete this.store[key];
+                try { localStorage.removeItem('_dc_' + key); } catch(e) {}
+            },
+
+            /** Инвалидировать все ключи с префиксом */
+            invalidatePrefix(prefix) {
+                Object.keys(this.store).forEach(k => {
+                    if (k.startsWith(prefix)) this.invalidate(k);
+                });
+            }
+        };
+        // ============================================================
+        // КОНЕЦ СИСТЕМЫ ХЕШИРОВАНИЯ
+        // ============================================================
 
         // Функция показа уведомлений
         function showNotification(message) {
@@ -4465,6 +4604,7 @@
             }
 
             try {
+                _dataCache.invalidate('users_all');
                 await database.ref('users/' + encodeURIComponent(currentUser)).update({
                     name: newName,
                     emoji: userEmoji
@@ -4732,257 +4872,117 @@
         }
 
         function startBackgroundChecks() {
-            // Clear any existing intervals first to prevent duplicates
             backgroundCheckIntervals.forEach(intervalId => clearInterval(intervalId));
             backgroundCheckIntervals = [];
-
-            // Clear notified message IDs when restarting checks
             notifiedMessageIds.clear();
 
-            backgroundCheckIntervals.push(setInterval(checkForNewMessages, 5000));
-            backgroundCheckIntervals.push(setInterval(checkForGroupInvites, 10000));
-            backgroundCheckIntervals.push(setInterval(checkForChannelUpdates, 15000));
+            // 🚀 Realtime-подписки вместо polling
+            // Примечание: подписка на messages_all уже создаётся в loadRecentChats().
+            // Здесь мы только вешаем логику уведомлений и обновления открытого чата,
+            // НЕ создавая дублирующую подписку — используем _dataCache напрямую.
+            // Фоновое обновление списка чатов и уведомления идут через единый listener.
+            if (!_dataCache.listeners['messages_all']) {
+                // Подписка ещё не создана — создаём здесь (если loadRecentChats не вызывался)
+                _dataCache.subscribe('messages_all', database.ref('messages'), (allChats, fromCache) => {
+                    if (!fromCache) {
+                        if (activeTab === 'chats') _buildRecentChatsList(allChats);
+                        if (currentChat) {
+                            let chatId = (currentChatType === 'group' || currentChatType === 'channel') ? currentChat : getChatId(currentUser, currentChat);
+                            const msgs = allChats ? allChats[chatId] : null;
+                            if (currentChatType === 'channel') displayMessages(msgs, false);
+                            else if (currentChatType !== 'ai') displayMessages(msgs, true);
+                        }
+                    }
+                    _checkNewMessagesFromData(allChats);
+                });
+            } else {
+                // Подписка уже есть (создана в loadRecentChats) — дополняем её обработчиком
+                const _existingRef = _dataCache.listeners['messages_all'];
+                _existingRef.on('value', (snap) => {
+                    const allChats = snap.val();
+                    _checkNewMessagesFromData(allChats);
+                    if (currentChat) {
+                        let chatId = (currentChatType === 'group' || currentChatType === 'channel') ? currentChat : getChatId(currentUser, currentChat);
+                        const msgs = allChats ? allChats[chatId] : null;
+                        if (currentChatType === 'channel') displayMessages(msgs, false);
+                        else if (currentChatType !== 'ai') displayMessages(msgs, true);
+                    }
+                });
+            }
+            _dataCache.subscribe('groups_all', database.ref('groups'), (allGroups) => {
+                _checkGroupInvitesFromData(allGroups);
+            });
+            _dataCache.subscribe('channels_all', database.ref('channels'), (allChannels) => {
+                _checkChannelUpdatesFromData(allChannels);
+            });
         }
 
+        function _checkNewMessagesFromData(allChats) {
+            if (!currentUser || !isOnline || !allChats) return;
+            const now = Date.now();
+            if (lastMessageTimestamp === 0) lastMessageTimestamp = now - 5000;
+            Object.keys(allChats).forEach(chatId => {
+                if (chatId.includes(currentUser) || (chatId.startsWith('group_') && groups.some(g => g.id === chatId)) || (chatId.startsWith('channel_') && subscribedChannels.includes(chatId))) {
+                    const messages = allChats[chatId];
+                    const messagesArray = Object.keys(messages).map(key => ({ id: key, ...messages[key] }));
+                    const latestMessage = messagesArray.filter(msg => msg.text && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0];
+                    if (!latestMessage) return;
+                    if (latestMessage.timestamp > lastMessageTimestamp && latestMessage.sender !== currentUser && !notifiedMessageIds.has(latestMessage.id)) {
+                        notifiedMessageIds.add(latestMessage.id);
+                        if (notifiedMessageIds.size > 100) { const f = notifiedMessageIds.values().next().value; notifiedMessageIds.delete(f); }
+                        let chatName = '', notificationType = 'message';
+                        if (chatId.startsWith('group_')) { const g = groups.find(g => g.id === chatId); if (g) { chatName = g.name; notificationType = 'group_message'; } }
+                        else if (chatId.startsWith('channel_')) { const c = channels.find(c => c.id === chatId); if (c) { chatName = c.name; notificationType = 'channel_message'; } }
+                        else { chatName = latestMessage.sender; }
+                        if (document.hidden || currentChat !== chatId) {
+                            showToastNotification({ title: chatName, message: latestMessage.text, type: chatId.startsWith('group_') ? 'group' : chatId.startsWith('channel_') ? 'channel' : 'message', chatId, avatar: chatId.startsWith('group_') ? '👥' : chatId.startsWith('channel_') ? '📢' : chatName.charAt(0).toUpperCase(), duration: 6000 });
+                        }
+                        createFirebaseNotification(latestMessage, chatName, notificationType);
+                        lastMessageTimestamp = latestMessage.timestamp;
+                    }
+                }
+            });
+        }
         async function checkForNewMessages() {
-            if (!currentUser || !isOnline) {
-                console.log('[CheckMessages] Skipping: no user or offline');
-                return;
-            }
-
-            try {
-                console.log('[CheckMessages] Checking for new messages...');
-                const snapshot = await database.ref('messages').once('value');
-                const allChats = snapshot.val();
-                if (!allChats) {
-                    console.log('[CheckMessages] No chats found');
-                    return;
-                }
-
-                const now = Date.now();
-                // Initialize lastMessageTimestamp on first run to current time to avoid showing old messages
-                if (lastMessageTimestamp === 0) {
-                    lastMessageTimestamp = now - 5000; // Allow messages from last 5 seconds
-                    console.log('[CheckMessages] Initialized timestamp:', lastMessageTimestamp);
-                }
-
-                Object.keys(allChats).forEach(chatId => {
-                    if (chatId.includes(currentUser) || (chatId.startsWith('group_') && groups.some(g => g.id === chatId)) ||
-                        (chatId.startsWith('channel_') && subscribedChannels.includes(chatId))) {
-                        const messages = allChats[chatId];
-                        const messagesArray = Object.keys(messages).map(key => ({
-                            id: key,
-                            ...messages[key]
-                        }));
-
-                        const latestMessage = messagesArray
-                            .filter(msg => msg.text && msg.sender && msg.timestamp)
-                            .sort((a, b) => b.timestamp - a.timestamp)[0];
-
-                        // Проверяем, есть ли новое сообщение
-                        if (!latestMessage) return;
-
-                        // Check if we've already notified about this specific message
-                        const messageId = latestMessage.id;
-                        const isNewMessage = latestMessage.timestamp > lastMessageTimestamp;
-                        const isNotFromMe = latestMessage.sender !== currentUser;
-                        const notAlreadyNotified = !notifiedMessageIds.has(messageId);
-
-                        if (isNewMessage && isNotFromMe && notAlreadyNotified) {
-                            console.log('[CheckMessages] New message found:', latestMessage.text, 'from:', latestMessage.sender);
-
-                            // Mark this message as notified
-                            notifiedMessageIds.add(messageId);
-
-                            // Limit the size of the set to prevent memory leaks
-                            if (notifiedMessageIds.size > 100) {
-                                const firstId = notifiedMessageIds.values().next().value;
-                                notifiedMessageIds.delete(firstId);
-                            }
-
-                            let senderName = latestMessage.sender;
-                            let chatName = '';
-                            let notificationType = 'message';
-
-                            if (chatId.startsWith('group_')) {
-                                const group = groups.find(g => g.id === chatId);
-                                if (group) {
-                                    chatName = group.name;
-                                    senderName = `${group.name}`;
-                                    notificationType = 'group_message';
-                                }
-                            } else if (chatId.startsWith('channel_')) {
-                                const channel = channels.find(c => c.id === chatId);
-                                if (channel) {
-                                    chatName = channel.name;
-                                    senderName = `${channel.name}`;
-                                    notificationType = 'channel_message';
-                                }
-                            } else {
-                                // Личный чат
-                                chatName = latestMessage.sender;
-                            }
-
-                            // Показываем уведомления ВСЕГДА, если:
-                            // 1. Вкладка не активна (document.hidden) ИЛИ
-                            // 2. Чат не открыт (currentChat !== chatId)
-                            const shouldNotify = document.hidden || currentChat !== chatId;
-                            console.log('[CheckMessages] Should notify:', shouldNotify, 'hidden:', document.hidden, 'currentChat:', currentChat, 'chatId:', chatId);
-
-                            if (shouldNotify) {
-                                // Show Telegram-style toast notification (in-app)
-                                let toastType = 'message';
-                                let toastTitle = chatName;
-                                let toastAvatar = null;
-
-                                if (chatId.startsWith('group_')) {
-                                    toastType = 'group';
-                                    toastAvatar = '👥';
-                                } else if (chatId.startsWith('channel_')) {
-                                    toastType = 'channel';
-                                    toastAvatar = '📢';
-                                } else {
-                                    // Personal chat - get first letter of sender name
-                                    toastAvatar = chatName.charAt(0).toUpperCase();
-                                }
-
-                                showToastNotification({
-                                    title: toastTitle,
-                                    message: latestMessage.text,
-                                    type: toastType,
-                                    chatId: chatId,
-                                    avatar: toastAvatar,
-                                    duration: 6000
-                                });
-                            }
-
-                            // Создаем уведомление в Firebase для гарантированной доставки
-                            createFirebaseNotification(latestMessage, chatName, notificationType);
-
-                            // Обновляем таймстамп
-                            lastMessageTimestamp = latestMessage.timestamp;
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error('[CheckMessages] Error:', error);
-            }
+            const cached = _dataCache.get('messages_all');
+            if (cached) _checkNewMessagesFromData(cached.data);
         }
 
-        // Создание уведомления в Firebase для гарантированной доставки
-        async function createFirebaseNotification(message, chatName, type) {
-            if (!currentUser) return;
-
-            try {
-                const notificationsRef = database.ref('users/' + encodeURIComponent(currentUser) + '/notifications');
-                await notificationsRef.push({
-                    type: type,
-                    from: message.sender,
-                    chatName: chatName,
-                    text: message.text,
-                    timestamp: Date.now(),
-                    read: false
-                });
-            } catch (error) {
-                console.error('Ошибка создания уведомления в Firebase:', error);
-            }
+                function _checkGroupInvitesFromData(allGroups) {
+            if (!currentUser || !isOnline || !allGroups) return;
+            Object.keys(allGroups).forEach(groupId => {
+                const group = allGroups[groupId];
+                if (group.participants && group.participants.includes(currentUser) && !groups.some(g => g.id === groupId) && (document.hidden || currentChat !== groupId)) {
+                    showToastNotification({ title: 'Новая группа', message: `Вас добавили в группу "${group.name}"`, type: 'group', chatId: groupId, avatar: '👥', duration: 5000 });
+                    loadGroups();
+                }
+            });
         }
-
         async function checkForGroupInvites() {
-            if (!currentUser || !isOnline) return;
-
-            try {
-                const snapshot = await database.ref('groups').once('value');
-                const allGroups = snapshot.val();
-                if (!allGroups) return;
-
-                Object.keys(allGroups).forEach(groupId => {
-                    const group = allGroups[groupId];
-
-                    // Notify if added to new group and (tab hidden OR not currently viewing that group)
-                    const shouldNotify = document.hidden || currentChat !== groupId;
-
-                    if (group.participants && group.participants.includes(currentUser) &&
-                        !groups.some(g => g.id === groupId) && shouldNotify) {
-
-
-                        // Show toast notification for group invite
-                        showToastNotification({
-                            title: 'Новая группа',
-                            message: `Вас добавили в группу "${group.name}"`,
-                            type: 'group',
-                            chatId: groupId,
-                            avatar: '👥',
-                            duration: 5000
-                        });
-
-                        loadGroups();
-                    }
-                });
-            } catch (error) {
-                console.error('Ошибка при проверке приглашений в группы:', error);
-            }
+            const cached = _dataCache.get('groups_all');
+            if (cached) _checkGroupInvitesFromData(cached.data);
         }
 
-        async function checkForChannelUpdates() {
-            if (!currentUser || !isOnline) return;
-
-            try {
-                const snapshot = await database.ref('channels').once('value');
-                const allChannels = snapshot.val();
-                if (!allChannels) return;
-
-                Object.keys(allChannels).forEach(channelId => {
-                    const channel = allChannels[channelId];
-
-                    if (subscribedChannels.includes(channelId) && channel.messages) {
-                        const messages = Object.keys(channel.messages).map(key => ({
-                            id: key,
-                            ...channel.messages[key]
-                        }));
-
-                        const latestMessage = messages
-                            .filter(msg => msg.text && msg.sender && msg.timestamp)
-                            .sort((a, b) => b.timestamp - a.timestamp)[0];
-
-                        if (!latestMessage) return;
-
-                        const messageId = latestMessage.id;
-                        const isNewMessage = latestMessage.timestamp > lastMessageTimestamp;
-                        const isNotFromMe = latestMessage.sender !== currentUser;
-                        const notAlreadyNotified = !notifiedMessageIds.has(messageId);
-                        // Notify if tab hidden OR different channel is open
-                        const shouldNotify = document.hidden || currentChat !== channelId;
-
-                        if (isNewMessage && isNotFromMe && notAlreadyNotified && shouldNotify) {
-
-                            // Mark this message as notified
-                            notifiedMessageIds.add(messageId);
-
-                            // Limit the size of the set to prevent memory leaks
-                            if (notifiedMessageIds.size > 100) {
-                                const firstId = notifiedMessageIds.values().next().value;
-                                notifiedMessageIds.delete(firstId);
-                            }
-
-
-                            // Show toast notification for channel message
-                            showToastNotification({
-                                title: channel.name,
-                                message: latestMessage.text,
-                                type: 'channel',
-                                chatId: channelId,
-                                avatar: '📢',
-                                duration: 6000
-                            });
-
-                            lastMessageTimestamp = latestMessage.timestamp;
-                        }
+                function _checkChannelUpdatesFromData(allChannels) {
+            if (!currentUser || !isOnline || !allChannels) return;
+            Object.keys(allChannels).forEach(channelId => {
+                const channel = allChannels[channelId];
+                if (subscribedChannels.includes(channelId) && channel.messages) {
+                    const messages = Object.keys(channel.messages).map(key => ({ id: key, ...channel.messages[key] }));
+                    const latestMessage = messages.filter(msg => msg.text && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0];
+                    if (!latestMessage) return;
+                    if (latestMessage.timestamp > lastMessageTimestamp && latestMessage.sender !== currentUser && !notifiedMessageIds.has(latestMessage.id) && (document.hidden || currentChat !== channelId)) {
+                        notifiedMessageIds.add(latestMessage.id);
+                        if (notifiedMessageIds.size > 100) { const f = notifiedMessageIds.values().next().value; notifiedMessageIds.delete(f); }
+                        showToastNotification({ title: channel.name, message: latestMessage.text, type: 'channel', chatId: channelId, avatar: '📢', duration: 6000 });
+                        lastMessageTimestamp = latestMessage.timestamp;
                     }
-                });
-            } catch (error) {
-                console.error('Ошибка при проверке обновлений каналов:', error);
-            }
+                }
+            });
+        }
+        async function checkForChannelUpdates() {
+            const cached = _dataCache.get('channels_all');
+            if (cached) _checkChannelUpdatesFromData(cached.data);
         }
 
         function truncate(text, length) {
@@ -5180,6 +5180,7 @@
         }
 
         async function addUserToFirebase(username, emoji) {
+            _dataCache.invalidate('users_all'); // новый пользователь — сброс кэша списка
             // Эта функция больше не используется напрямую, 
             // регистрация теперь происходит через requestUsername
             try {
@@ -5220,178 +5221,89 @@
             }
         }
 
+        // Вспомогательная функция — строит список чатов из allChats (данные messages)
+        async function _buildRecentChatsList(allChats) {
+            // Предотвращаем параллельный запуск (клоны чатов при первом рендере)
+            if (_chatListRendering) return;
+            _chatListRendering = true;
+            try { await _doBuildRecentChatsList(allChats); } finally { _chatListRendering = false; }
+        }
+
+        async function _doBuildRecentChatsList(allChats) {
+            const recentChats = [];
+            const addedUsernames = new Set();
+
+            if (currentUserData && currentUserData.recentChats) {
+                for (const chat of currentUserData.recentChats) {
+                    if (chat.username && !addedUsernames.has(chat.username)) {
+                        addedUsernames.add(chat.username);
+                        const userCached = _dataCache.get('user_' + chat.username);
+                        let userData = userCached ? userCached.data : null;
+                        if (!userData) {
+                            const userSnapshot = await database.ref('users/' + encodeURIComponent(chat.username)).once('value');
+                            userData = userSnapshot.val();
+                            if (userData) _dataCache.set('user_' + chat.username, userData);
+                        }
+                        const chatId = getChatId(currentUser, chat.username);
+                        let lastMessageText = 'Нет сообщений';
+                        let lastTimestamp = chat.addedAt || Date.now();
+                        let lastSender = null;
+                        if (allChats && allChats[chatId]) {
+                            const messages = allChats[chatId];
+                            const messagesArray = Object.keys(messages).map(key => ({ id: key, ...messages[key] }));
+                            const lastMessage = messagesArray.filter(msg => msg.text && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0];
+                            if (lastMessage) { lastMessageText = lastMessage.text; lastTimestamp = lastMessage.timestamp; lastSender = lastMessage.sender; }
+                        }
+                        recentChats.push({ id: chatId, user: chat.username, name: userData ? userData.name : chat.name, emoji: userData ? userData.emoji : (chat.emoji || '😊'), lastMessage: lastMessageText, timestamp: lastTimestamp, sender: lastSender, type: 'user' });
+                    }
+                }
+            }
+            if (allChats) {
+                Object.keys(allChats).forEach(chatId => {
+                    if (chatId.includes(currentUser) && !chatId.startsWith('group_') && !chatId.startsWith('channel_')) {
+                        const messages = allChats[chatId];
+                        const messagesArray = Object.keys(messages).map(key => ({ id: key, ...messages[key] }));
+                        const lastMessage = messagesArray.filter(msg => msg.text && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0];
+                        if (lastMessage) {
+                            const otherUser = chatId.replace(currentUser, '').replace('_', '');
+                            if (!addedUsernames.has(otherUser)) { addedUsernames.add(otherUser); recentChats.push({ id: chatId, user: otherUser, lastMessage: lastMessage.text, timestamp: lastMessage.timestamp, sender: lastMessage.sender, type: 'user' }); }
+                        }
+                    }
+                });
+            }
+            for (const group of groups) {
+                const groupId = group.id; const groupMessages = allChats && allChats[groupId];
+                if (groupMessages) { const messagesArray = Object.keys(groupMessages).map(key => ({ id: key, ...groupMessages[key] })); const lastMessage = messagesArray.filter(msg => msg.text && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0]; if (lastMessage) { recentChats.push({ id: groupId, name: group.name, lastMessage: lastMessage.text, timestamp: lastMessage.timestamp, sender: lastMessage.sender, type: 'group' }); } }
+                else { recentChats.push({ id: groupId, name: group.name, lastMessage: 'Нет сообщений', timestamp: group.createdAt, sender: null, type: 'group' }); }
+            }
+            for (const channel of channels) {
+                const channelId = channel.id;
+                if (!subscribedChannels.includes(channelId)) continue;
+                const channelMessages = allChats && allChats[channelId];
+                if (channelMessages) { const messagesArray = Object.keys(channelMessages).map(key => ({ id: key, ...channelMessages[key] })); const lastMessage = messagesArray.filter(msg => msg.text && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0]; if (lastMessage) { recentChats.push({ id: channelId, name: channel.name, lastMessage: lastMessage.text, timestamp: lastMessage.timestamp, sender: lastMessage.sender, type: 'channel' }); } }
+                else { recentChats.push({ id: channelId, name: channel.name, lastMessage: 'Нет сообщений', timestamp: channel.createdAt, sender: null, type: 'channel' }); }
+            }
+            recentChats.sort((a, b) => b.timestamp - a.timestamp);
+            displayRecentChats(recentChats);
+        }
+
         async function loadRecentChats() {
             try {
-                searchResults.innerHTML = '<div style="text-align: center; padding: 10px; color: var(--text-light);">Загрузка чатов...</div>';
-
-                const snapshot = await database.ref('messages').once('value');
-                const allChats = snapshot.val();
-                const recentChats = [];
-                const addedUsernames = new Set();
-
-                // Сначала добавляем пользователей из recentChats (сохраненных контактов)
-                if (currentUserData && currentUserData.recentChats) {
-                    for (const chat of currentUserData.recentChats) {
-                        if (chat.username && !addedUsernames.has(chat.username)) {
-                            addedUsernames.add(chat.username);
-
-                            // Получаем актуальные данные пользователя
-                            const userSnapshot = await database.ref('users/' + encodeURIComponent(chat.username)).once('value');
-                            const userData = userSnapshot.val();
-
-                            // Проверяем, есть ли сообщения с этим пользователем
-                            const chatId = getChatId(currentUser, chat.username);
-                            let lastMessageText = 'Нет сообщений';
-                            let lastTimestamp = chat.addedAt || Date.now();
-                            let lastSender = null;
-
-                            if (allChats && allChats[chatId]) {
-                                const messages = allChats[chatId];
-                                const messagesArray = Object.keys(messages).map(key => ({
-                                    id: key,
-                                    ...messages[key]
-                                }));
-
-                                const lastMessage = messagesArray
-                                    .filter(msg => msg.text && msg.sender && msg.timestamp)
-                                    .sort((a, b) => b.timestamp - a.timestamp)[0];
-
-                                if (lastMessage) {
-                                    lastMessageText = lastMessage.text;
-                                    lastTimestamp = lastMessage.timestamp;
-                                    lastSender = lastMessage.sender;
-                                }
-                            }
-
-                            recentChats.push({
-                                id: chatId,
-                                user: chat.username,
-                                name: userData ? userData.name : chat.name,
-                                emoji: userData ? userData.emoji : (chat.emoji || '😊'),
-                                lastMessage: lastMessageText,
-                                timestamp: lastTimestamp,
-                                sender: lastSender,
-                                type: 'user'
-                            });
-                        }
-                    }
+                // Мгновенный рендер из кэша если есть, иначе показываем лоадер
+                const cached = _dataCache.get('messages_all');
+                if (cached) {
+                    await _buildRecentChatsList(cached.data);
+                } else {
+                    searchResults.innerHTML = '<div style="text-align: center; padding: 10px; color: var(--text-light);">Загрузка чатов...</div>';
                 }
 
-                // Затем добавляем чаты с сообщениями (которых еще нет в списке)
-                if (allChats) {
-                    Object.keys(allChats).forEach(chatId => {
-                        if (chatId.includes(currentUser) && !chatId.startsWith('group_') && !chatId.startsWith('channel_')) {
-                            const messages = allChats[chatId];
-
-                            const messagesArray = Object.keys(messages).map(key => ({
-                                id: key,
-                                ...messages[key]
-                            }));
-
-                            const lastMessage = messagesArray
-                                .filter(msg => msg.text && msg.sender && msg.timestamp)
-                                .sort((a, b) => b.timestamp - a.timestamp)[0];
-
-                            if (lastMessage) {
-                                const otherUser = chatId.replace(currentUser, '').replace('_', '');
-
-                                if (!addedUsernames.has(otherUser)) {
-                                    addedUsernames.add(otherUser);
-                                    recentChats.push({
-                                        id: chatId,
-                                        user: otherUser,
-                                        lastMessage: lastMessage.text,
-                                        timestamp: lastMessage.timestamp,
-                                        sender: lastMessage.sender,
-                                        type: 'user'
-                                    });
-                                }
-                            }
-                        }
+                // Создаём подписку только один раз
+                if (!_dataCache.listeners['messages_all']) {
+                    _dataCache.subscribe('messages_all', database.ref('messages'), async (allChats, fromCache) => {
+                        if (!fromCache && activeTab === 'chats') await _buildRecentChatsList(allChats);
+                        _checkNewMessagesFromData(allChats);
                     });
                 }
-
-                for (const group of groups) {
-                    const groupId = group.id;
-                    const groupMessages = allChats && allChats[groupId];
-
-                    if (groupMessages) {
-                        const messagesArray = Object.keys(groupMessages).map(key => ({
-                            id: key,
-                            ...groupMessages[key]
-                        }));
-
-                        const lastMessage = messagesArray
-                            .filter(msg => msg.text && msg.sender && msg.timestamp)
-                            .sort((a, b) => b.timestamp - a.timestamp)[0];
-
-                        if (lastMessage) {
-                            recentChats.push({
-                                id: groupId,
-                                name: group.name,
-                                lastMessage: lastMessage.text,
-                                timestamp: lastMessage.timestamp,
-                                sender: lastMessage.sender,
-                                type: 'group'
-                            });
-                        }
-                    } else {
-                        recentChats.push({
-                            id: groupId,
-                            name: group.name,
-                            lastMessage: 'Нет сообщений',
-                            timestamp: group.createdAt,
-                            sender: null,
-                            type: 'group'
-                        });
-                    }
-                }
-
-                for (const channel of channels) {
-                    const channelId = channel.id;
-
-                    // Only show subscribed channels in Chats tab
-                    if (!subscribedChannels.includes(channelId)) {
-                        continue;
-                    }
-
-                    const channelMessages = allChats && allChats[channelId];
-
-                    if (channelMessages) {
-                        const messagesArray = Object.keys(channelMessages).map(key => ({
-                            id: key,
-                            ...channelMessages[key]
-                        }));
-
-                        const lastMessage = messagesArray
-                            .filter(msg => msg.text && msg.sender && msg.timestamp)
-                            .sort((a, b) => b.timestamp - a.timestamp)[0];
-
-                        if (lastMessage) {
-                            recentChats.push({
-                                id: channelId,
-                                name: channel.name,
-                                lastMessage: lastMessage.text,
-                                timestamp: lastMessage.timestamp,
-                                sender: lastMessage.sender,
-                                type: 'channel'
-                            });
-                        }
-                    } else {
-                        recentChats.push({
-                            id: channelId,
-                            name: channel.name,
-                            lastMessage: 'Нет сообщений',
-                            timestamp: channel.createdAt,
-                            sender: null,
-                            type: 'channel'
-                        });
-                    }
-                }
-
-                recentChats.sort((a, b) => b.timestamp - a.timestamp);
-
-                displayRecentChats(recentChats);
             } catch (error) {
                 showNotification('Ошибка: ' + error.message);
                 searchResults.innerHTML = '<div class="user-item">Ошибка загрузки чатов</div>';
@@ -6007,8 +5919,16 @@
             try {
                 if (activeTab === 'users') {
                     // Поиск только по username (точное или частичное совпадение)
-                    const snapshot = await database.ref('users').once('value');
-                    const users = snapshot.val();
+                    // 🚀 Используем кэш пользователей
+                    let users = null;
+                    const usersCached = _dataCache.get('users_all');
+                    if (usersCached) {
+                        users = usersCached.data;
+                    } else {
+                        const snapshot = await database.ref('users').once('value');
+                        users = snapshot.val();
+                        if (users) _dataCache.set('users_all', users);
+                    }
                     searchResults.innerHTML = '';
 
                     if (!users) {
@@ -6066,8 +5986,16 @@
                         searchResults.innerHTML = '<div class="user-item" style="text-align: center; color: var(--text-light);">Пользователи не найдены</div>';
                     }
                 } else if (activeTab === 'channels') {
-                    const snapshot = await database.ref('channels').once('value');
-                    const allChannels = snapshot.val();
+                    // 🚀 Используем кэш каналов
+                    let allChannels = null;
+                    const chCached = _dataCache.get('channels_all');
+                    if (chCached) {
+                        allChannels = chCached.data;
+                    } else {
+                        const snapshot = await database.ref('channels').once('value');
+                        allChannels = snapshot.val();
+                        if (allChannels) _dataCache.set('channels_all', allChannels);
+                    }
                     searchResults.innerHTML = '';
 
                     if (!allChannels) {
@@ -6202,11 +6130,7 @@
 
             adjustMessageInput();
 
-            loadMessages();
-
-            messageListeners[username] = setInterval(() => {
-                loadMessages();
-            }, 3000);
+            loadMessages(); // 🚀 realtime listener встроен в loadMessages — interval не нужен
         }
 
         function closeChat() {
@@ -6236,6 +6160,17 @@
                 delete messageListeners[currentChat];
             }
 
+            // 🚀 Отписываемся от realtime-слушателя закрытого чата
+            if (currentChat) {
+                let _closedChatId = (currentChatType === 'group' || currentChatType === 'channel')
+                    ? currentChat : getChatId(currentUser, currentChat);
+                const cacheKey = 'msgs_' + _closedChatId;
+                if (_dataCache.listeners[cacheKey]) {
+                    try { _dataCache.listeners[cacheKey].off(); } catch(e) {}
+                    delete _dataCache.listeners[cacheKey];
+                }
+            }
+
             currentChat = null;
             currentChatType = null;
             currentGroup = null;
@@ -6244,28 +6179,28 @@
 
         async function loadMessages() {
             if (!currentChat) return;
-
-            // Для AI чата используем специальную функцию
-            if (currentChatType === 'ai') {
-                loadAIMessages();
-                return;
-            }
+            if (currentChatType === 'ai') { loadAIMessages(); return; }
 
             try {
-                let chatId;
-                if (currentChatType === 'group' || currentChatType === 'channel') {
-                    chatId = currentChat;
-                } else {
-                    chatId = getChatId(currentUser, currentChat);
+                let chatId = (currentChatType === 'group' || currentChatType === 'channel')
+                    ? currentChat : getChatId(currentUser, currentChat);
+                const cacheKey = 'msgs_' + chatId;
+
+                // 🚀 Мгновенно показываем из кэша
+                const cached = _dataCache.get(cacheKey);
+                if (cached) {
+                    if (currentChatType === 'channel') displayMessages(cached.data, false);
+                    else displayMessages(cached.data, true);
                 }
 
-                const snapshot = await database.ref('messages/' + chatId).once('value');
-                const messages = snapshot.val();
-
-                if (currentChatType === 'channel') {
-                    displayMessages(messages, false);
-                } else {
-                    displayMessages(messages, true);
+                // Подписываемся на realtime (заменяет setInterval + once)
+                if (!_dataCache.listeners[cacheKey]) {
+                    _dataCache.subscribe(cacheKey, database.ref('messages/' + chatId), (msgs, fromCache) => {
+                        if (!fromCache) {
+                            if (currentChatType === 'channel') displayMessages(msgs, false);
+                            else displayMessages(msgs, true);
+                        }
+                    });
                 }
             } catch (error) {
                 console.error('Ошибка загрузки сообщений:', error);
@@ -7028,6 +6963,9 @@
 
                 messageText.value = '';
 
+                // Инвалидируем кэш — realtime listener сам обновит UI
+                _dataCache.invalidate('msgs_' + chatId);
+                _dataCache.invalidate('messages_all');
                 loadMessages();
 
                 if (activeTab === 'chats') {
@@ -7215,6 +7153,8 @@
                 });
 
                 closeEditMessage();
+                _dataCache.invalidate('msgs_' + chatId);
+                _dataCache.invalidate('messages_all');
                 loadMessages();
 
                 if (activeTab === 'chats') {
@@ -7248,6 +7188,8 @@
 
                 await database.ref('messages/' + chatId + '/' + messageId).remove();
 
+                _dataCache.invalidate('msgs_' + chatId);
+                _dataCache.invalidate('messages_all');
                 loadMessages();
 
                 if (activeTab === 'chats') {
@@ -7271,6 +7213,8 @@
 
         async function handleLogout() {
             if (confirm('Вы уверены, что хотите выйти из аккаунта ' + (currentUser || '') + '?')) {
+                // 🚀 Отписываемся от всех realtime-слушателей и чистим кэш
+                _dataCache.unsubscribeAll();
                 // ✅ ИСПРАВЛЕНО: unsubscribeFromPushNotifications не существует — убрана несуществующая функция
                 try { await updateUserStatus(false); } catch(e) {}
 
@@ -7889,6 +7833,7 @@
             try {
                 const channelId = 'channel_' + Date.now();
 
+                _dataCache.invalidate('channels_all');
                 await database.ref('channels/' + channelId).set({
                     name: channelName,
                     description: channelDescription,
@@ -7911,28 +7856,37 @@
             }
         }
 
+        function _applyChannelsData(channelsData) {
+            channels = [];
+            if (channelsData) {
+                Object.keys(channelsData).forEach(channelId => {
+                    const channel = channelsData[channelId];
+                    channels.push({ id: channelId, name: channel.name, description: channel.description, creator: channel.creator, subscribers: channel.subscribers || [], createdAt: channel.createdAt, icons: channel.icons || [] });
+                });
+            }
+        }
+
         async function loadChannels() {
             try {
-                const snapshot = await database.ref('channels').once('value');
-                const channelsData = snapshot.val();
-                channels = [];
-
-                if (channelsData) {
-                    Object.keys(channelsData).forEach(channelId => {
-                        const channel = channelsData[channelId];
-                        channels.push({
-                            id: channelId,
-                            name: channel.name,
-                            description: channel.description,
-                            creator: channel.creator,
-                            subscribers: channel.subscribers || [],
-                            createdAt: channel.createdAt,
-                            icons: channel.icons || []
-                        });
-                    });
+                // Мгновенно из кэша
+                const cached = _dataCache.get('channels_all');
+                if (cached) {
+                    _applyChannelsData(cached.data);
+                    displayChannels();
                 }
-
-                displayChannels();
+                // Подписываемся на realtime
+                if (!_dataCache.listeners['channels_all']) {
+                    _dataCache.subscribe('channels_all', database.ref('channels'), (channelsData, fromCache) => {
+                        _applyChannelsData(channelsData);
+                        if (!fromCache) displayChannels();
+                    });
+                } else if (!cached) {
+                    const snapshot = await database.ref('channels').once('value');
+                    const channelsData = snapshot.val();
+                    _dataCache.set('channels_all', channelsData);
+                    _applyChannelsData(channelsData);
+                    displayChannels();
+                }
             } catch (error) {
                 console.error('Ошибка загрузки каналов:', error);
             }
@@ -8779,6 +8733,7 @@
             try {
                 const groupId = 'group_' + Date.now();
 
+                _dataCache.invalidate('groups_all');
                 await database.ref('groups/' + groupId).set({
                     name: groupName,
                     admin: currentUser,
@@ -8814,29 +8769,39 @@
             }
         }
 
+        function _applyGroupsData(groupsData) {
+            groups = [];
+            if (groupsData) {
+                Object.keys(groupsData).forEach(groupId => {
+                    const group = groupsData[groupId];
+                    if (group.participants && group.participants.includes(currentUser)) {
+                        groups.push({ id: groupId, name: group.name, admin: group.admin, participants: group.participants, createdAt: group.createdAt });
+                    }
+                });
+            }
+        }
+
         async function loadGroups() {
             try {
-                const snapshot = await database.ref('groups').once('value');
-                const groupsData = snapshot.val();
-                groups = [];
-
-                if (groupsData) {
-                    Object.keys(groupsData).forEach(groupId => {
-                        const group = groupsData[groupId];
-                        if (group.participants && group.participants.includes(currentUser)) {
-                            groups.push({
-                                id: groupId,
-                                name: group.name,
-                                admin: group.admin,
-                                participants: group.participants,
-                                createdAt: group.createdAt
-                            });
-                        }
-                    });
+                // Мгновенно из кэша
+                const cached = _dataCache.get('groups_all');
+                if (cached) {
+                    _applyGroupsData(cached.data);
+                    if (activeTab === 'chats') loadRecentChats();
                 }
-
-                if (activeTab === 'chats') {
-                    loadRecentChats();
+                // Подписываемся на realtime если ещё нет
+                if (!_dataCache.listeners['groups_all']) {
+                    _dataCache.subscribe('groups_all', database.ref('groups'), (groupsData, fromCache) => {
+                        _applyGroupsData(groupsData);
+                        if (!fromCache && activeTab === 'chats') loadRecentChats();
+                    });
+                } else if (!cached) {
+                    // Нет кэша и нет подписки — делаем разовый fetch
+                    const snapshot = await database.ref('groups').once('value');
+                    const groupsData = snapshot.val();
+                    _dataCache.set('groups_all', groupsData);
+                    _applyGroupsData(groupsData);
+                    if (activeTab === 'chats') loadRecentChats();
                 }
             } catch (error) {
                 console.error('Ошибка загрузки групп:', error);
@@ -11161,8 +11126,16 @@ document.addEventListener('click', function(e) {
             if (profileModal) profileModal.classList.remove('active');
 
             try {
-                const snap = await database.ref('users').once('value');
-                const allUsers = snap.val() || {};
+                // 🚀 Берём пользователей из кэша
+                let allUsers = {};
+                const petUsersCached = _dataCache.get('users_all');
+                if (petUsersCached) {
+                    allUsers = petUsersCached.data || {};
+                } else {
+                    const snap = await database.ref('users').once('value');
+                    allUsers = snap.val() || {};
+                    _dataCache.set('users_all', allUsers);
+                }
                 const pets = [];
                 Object.keys(allUsers).forEach(key => {
                     const u = allUsers[key];
@@ -11644,9 +11617,8 @@ document.addEventListener('click', function(e) {
             lastScrollTop = currentScroll;
         }, { passive: false });
 
-        // ==================== СИСТЕМА ЗВОНКОВ JaaS 8x8 ====================
-        // AppID из вашей учётной записи JaaS (https://jaas.8x8.vc)
-        const JAAS_APP_ID = 'vpaas-magic-cookie-65fa7e4c292f4062a95a97f5cd21d4ce';
+        // ==================== СИСТЕМА ЗВОНКОВ (Jitsi Meet — бесплатно, без токенов) ====================
+        // Используем публичный meet.jit.si — не требует JWT/AppID
 
         // Ссылка на текущий экземпляр Jitsi API
         let jitsiApi = null;
@@ -11658,16 +11630,15 @@ document.addEventListener('click', function(e) {
         /**
          * Генерирует уникальное имя комнаты для пары пользователей.
          * Имя всегда одинаковое для одной и той же пары, независимо от порядка.
-         * Формат: <AppID>/<user1>--<user2> (символы сортируются)
+         * Добавляем префикс 'twiin-' чтобы избежать конфликтов с чужими комнатами.
          */
         function getCallRoomName(userA, userB) {
             const sorted = [userA, userB].sort().join('--').replace(/[^a-zA-Z0-9\-_]/g, '_');
-            return sorted;
+            return 'twiin-' + sorted;
         }
 
         /**
-         * Загружает Jitsi External API скрипт (если ещё не загружен).
-         * JaaS использует ту же библиотеку что и Jitsi Meet.
+         * Загружает Jitsi External API скрипт с meet.jit.si (если ещё не загружен).
          */
         function loadJitsiScript() {
             return new Promise((resolve, reject) => {
@@ -11676,8 +11647,7 @@ document.addEventListener('click', function(e) {
                     return;
                 }
                 const script = document.createElement('script');
-                // Официальный JaaS загрузчик SDK
-                script.src = 'https://8x8.vc/vpaas-magic-cookie-65fa7e4c292f4062a95a97f5cd21d4ce/external_api.js';
+                script.src = 'https://meet.jit.si/external_api.js';
                 script.onload = resolve;
                 script.onerror = () => reject(new Error('Не удалось загрузить Jitsi API'));
                 document.head.appendChild(script);
@@ -11712,16 +11682,15 @@ document.addEventListener('click', function(e) {
             container.innerHTML = '';
             overlay.classList.add('active');
 
-            // Инициализируем JaaS через Jitsi External API
-            // Домен для JaaS всегда 8x8.vc
-            jitsiApi = new window.JitsiMeetExternalAPI('8x8.vc', {
-                roomName: `${JAAS_APP_ID}/${roomName}`,
+            // Инициализируем через Jitsi External API (meet.jit.si — без токена)
+            jitsiApi = new window.JitsiMeetExternalAPI('meet.jit.si', {
+                roomName: roomName,
                 parentNode: container,
                 width: '100%',
                 height: '100%',
                 userInfo: {
                     displayName: displayName,
-                    email: `${currentUser}@twin.app`
+                    email: `${currentUser}@twiin.ru`
                 },
                 configOverwrite: {
                     startWithAudioMuted: false,
