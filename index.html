@@ -3,37 +3,93 @@
 
 <head>
     <!-- === НАЧАЛО БЛОКА SEO ДЛЯ ПОИСКОВИКОВ === -->
-    
+
     <!-- Основная кодировка (обязательно должна быть первой) -->
     <meta charset="UTF-8">
-    
-    <!-- Заголовок вкладки в браузере (то, что написано на вкладке) -->
-    <title>Twiin — Мессенджер</title>
-    
-    <!-- Описание сайта для Google и Яндекс (сниппет в поиске) -->
-    <meta name="description" content="Twiin — бесплатный веб-мессенджер. Общайтесь с друзьями, отправляйте подарки, создавайте группы и каналы. Встроенный AI-ассистент, темная тема и установка на телефон.">
-    
-    <!-- Ключевые слова (помогают понять тематику) -->
-    <meta name="keywords" content="мессенджер, чат, twiin, общение, веб-чат, ai ассистент, подарки, группы, каналы, бесплатный чат">
-    
-    <!-- Инструкция для роботов: индексировать сайт и переходить по ссылкам -->
-    <meta name="robots" content="index, follow">
-    
-    <!-- Автор проекта -->
+
+    <!-- ─── Канонический URL (избегает дублирования страниц) ─── -->
+    <link rel="canonical" href="https://twiin.ru/">
+
+    <!-- ─── Заголовок страницы (50–60 символов — идеально для Google/Яндекс) ─── -->
+    <title>Twiin — Бесплатный мессенджер с AI онлайн | twiin.ru</title>
+
+    <!-- ─── Описание (сниппет в поиске, 120–160 символов) ─── -->
+    <meta name="description" content="Twiin — бесплатный веб-мессенджер с AI-ассистентом. Общайтесь в группах и каналах, отправляйте подарки, сторис. Без скачивания, прямо в браузере.">
+
+    <!-- ─── Ключевые слова ─── -->
+    <meta name="keywords" content="twiin, мессенджер онлайн, бесплатный чат, веб-мессенджер, чат с AI, ai ассистент в мессенджере, группы чат, каналы, подарки в чате, бесплатный мессенджер без регистрации, общение онлайн, мессенджер браузер">
+
+    <!-- ─── Robots: разрешаем индексацию ─── -->
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+
+    <!-- ─── Автор и язык ─── -->
     <meta name="author" content="Russia Stars">
-    
-    <!-- Настройка для красивого отображения ссылки в соцсетях (Open Graph) -->
+    <meta name="language" content="Russian">
+    <meta http-equiv="content-language" content="ru">
+
+    <!-- ─── Геолокация (помогает Яндексу в региональной выдаче) ─── -->
+    <meta name="geo.region" content="RU">
+    <meta name="geo.country" content="Russia">
+    <meta name="yandex-verification" content=""><!-- Вставьте код верификации Яндекс.Вебмастер -->
+
+    <!-- ─── Open Graph — красивая карточка в соцсетях и мессенджерах ─── -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Twiin — Твой новый мессенджер">
-    <meta property="og:description" content="Общайся, дарить подарки и используй AI прямо в браузере. Быстро, удобно и бесплатно.">
-    <meta property="og:image" content="https://twiin.ru/icon-192x192.png">
+    <meta property="og:site_name" content="Twiin Messenger">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:title" content="Twiin — Бесплатный мессенджер с AI онлайн">
+    <meta property="og:description" content="Общайтесь в группах и каналах, дарите подарки, публикуйте сторис и используйте AI-ассистента прямо в браузере. Без установки — бесплатно.">
+    <meta property="og:image" content="https://twiin.ru/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Twiin — Мессенджер онлайн">
     <meta property="og:url" content="https://twiin.ru/">
-    
-    <!-- Настройка для Twitter карточек -->
+
+    <!-- ─── Twitter / X карточка ─── -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Twiin Messenger">
-    <meta name="twitter:description" content="Современный чат с уникальными функциями.">
-    
+    <meta name="twitter:site" content="@twiin_ru">
+    <meta name="twitter:title" content="Twiin — Мессенджер с AI онлайн">
+    <meta name="twitter:description" content="Бесплатный веб-мессенджер: чаты, группы, каналы, подарки и AI-ассистент. Работает прямо в браузере.">
+    <meta name="twitter:image" content="https://twiin.ru/og-image.png">
+
+    <!-- ─── JSON-LD: структурированные данные для Google (rich results) ─── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Twiin",
+      "url": "https://twiin.ru/",
+      "description": "Бесплатный веб-мессенджер с AI-ассистентом, группами, каналами и подарками. Работает в браузере без установки.",
+      "applicationCategory": "CommunicationApplication",
+      "operatingSystem": "Web, Android, iOS",
+      "inLanguage": "ru",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "RUB"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "Russia Stars",
+        "url": "https://twiin.ru/"
+      },
+      "featureList": [
+        "Мессенджер онлайн",
+        "AI-ассистент",
+        "Группы и каналы",
+        "Подарки",
+        "Истории (сторис)",
+        "Тёмная тема",
+        "PWA — установка на телефон"
+      ]
+    }
+    </script>
+
+    <!-- ─── Prefetch/preconnect для ускорения загрузки (влияет на Core Web Vitals) ─── -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="https://firebaseio.com">
+
     <!-- === КОНЕЦ БЛОКА SEO === -->
     
     <!-- PWA мета-теги -->
