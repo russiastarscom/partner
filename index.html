@@ -3610,6 +3610,10 @@
             <span>➕</span>
             <span>Добавить аккаунт</span>
         </div>
+        <div class="settings-menu-item" id="invite-friends-menu-btn" onclick="toggleSettingsMenu();openInviteModal();" style="color:#e67e22;font-weight:600;">
+            <span>🎉</span>
+            <span>Пригласить друзей</span>
+        </div>
         <div class="settings-menu-item logout" id="logout-menu-btn">
             <span>🚪</span>
             <span>Выйти из аккаунта</span>
@@ -5265,20 +5269,28 @@
                         const messagesArray = Object.keys(messages).map(key => ({ id: key, ...messages[key] }));
                         const lastMessage = messagesArray.filter(msg => msg.text && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0];
                         if (lastMessage) {
-                            const otherUser = chatId.replace(currentUser, '').replace('_', '');
-                            if (!addedUsernames.has(otherUser)) { addedUsernames.add(otherUser); recentChats.push({ id: chatId, user: otherUser, lastMessage: lastMessage.text, timestamp: lastMessage.timestamp, sender: lastMessage.sender, type: 'user' }); }
+                            // Корректно извлекаем имя собеседника из chatId вида "user1_user2"
+                            const parts = chatId.split('_');
+                            const otherUser = parts[0] === currentUser ? parts.slice(1).join('_') : parts.slice(0, parts.length - 1).join('_') === currentUser ? parts[parts.length - 1] : parts.filter(p => p !== currentUser).join('_');
+                            if (otherUser && !addedUsernames.has(otherUser)) { addedUsernames.add(otherUser); recentChats.push({ id: chatId, user: otherUser, lastMessage: lastMessage.text, timestamp: lastMessage.timestamp, sender: lastMessage.sender, type: 'user' }); }
                         }
                     }
                 });
             }
+            const addedChatIds = new Set(recentChats.map(c => c.id));
             for (const group of groups) {
-                const groupId = group.id; const groupMessages = allChats && allChats[groupId];
+                const groupId = group.id;
+                if (addedChatIds.has(groupId)) continue;
+                addedChatIds.add(groupId);
+                const groupMessages = allChats && allChats[groupId];
                 if (groupMessages) { const messagesArray = Object.keys(groupMessages).map(key => ({ id: key, ...groupMessages[key] })); const lastMessage = messagesArray.filter(msg => msg.text && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0]; if (lastMessage) { recentChats.push({ id: groupId, name: group.name, lastMessage: lastMessage.text, timestamp: lastMessage.timestamp, sender: lastMessage.sender, type: 'group' }); } }
                 else { recentChats.push({ id: groupId, name: group.name, lastMessage: 'Нет сообщений', timestamp: group.createdAt, sender: null, type: 'group' }); }
             }
             for (const channel of channels) {
                 const channelId = channel.id;
                 if (!subscribedChannels.includes(channelId)) continue;
+                if (addedChatIds.has(channelId)) continue;
+                addedChatIds.add(channelId);
                 const channelMessages = allChats && allChats[channelId];
                 if (channelMessages) { const messagesArray = Object.keys(channelMessages).map(key => ({ id: key, ...channelMessages[key] })); const lastMessage = messagesArray.filter(msg => msg.text && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0]; if (lastMessage) { recentChats.push({ id: channelId, name: channel.name, lastMessage: lastMessage.text, timestamp: lastMessage.timestamp, sender: lastMessage.sender, type: 'channel' }); } }
                 else { recentChats.push({ id: channelId, name: channel.name, lastMessage: 'Нет сообщений', timestamp: channel.createdAt, sender: null, type: 'channel' }); }
@@ -5312,6 +5324,14 @@
 
         async function displayRecentChats(chats) {
             searchResults.innerHTML = '';
+
+            // Дедупликация по id — защита от дублей при параллельных вызовах
+            const seenIds = new Set();
+            chats = chats.filter(chat => {
+                if (seenIds.has(chat.id)) return false;
+                seenIds.add(chat.id);
+                return true;
+            });
 
             if (chats.length === 0) {
                 searchResults.innerHTML = '<div class="user-item" style="text-align: center; color: var(--text-light);">У вас пока нет чатов.<br>Найдите пользователя через поиск во вкладке "Пользователи"</div>';
@@ -7867,25 +7887,38 @@
         }
 
         async function loadChannels() {
+            // Вспомогательная функция: обновить нужный экран после загрузки данных каналов
+            async function _afterChannelsLoaded(fromCache) {
+                if (activeTab === 'channels') {
+                    // Показываем список каналов только если мы на вкладке «Каналы»
+                    displayChannels();
+                } else if (activeTab === 'chats' && !fromCache) {
+                    // Если мы на вкладке «Чаты» — перерисовываем список чатов,
+                    // чтобы корректно отобразить только подписанные каналы
+                    const msgsCached = _dataCache.get('messages_all');
+                    if (msgsCached) await _buildRecentChatsList(msgsCached.data);
+                }
+            }
+
             try {
                 // Мгновенно из кэша
                 const cached = _dataCache.get('channels_all');
                 if (cached) {
                     _applyChannelsData(cached.data);
-                    displayChannels();
+                    await _afterChannelsLoaded(true);
                 }
                 // Подписываемся на realtime
                 if (!_dataCache.listeners['channels_all']) {
-                    _dataCache.subscribe('channels_all', database.ref('channels'), (channelsData, fromCache) => {
+                    _dataCache.subscribe('channels_all', database.ref('channels'), async (channelsData, fromCache) => {
                         _applyChannelsData(channelsData);
-                        if (!fromCache) displayChannels();
+                        if (!fromCache) await _afterChannelsLoaded(false);
                     });
                 } else if (!cached) {
                     const snapshot = await database.ref('channels').once('value');
                     const channelsData = snapshot.val();
                     _dataCache.set('channels_all', channelsData);
                     _applyChannelsData(channelsData);
-                    displayChannels();
+                    await _afterChannelsLoaded(false);
                 }
             } catch (error) {
                 console.error('Ошибка загрузки каналов:', error);
@@ -13619,6 +13652,94 @@ document.addEventListener('click', function(e) {
         </div>
     </div>
 
+    <!-- ===== МОДАЛЬНОЕ ОКНО ПРИГЛАШЕНИЯ ДРУЗЕЙ ===== -->
+    <div id="invite-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99990;align-items:center;justify-content:center;" onclick="if(event.target===this)closeInviteModal()">
+        <div style="background:var(--modal-bg);border-radius:22px;padding:28px 24px 24px;max-width:420px;width:calc(100% - 32px);box-shadow:0 8px 40px rgba(0,0,0,0.22);position:relative;max-height:90vh;overflow-y:auto;">
+
+            <button onclick="closeInviteModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-light);line-height:1;">✕</button>
+
+            <div style="text-align:center;margin-bottom:20px;">
+                <div style="font-size:3rem;margin-bottom:8px;">🎉</div>
+                <h2 style="margin:0 0 6px;font-size:1.25rem;color:var(--text-color);">Пригласить друзей</h2>
+                <p style="margin:0;font-size:0.88rem;color:var(--text-light);">Поделитесь Twiin с друзьями — общайтесь вместе!</p>
+            </div>
+
+            <!-- Реферальная ссылка -->
+            <div style="margin-bottom:18px;">
+                <label style="display:block;font-size:0.78rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Ваша реферальная ссылка</label>
+                <div style="display:flex;gap:8px;">
+                    <input id="invite-link-input" readonly value="https://twiin.ru"
+                        style="flex:1;padding:10px 12px;border:1.5px solid var(--border-color);border-radius:10px;background:var(--input-bg);color:var(--text-color);font-size:0.85rem;font-family:inherit;cursor:text;"
+                        onclick="this.select()">
+                    <button id="invite-copy-btn" onclick="copyInviteLink()"
+                        style="padding:10px 14px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);border:none;border-radius:10px;color:#fff;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit;transition:opacity .15s;">
+                        📋 Копировать
+                    </button>
+                </div>
+                <div id="invite-copied-msg" style="display:none;margin-top:6px;font-size:0.82rem;color:#2ecc71;font-weight:600;">✅ Ссылка скопирована!</div>
+            </div>
+
+            <!-- Кнопки платформ -->
+            <div style="margin-bottom:8px;">
+                <div style="font-size:0.78rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Поделиться через</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+
+                    <button onclick="shareInvite('telegram')"
+                        style="display:flex;align-items:center;gap:9px;padding:11px 14px;background:#2CA5E0;border:none;border-radius:12px;color:#fff;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;"
+                        onmouseover="this.style.opacity='.82'" onmouseout="this.style.opacity='1'">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.932z"/></svg>
+                        Telegram
+                    </button>
+
+                    <button onclick="shareInvite('whatsapp')"
+                        style="display:flex;align-items:center;gap:9px;padding:11px 14px;background:#25D366;border:none;border-radius:12px;color:#fff;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;"
+                        onmouseover="this.style.opacity='.82'" onmouseout="this.style.opacity='1'">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        WhatsApp
+                    </button>
+
+                    <button onclick="shareInvite('vk')"
+                        style="display:flex;align-items:center;gap:9px;padding:11px 14px;background:#0077FF;border:none;border-radius:12px;color:#fff;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;"
+                        onmouseover="this.style.opacity='.82'" onmouseout="this.style.opacity='1'">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M15.07 2H8.93C3.33 2 2 3.33 2 8.93v6.14C2 20.67 3.33 22 8.93 22h6.14C20.67 22 22 20.67 22 15.07V8.93C22 3.33 20.67 2 15.07 2zm3.08 13.5h-1.58c-.6 0-.78-.48-1.86-1.57-1-.94-1.44-.97-1.44-.97s-.58-.06-.58.8v1.43c0 .5-.16.8-1.47.8-2.17 0-4.57-1.32-6.25-3.77C3.5 9.9 3 7.88 3 7.88s-.1-.24.7-.24h1.58c.52 0 .72.24.92.8.66 2 1.76 3.74 2.2 3.74.17 0 .25-.08.25-.5V9.5c-.04-1.4-.82-1.52-.82-2.01 0-.27.21-.54.55-.54h2.48c.43 0 .58.22.58.7v3.75c0 .42.18.57.3.57.17 0 .32-.15.64-.47 1-.98 1.72-2.49 1.72-2.49.1-.18.26-.35.67-.35h1.58c.47 0 .58.25.47.58-.2.9-2.17 3.72-2.17 3.72-.17.27-.24.4 0 .7.17.24.75.74 1.13 1.19.7.8 1.24 1.47 1.38 1.93.13.47-.11.7-.6.7z"/></svg>
+                        ВКонтакте
+                    </button>
+
+                    <button onclick="shareInvite('email')"
+                        style="display:flex;align-items:center;gap:9px;padding:11px 14px;background:linear-gradient(135deg,#fd79a8,#e84393);border:none;border-radius:12px;color:#fff;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;"
+                        onmouseover="this.style.opacity='.82'" onmouseout="this.style.opacity='1'">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                        Почта (Email)
+                    </button>
+
+                    <button onclick="shareInvite('rustore')"
+                        style="display:flex;align-items:center;gap:9px;padding:11px 14px;background:linear-gradient(135deg,#1a1a2e,#16213e);border:none;border-radius:12px;color:#fff;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;"
+                        onmouseover="this.style.opacity='.82'" onmouseout="this.style.opacity='1'">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M5 3l3.057-3 11.943 12-11.943 12-3.057-3 9-9z"/></svg>
+                        RuStore
+                    </button>
+
+                    <button onclick="shareInvite('native')"
+                        style="display:flex;align-items:center;gap:9px;padding:11px 14px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);border:none;border-radius:12px;color:#fff;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;"
+                        onmouseover="this.style.opacity='.82'" onmouseout="this.style.opacity='1'">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+                        Ещё...
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- Плашка приложения -->
+            <div style="margin-top:16px;padding:14px;background:linear-gradient(135deg,rgba(108,92,231,0.08),rgba(162,155,254,0.12));border:1.5px solid rgba(108,92,231,0.2);border-radius:14px;text-align:center;">
+                <p style="margin:0;font-size:0.82rem;color:var(--text-light);line-height:1.6;">
+                    🚀 <strong style="color:var(--text-color);">Twiin</strong> — бесплатный мессенджер с AI-ассистентом.<br>
+                    Работает в браузере без установки или скачайте в&nbsp;<strong style="color:var(--text-color);">RuStore</strong>.
+                </p>
+            </div>
+        </div>
+    </div>
+    <!-- ===== КОНЕЦ МОДАЛЬНОГО ОКНА ПРИГЛАШЕНИЯ ===== -->
+
     <!-- ===== ЭКРАН БАНА ===== -->
     <div id="ban-notice-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:99999;align-items:center;justify-content:center;flex-direction:column;">
         <div style="text-align:center;max-width:420px;padding:40px 28px;background:#1a1f35;border:1px solid rgba(231,76,60,0.4);border-radius:20px;margin:20px;">
@@ -13765,5 +13886,92 @@ document.addEventListener('click', function(e) {
     })();
     </script>
     <!-- ===== КОНЕЦ TWIN REPORTS & BANS ===== -->
+    <!-- ===== СИСТЕМА ПРИГЛАШЕНИЯ ДРУЗЕЙ ===== -->
+    <script>
+    (function(){
+        var TWIIN_URL   = 'https://twiin.ru';
+        var RUSTORE_URL = 'https://www.rustore.ru/catalog/app/org.chromium.webapk.a089886fd90127e14_v2';
+        var INVITE_MSG  = 'Привет! Попробуй Twiin — бесплатный мессенджер с AI прямо в браузере. Без установки! ';
+
+        function getInviteLink() {
+            var link = TWIIN_URL;
+            if (typeof currentUser !== 'undefined' && currentUser) {
+                link += '?ref=' + encodeURIComponent(currentUser);
+            }
+            return link;
+        }
+
+        window.openInviteModal = function() {
+            var inp = document.getElementById('invite-link-input');
+            if (inp) inp.value = getInviteLink();
+            var msg = document.getElementById('invite-copied-msg');
+            if (msg) msg.style.display = 'none';
+            document.getElementById('invite-modal-overlay').style.display = 'flex';
+        };
+
+        window.closeInviteModal = function() {
+            document.getElementById('invite-modal-overlay').style.display = 'none';
+        };
+
+        window.copyInviteLink = function() {
+            var link = getInviteLink();
+            var btn  = document.getElementById('invite-copy-btn');
+            var msg  = document.getElementById('invite-copied-msg');
+            try {
+                navigator.clipboard.writeText(link).then(function(){ showCopied(btn, msg); }).catch(function(){ fallback(link, btn, msg); });
+            } catch(e) { fallback(link, btn, msg); }
+        };
+
+        function fallback(text, btn, msg) {
+            var ta = document.createElement('textarea');
+            ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;';
+            document.body.appendChild(ta); ta.focus(); ta.select();
+            try { document.execCommand('copy'); } catch(e){}
+            document.body.removeChild(ta);
+            showCopied(btn, msg);
+        }
+
+        function showCopied(btn, msg) {
+            if (msg) { msg.style.display = 'block'; setTimeout(function(){ msg.style.display='none'; }, 2500); }
+            if (btn) { var orig = btn.innerHTML; btn.innerHTML = '✅ Скопировано!'; setTimeout(function(){ btn.innerHTML = orig; }, 2000); }
+            if (typeof showNotification === 'function') showNotification('🔗 Ссылка скопирована!');
+        }
+
+        window.shareInvite = function(type) {
+            var link = getInviteLink();
+            var text = INVITE_MSG + link;
+            var url  = '';
+
+            if (type === 'telegram') {
+                url = 'https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(INVITE_MSG);
+            } else if (type === 'whatsapp') {
+                url = 'https://wa.me/?text=' + encodeURIComponent(text);
+            } else if (type === 'vk') {
+                url = 'https://vk.com/share.php?url=' + encodeURIComponent(link)
+                    + '&title=' + encodeURIComponent('Twiin — бесплатный мессенджер с AI')
+                    + '&comment=' + encodeURIComponent(INVITE_MSG);
+            } else if (type === 'email') {
+                var body = 'Привет!\n\nХочу поделиться классным мессенджером — Twiin.\n\n'
+                    + '✨ Бесплатно\n🤖 AI-ассистент\n💬 Группы и каналы\n🎁 Подарки\n📱 Без установки\n\n'
+                    + 'Открыть в браузере:\n' + link + '\n\n'
+                    + 'Скачать в RuStore:\n' + RUSTORE_URL;
+                url = 'mailto:?subject=' + encodeURIComponent('Попробуй Twiin — мессенджер с AI!') + '&body=' + encodeURIComponent(body);
+            } else if (type === 'rustore') {
+                url = RUSTORE_URL;
+            } else if (type === 'native') {
+                if (navigator.share) {
+                    navigator.share({ title: 'Twiin — мессенджер с AI', text: INVITE_MSG, url: link }).catch(function(){});
+                    return;
+                } else {
+                    window.copyInviteLink();
+                    return;
+                }
+            }
+
+            if (url) window.open(url, '_blank', 'noopener,noreferrer');
+        };
+    })();
+    </script>
+    <!-- ===== КОНЕЦ СИСТЕМЫ ПРИГЛАШЕНИЯ ===== -->
 
 </html>
