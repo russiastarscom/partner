@@ -5117,6 +5117,7 @@
         let notifiedMessageIds = new Set();
         let currentUserData = null; // ✅ ИСПРАВЛЕНО: переменная не была объявлена
         let _chatListRendering = false; // мьютекс: предотвращает параллельный рендер списка чатов
+        let isSendingMessage = false; // флаг: предотвращает повторную отправку сообщения
 
         // ============================================================
         // 🚀 СИСТЕМА ХЕШИРОВАНИЯ И КЭШИРОВАНИЯ ДАННЫХ
@@ -5243,6 +5244,10 @@
             invalidate(key) {
                 delete this.store[key];
                 try { localStorage.removeItem('_dc_' + key); } catch(e) {}
+                // При инвалидации готового списка чатов — сбрасываем хеш рендера
+                if (key === 'recent_chats_built' || key === 'messages_all') {
+                    if (typeof _lastRecentChatsHash !== 'undefined') _lastRecentChatsHash = null;
+                }
             },
 
             /** Инвалидировать все ключи с префиксом */
@@ -5604,6 +5609,8 @@
             // ── Отправка медиа-сообщения ─────────────────────────────
             async function sendMediaMessage(mediaData) {
                 if (!currentChat) return;
+                if (isSendingMessage) return;
+                isSendingMessage = true;
                 const chatId = (currentChatType === 'group' || currentChatType === 'channel')
                     ? currentChat : getChatId(currentUser, currentChat);
                 const msg = { sender: currentUser, text: '', timestamp: Date.now(), ...mediaData };
@@ -5617,6 +5624,8 @@
                     lastMessageTimestamp = msg.timestamp;
                 } catch(err) {
                     showNotification('Ошибка отправки: ' + (err.message || err));
+                } finally {
+                    isSendingMessage = false;
                 }
             }
 
@@ -6022,6 +6031,8 @@
 
         function switchTab(tab) {
             activeTab = tab;
+            // Сбрасываем хеш — searchResults мог быть заменён другим контентом
+            _lastRecentChatsHash = null;
 
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
 
@@ -6223,84 +6234,174 @@
             try { await _doBuildRecentChatsList(allChats); } finally { _chatListRendering = false; }
         }
 
+        // Хеш последнего отрендеренного списка чатов — пропускаем рендер если ничего не изменилось
+        let _lastRecentChatsHash = null;
+
+        // Вспомогательная функция: получить медиа-текст последнего сообщения
+        function _getMsgPreviewText(msg) {
+            if (!msg) return '';
+            return msg.text || (msg.image ? '🖼 Фото' : msg.video ? '🎬 Видео' : msg.audio ? '🎵 Аудио' : msg.videoCircle ? '⚫ Видео-кружочек' : msg.file ? ('📄 ' + (msg.fileName || 'Файл')) : '');
+        }
+
+        // Надёжно извлечь имя собеседника из chatId (формат: sorted([user1,user2]).join('_'))
+        function _getOtherUserFromChatId(chatId, me) {
+            // getChatId сортирует: [me, other].sort() → joined
+            // Значит chatId === [me, other].sort().join('_')
+            // Ищем вариант при котором одна из частей == me
+            if (chatId.startsWith(me + '_')) return chatId.slice(me.length + 1);
+            if (chatId.endsWith('_' + me)) return chatId.slice(0, chatId.length - me.length - 1);
+            return null;
+        }
+
         async function _doBuildRecentChatsList(allChats) {
             const recentChats = [];
-            const addedUsernames = new Set();
+            // Единый Set по chatId — исключает любые дубли независимо от типа
+            const seenChatIds = new Set();
+            // Set по username — быстрый поиск при переборе allChats
+            const seenUsernames = new Set();
 
+            // ── 1. Чаты из профиля пользователя (recentChats в Firebase) ──────────
             if (currentUserData && currentUserData.recentChats) {
                 for (const chat of currentUserData.recentChats) {
-                    if (chat.username && !addedUsernames.has(chat.username)) {
-                        addedUsernames.add(chat.username);
-                        const userCached = _dataCache.get('user_' + chat.username);
-                        let userData = userCached ? userCached.data : null;
-                        if (!userData) {
-                            const userSnapshot = await database.ref('users/' + encodeURIComponent(chat.username)).once('value');
-                            userData = userSnapshot.val();
+                    if (!chat.username) continue;
+                    const chatId = getChatId(currentUser, chat.username);
+                    if (seenChatIds.has(chatId)) continue;
+                    seenChatIds.add(chatId);
+                    seenUsernames.add(chat.username);
+
+                    // Берём данные юзера из кэша — без лишних Firebase-запросов
+                    const userCached = _dataCache.get('user_' + chat.username);
+                    let userData = userCached ? userCached.data : null;
+                    if (!userData) {
+                        try {
+                            const snap = await database.ref('users/' + encodeURIComponent(chat.username)).once('value');
+                            userData = snap.val();
                             if (userData) _dataCache.set('user_' + chat.username, userData);
-                        }
-                        const chatId = getChatId(currentUser, chat.username);
-                        let lastMessageText = 'Нет сообщений';
-                        let lastTimestamp = chat.addedAt || Date.now();
-                        let lastSender = null;
-                        if (allChats && allChats[chatId]) {
-                            const messages = allChats[chatId];
-                            const messagesArray = Object.keys(messages).map(key => ({ id: key, ...messages[key] }));
-                            const lastMessage = messagesArray.filter(msg => (msg.text || msg.image || msg.video || msg.audio || msg.file || msg.videoCircle) && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0];
-                            if (lastMessage) { lastMessageText = lastMessage.text || (lastMessage.image ? '🖼 Фото' : lastMessage.video ? '🎬 Видео' : lastMessage.audio ? '🎵 Аудио' : lastMessage.videoCircle ? '⚫ Видео-кружочек' : lastMessage.file ? ('📄 ' + (lastMessage.fileName || 'Файл')) : ''); lastTimestamp = lastMessage.timestamp; lastSender = lastMessage.sender; }
-                        }
-                        recentChats.push({ id: chatId, user: chat.username, name: userData ? userData.name : chat.name, emoji: userData ? userData.emoji : (chat.emoji || '😊'), lastMessage: lastMessageText, timestamp: lastTimestamp, sender: lastSender, type: 'user' });
+                        } catch(e) {}
                     }
+
+                    let lastMessageText = 'Нет сообщений';
+                    let lastTimestamp = chat.addedAt || 0;
+                    let lastSender = null;
+                    if (allChats && allChats[chatId]) {
+                        const msgs = Object.values(allChats[chatId]);
+                        const last = msgs.filter(m => (m.text || m.image || m.video || m.audio || m.file || m.videoCircle) && m.sender && m.timestamp)
+                                        .sort((a, b) => b.timestamp - a.timestamp)[0];
+                        if (last) { lastMessageText = _getMsgPreviewText(last); lastTimestamp = last.timestamp; lastSender = last.sender; }
+                    }
+                    recentChats.push({
+                        id: chatId,
+                        user: chat.username,
+                        name: userData ? (userData.name || userData.nickname || chat.username) : (chat.name || chat.username),
+                        emoji: userData ? (userData.emoji || '😊') : (chat.emoji || '😊'),
+                        lastMessage: lastMessageText,
+                        timestamp: lastTimestamp,
+                        sender: lastSender,
+                        type: 'user'
+                    });
                 }
             }
+
+            // ── 2. Чаты из messages (могут быть не в recentChats, но есть история) ─
             if (allChats) {
-                Object.keys(allChats).forEach(chatId => {
-                    if (chatId.includes(currentUser) && !chatId.startsWith('group_') && !chatId.startsWith('channel_')) {
-                        const messages = allChats[chatId];
-                        const messagesArray = Object.keys(messages).map(key => ({ id: key, ...messages[key] }));
-                        const lastMessage = messagesArray.filter(msg => (msg.text || msg.image || msg.video || msg.audio || msg.file || msg.videoCircle) && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0];
-                        if (lastMessage) {
-                            // Корректно извлекаем имя собеседника из chatId вида "user1_user2"
-                            const parts = chatId.split('_');
-                            const otherUser = parts[0] === currentUser ? parts.slice(1).join('_') : parts.slice(0, parts.length - 1).join('_') === currentUser ? parts[parts.length - 1] : parts.filter(p => p !== currentUser).join('_');
-                            const lastMsgText = lastMessage.text || (lastMessage.image ? '🖼 Фото' : lastMessage.video ? '🎬 Видео' : lastMessage.audio ? '🎵 Аудио' : lastMessage.videoCircle ? '⚫ Видео-кружочек' : lastMessage.file ? ('📄 ' + (lastMessage.fileName || 'Файл')) : '');
-                            if (otherUser && !addedUsernames.has(otherUser)) { addedUsernames.add(otherUser); recentChats.push({ id: chatId, user: otherUser, lastMessage: lastMsgText, timestamp: lastMessage.timestamp, sender: lastMessage.sender, type: 'user' }); }
-                        }
-                    }
-                });
+                for (const chatId of Object.keys(allChats)) {
+                    if (chatId.startsWith('group_') || chatId.startsWith('channel_')) continue;
+                    if (seenChatIds.has(chatId)) continue;
+                    // Проверяем что это чат с участием текущего пользователя
+                    const otherUser = _getOtherUserFromChatId(chatId, currentUser);
+                    if (!otherUser || seenUsernames.has(otherUser)) continue;
+
+                    const msgs = Object.values(allChats[chatId]);
+                    const last = msgs.filter(m => (m.text || m.image || m.video || m.audio || m.file || m.videoCircle) && m.sender && m.timestamp)
+                                    .sort((a, b) => b.timestamp - a.timestamp)[0];
+                    if (!last) continue;
+
+                    seenChatIds.add(chatId);
+                    seenUsernames.add(otherUser);
+
+                    // Берём имя из кэша
+                    const userCached = _dataCache.get('user_' + otherUser);
+                    const userData = userCached ? userCached.data : null;
+
+                    recentChats.push({
+                        id: chatId,
+                        user: otherUser,
+                        name: userData ? (userData.name || userData.nickname || otherUser) : otherUser,
+                        emoji: userData ? (userData.emoji || '😊') : '😊',
+                        lastMessage: _getMsgPreviewText(last),
+                        timestamp: last.timestamp,
+                        sender: last.sender,
+                        type: 'user'
+                    });
+                }
             }
-            const addedChatIds = new Set(recentChats.map(c => c.id));
+
+            // ── 3. Группы ────────────────────────────────────────────────────────────
             for (const group of groups) {
                 const groupId = group.id;
-                if (addedChatIds.has(groupId)) continue;
-                addedChatIds.add(groupId);
-                const groupMessages = allChats && allChats[groupId];
-                if (groupMessages) { const messagesArray = Object.keys(groupMessages).map(key => ({ id: key, ...groupMessages[key] })); const lastMessage = messagesArray.filter(msg => (msg.text || msg.image || msg.video || msg.audio || msg.file || msg.videoCircle) && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0]; if (lastMessage) { const lmText = lastMessage.text || (lastMessage.image ? '🖼 Фото' : lastMessage.video ? '🎬 Видео' : lastMessage.audio ? '🎵 Аудио' : lastMessage.videoCircle ? '⚫ Видео-кружочек' : lastMessage.file ? ('📄 ' + (lastMessage.fileName || 'Файл')) : ''); recentChats.push({ id: groupId, name: group.name, lastMessage: lmText, timestamp: lastMessage.timestamp, sender: lastMessage.sender, type: 'group' }); } }
-                else { recentChats.push({ id: groupId, name: group.name, lastMessage: 'Нет сообщений', timestamp: group.createdAt, sender: null, type: 'group' }); }
+                if (seenChatIds.has(groupId)) continue;
+                seenChatIds.add(groupId);
+                const groupMsgs = allChats && allChats[groupId];
+                let lastItem = { lastMessage: 'Нет сообщений', timestamp: group.createdAt || 0, sender: null };
+                if (groupMsgs) {
+                    const last = Object.values(groupMsgs)
+                        .filter(m => (m.text || m.image || m.video || m.audio || m.file || m.videoCircle) && m.sender && m.timestamp)
+                        .sort((a, b) => b.timestamp - a.timestamp)[0];
+                    if (last) lastItem = { lastMessage: _getMsgPreviewText(last), timestamp: last.timestamp, sender: last.sender };
+                }
+                recentChats.push({ id: groupId, name: group.name, ...lastItem, type: 'group' });
             }
+
+            // ── 4. Каналы (только подписанные) ───────────────────────────────────────
             for (const channel of channels) {
                 const channelId = channel.id;
                 if (!subscribedChannels.includes(channelId)) continue;
-                if (addedChatIds.has(channelId)) continue;
-                addedChatIds.add(channelId);
-                const channelMessages = allChats && allChats[channelId];
-                if (channelMessages) { const messagesArray = Object.keys(channelMessages).map(key => ({ id: key, ...channelMessages[key] })); const lastMessage = messagesArray.filter(msg => (msg.text || msg.image || msg.video || msg.audio || msg.file || msg.videoCircle) && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0]; if (lastMessage) { const lmText = lastMessage.text || (lastMessage.image ? '🖼 Фото' : lastMessage.video ? '🎬 Видео' : lastMessage.audio ? '🎵 Аудио' : lastMessage.videoCircle ? '⚫ Видео-кружочек' : lastMessage.file ? ('📄 ' + (lastMessage.fileName || 'Файл')) : ''); recentChats.push({ id: channelId, name: channel.name, lastMessage: lmText, timestamp: lastMessage.timestamp, sender: lastMessage.sender, type: 'channel' }); } }
-                else { recentChats.push({ id: channelId, name: channel.name, lastMessage: 'Нет сообщений', timestamp: channel.createdAt, sender: null, type: 'channel' }); }
+                if (seenChatIds.has(channelId)) continue;
+                seenChatIds.add(channelId);
+                const chMsgs = allChats && allChats[channelId];
+                let lastItem = { lastMessage: 'Нет сообщений', timestamp: channel.createdAt || 0, sender: null };
+                if (chMsgs) {
+                    const last = Object.values(chMsgs)
+                        .filter(m => (m.text || m.image || m.video || m.audio || m.file || m.videoCircle) && m.sender && m.timestamp)
+                        .sort((a, b) => b.timestamp - a.timestamp)[0];
+                    if (last) lastItem = { lastMessage: _getMsgPreviewText(last), timestamp: last.timestamp, sender: last.sender };
+                }
+                recentChats.push({ id: channelId, name: channel.name, ...lastItem, type: 'channel' });
             }
+
             recentChats.sort((a, b) => b.timestamp - a.timestamp);
+
+            // ── Умный пропуск рендера: если список не изменился — не трогаем DOM ────
+            const listHash = _dataCache._hash(JSON.stringify(recentChats));
+            if (listHash === _lastRecentChatsHash) return;
+            _lastRecentChatsHash = listHash;
+
+            // Кэшируем готовый список (для мгновенного старта при следующем открытии)
+            _dataCache.set('recent_chats_built', recentChats);
+
             displayRecentChats(recentChats);
         }
 
         async function loadRecentChats() {
             try {
-                // Мгновенный рендер из кэша если есть, иначе показываем лоадер
-                const cached = _dataCache.get('messages_all');
-                if (cached) {
-                    await _buildRecentChatsList(cached.data);
+                // Мгновенный рендер: сначала пробуем готовый кэшированный список чатов
+                const builtCache = _dataCache.get('recent_chats_built');
+                if (builtCache && builtCache.data && builtCache.data.length > 0) {
+                    const listHash = _dataCache._hash(JSON.stringify(builtCache.data));
+                    if (listHash !== _lastRecentChatsHash) {
+                        _lastRecentChatsHash = listHash;
+                        displayRecentChats(builtCache.data);
+                    }
                 } else {
-                    searchResults.innerHTML = '<div style="text-align: center; padding: 10px; color: var(--text-light);">Загрузка чатов...</div>';
+                    const cached = _dataCache.get('messages_all');
+                    if (cached) {
+                        await _buildRecentChatsList(cached.data);
+                    } else {
+                        searchResults.innerHTML = '<div style="text-align: center; padding: 10px; color: var(--text-light);">Загрузка чатов...</div>';
+                    }
                 }
 
-                // Создаём подписку только один раз
+                // Создаём подписку только один раз — обновляем список при новых данных
                 if (!_dataCache.listeners['messages_all']) {
                     _dataCache.subscribe('messages_all', database.ref('messages'), async (allChats, fromCache) => {
                         if (!fromCache && activeTab === 'chats') await _buildRecentChatsList(allChats);
@@ -6316,7 +6417,7 @@
         async function displayRecentChats(chats) {
             searchResults.innerHTML = '';
 
-            // Дедупликация по id — защита от дублей при параллельных вызовах
+            // Финальная защита от дублей по id (на случай если список пришёл из старого кэша)
             const seenIds = new Set();
             chats = chats.filter(chat => {
                 if (seenIds.has(chat.id)) return false;
@@ -6329,69 +6430,54 @@
                 return;
             }
 
-            // Получаем данные пользователей для чатов без данных
-            const usersPromises = chats
-                .filter(chat => chat.type === 'user' && !chat.name)
-                .map(async chat => {
-                    const snapshot = await database.ref('users/' + encodeURIComponent(chat.user)).once('value');
-                    const userData = snapshot.val();
-                    return {
-                        ...chat,
-                        userData: userData || { name: chat.user, username: chat.user, online: false, emoji: '😊' }
-                    };
-                });
+            // Обогащаем user-чаты без имён данными из _dataCache (без Firebase запросов)
+            // Если в кэше нет — запускаем фоновую загрузку и используем username как fallback
+            const userChatsWithoutName = chats.filter(c => c.type === 'user' && !c.name);
+            if (userChatsWithoutName.length > 0) {
+                // Фоновая подгрузка — не блокируем рендер
+                Promise.all(userChatsWithoutName.map(async chat => {
+                    if (_dataCache.get('user_' + chat.user)) return;
+                    try {
+                        const snap = await database.ref('users/' + encodeURIComponent(chat.user)).once('value');
+                        const ud = snap.val();
+                        if (ud) {
+                            _dataCache.set('user_' + chat.user, ud);
+                            // После подгрузки инвалидируем готовый список — при след. обновлении подтянется
+                            _dataCache.invalidate('recent_chats_built');
+                            _lastRecentChatsHash = null;
+                        }
+                    } catch(e) {}
+                }));
+            }
 
-            const chatsWithUserData = await Promise.all(usersPromises);
-
-            // Объединяем чаты с данными
-            const allChats = chats.map(chat => {
-                if (chat.type === 'user' && !chat.name) {
-                    const chatWithData = chatsWithUserData.find(c => c.id === chat.id);
-                    return chatWithData || chat;
-                }
-                return chat;
-            });
-
-            allChats.forEach(chat => {
+            chats.forEach(chat => {
                 const userItem = document.createElement('div');
                 userItem.className = 'user-item';
 
-                const messageDate = new Date(chat.timestamp);
-                const timeString = messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
                 let lastMessageText = chat.lastMessage;
                 if (chat.type === 'user') {
-                    if (chat.sender === currentUser) {
-                        lastMessageText = `Вы: ${lastMessageText}`;
-                    }
+                    if (chat.sender === currentUser) lastMessageText = `Вы: ${lastMessageText}`;
                 } else {
-                    if (chat.sender) {
-                        lastMessageText = `${chat.sender}: ${lastMessageText}`;
-                    }
+                    if (chat.sender) lastMessageText = `${chat.sender}: ${lastMessageText}`;
                 }
 
                 let avatar, name, emoji, username;
                 if (chat.type === 'user') {
-                    const displayName = chat.name || (chat.userData ? chat.userData.name : chat.user) || 'Unknown';
-                    const displayEmoji = chat.emoji || (chat.userData ? chat.userData.emoji : '😊');
-                    const displayUsername = chat.user || (chat.userData ? chat.userData.username : '');
+                    // Ищем актуальные данные из _dataCache для корректного имени/эмодзи
+                    const cached = _dataCache.get('user_' + chat.user);
+                    const ud = cached ? cached.data : null;
+                    const displayName = chat.name || (ud ? (ud.name || ud.nickname || chat.user) : chat.user) || 'Unknown';
+                    const displayEmoji = chat.emoji || (ud ? ud.emoji : '😊') || '😊';
                     avatar = displayName.charAt(0).toUpperCase();
                     name = displayName;
                     emoji = displayEmoji;
-                    username = displayUsername;
+                    username = chat.user;
                 } else if (chat.type === 'group') {
-                    avatar = '👥';
-                    name = chat.name;
-                    emoji = '👥';
-                } else { // channel
+                    avatar = '👥'; name = chat.name; emoji = '👥';
+                } else {
                     const channel = channels.find(c => c.id === chat.id);
-                    if (channel && channel.icons && channel.icons.length > 0) {
-                        avatar = getChannelIconHtml(channel);
-                    } else {
-                        avatar = '📢';
-                    }
-                    name = chat.name;
-                    emoji = '📢';
+                    avatar = (channel && channel.icons && channel.icons.length > 0) ? getChannelIconHtml(channel) : '📢';
+                    name = chat.name; emoji = '📢';
                 }
 
                 userItem.innerHTML = `
@@ -6414,16 +6500,14 @@
                 `;
 
                 userItem.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('delete-chat-btn') || e.target.closest('.delete-chat-btn')) {
-                        return;
-                    }
-                    if (e.target.classList.contains('view-profile-btn') || e.target.closest('.view-profile-btn')) {
-                        return;
-                    }
+                    if (e.target.classList.contains('delete-chat-btn') || e.target.closest('.delete-chat-btn')) return;
+                    if (e.target.classList.contains('view-profile-btn') || e.target.closest('.view-profile-btn')) return;
 
                     if (chat.type === 'user') {
-                        const displayName = chat.name || (chat.userData ? chat.userData.name : chat.user);
-                        const displayEmoji = chat.emoji || (chat.userData ? chat.userData.emoji : '😊');
+                        const cached = _dataCache.get('user_' + chat.user);
+                        const ud = cached ? cached.data : null;
+                        const displayName = chat.name || (ud ? (ud.name || ud.nickname || chat.user) : chat.user);
+                        const displayEmoji = chat.emoji || (ud ? ud.emoji : '😊') || '😊';
                         openChat(chat.user, displayEmoji, displayName);
                     } else if (chat.type === 'group') {
                         openGroupChat(chat.id, chat.name);
@@ -6437,38 +6521,28 @@
                     profileViewBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
                         const targetUsername = profileViewBtn.getAttribute('data-username');
-                        if (targetUsername) {
-                            openUserProfile(targetUsername);
-                        }
+                        if (targetUsername) openUserProfile(targetUsername);
                     });
                 }
 
                 const deleteBtn = userItem.querySelector('.delete-chat-btn');
                 deleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-
                     let confirmMessage = '';
                     if (chat.type === 'group') {
                         const group = groups.find(g => g.id === chat.id);
-                        if (group && group.admin === currentUser) {
-                            confirmMessage = 'Вы уверены, что хотите удалить эту группу? Это действие необратимо.';
-                        } else {
-                            confirmMessage = 'Вы уверены, что хотите покинуть эту группу?';
-                        }
+                        confirmMessage = (group && group.admin === currentUser)
+                            ? 'Вы уверены, что хотите удалить эту группу? Это действие необратимо.'
+                            : 'Вы уверены, что хотите покинуть эту группу?';
                     } else if (chat.type === 'channel') {
                         const channel = channels.find(c => c.id === chat.id);
-                        if (channel && channel.creator === currentUser) {
-                            confirmMessage = 'Вы уверены, что хотите удалить этот канал? Это действие необратимо.';
-                        } else {
-                            confirmMessage = 'Вы уверены, что хотите отписаться от этого канала?';
-                        }
+                        confirmMessage = (channel && channel.creator === currentUser)
+                            ? 'Вы уверены, что хотите удалить этот канал? Это действие необратимо.'
+                            : 'Вы уверены, что хотите отписаться от этого канала?';
                     } else {
                         confirmMessage = 'Вы уверены, что хотите удалить этот чат? Все сообщения будут удалены.';
                     }
-
-                    if (confirm(confirmMessage)) {
-                        deleteChatById(chat.id, chat.type);
-                    }
+                    if (confirm(confirmMessage)) deleteChatById(chat.id, chat.type);
                 });
 
                 searchResults.appendChild(userItem);
@@ -7694,6 +7768,7 @@
          */
         window.submitComment = async function(postId) {
             if (!currentUser || !currentChat) return;
+            if (isSendingMessage) return;
             const sid = safePostId(postId);
             const inp = document.getElementById('new-comment-input-' + sid);
             if (!inp) return;
@@ -7701,6 +7776,7 @@
             if (!text) return;
 
             try {
+                isSendingMessage = true;
                 inp.disabled = true;
                 await database.ref('comments/' + currentChat + '/' + postId).push({
                     author: currentUser,
@@ -7714,6 +7790,7 @@
             } catch(e) {
                 showNotification('Ошибка: ' + e.message);
             } finally {
+                isSendingMessage = false;
                 inp.disabled = false;
                 inp.focus();
             }
@@ -7724,6 +7801,7 @@
          */
         window.submitReply = async function(postId, commentId, formId) {
             if (!currentUser || !currentChat) return;
+            if (isSendingMessage) return;
             const form = document.getElementById(formId);
             if (!form) return;
             const inp = form.querySelector('input');
@@ -7732,6 +7810,7 @@
             if (!text) return;
 
             try {
+                isSendingMessage = true;
                 inp.disabled = true;
                 await database.ref('comments/' + currentChat + '/' + postId + '/' + commentId + '/replies').push({
                     author: currentUser,
@@ -7745,6 +7824,7 @@
             } catch(e) {
                 showNotification('Ошибка: ' + e.message);
             } finally {
+                isSendingMessage = false;
                 inp.disabled = false;
             }
         };
@@ -8038,8 +8118,16 @@
 
 
         async function sendMessage() {
+            // Предотвращаем повторную отправку
+            if (isSendingMessage) return;
+
             const text = messageText.value.trim();
             if (!text || !currentChat) return;
+
+            isSendingMessage = true;
+            sendBtn.disabled = true;
+            sendBtn.style.opacity = '0.6';
+            sendBtn.style.cursor = 'not-allowed';
 
             // Обработка сообщений для AI ассистента
             if (currentChatType === 'ai') {
@@ -8060,6 +8148,11 @@
                     lastMessageTimestamp = message.timestamp;
                 } catch (error) {
                     showNotification('Ошибка: ' + error.message);
+                } finally {
+                    isSendingMessage = false;
+                    sendBtn.disabled = false;
+                    sendBtn.style.opacity = '1';
+                    sendBtn.style.cursor = 'pointer';
                 }
                 return;
             }
@@ -8075,6 +8168,10 @@
                 const channel = channels.find(c => c.id === chatId);
                 if (!channel || channel.creator !== currentUser) {
                     showNotification('Только создатель канала может отправлять сообщения');
+                    isSendingMessage = false;
+                    sendBtn.disabled = false;
+                    sendBtn.style.opacity = '1';
+                    sendBtn.style.cursor = 'pointer';
                     return;
                 }
             }
@@ -8087,16 +8184,28 @@
 
                 if (count < 1 || count > 100) {
                     showNotification('Количество повторов должно быть от 1 до 100');
+                    isSendingMessage = false;
+                    sendBtn.disabled = false;
+                    sendBtn.style.opacity = '1';
+                    sendBtn.style.cursor = 'pointer';
                     return;
                 }
 
                 if (!messageToRepeat) {
                     showNotification('Введите сообщение для повтора');
+                    isSendingMessage = false;
+                    sendBtn.disabled = false;
+                    sendBtn.style.opacity = '1';
+                    sendBtn.style.cursor = 'pointer';
                     return;
                 }
 
                 messageText.value = ''; messageText.style.height = 'auto';
                 await sendRepeatedMessages(chatId, messageToRepeat, count);
+                isSendingMessage = false;
+                sendBtn.disabled = false;
+                sendBtn.style.opacity = '1';
+                sendBtn.style.cursor = 'pointer';
                 return;
             }
 
@@ -8134,6 +8243,11 @@
                 lastMessageTimestamp = message.timestamp;
             } catch (error) {
                 showNotification('Ошибка: ' + error.message);
+            } finally {
+                isSendingMessage = false;
+                sendBtn.disabled = false;
+                sendBtn.style.opacity = '1';
+                sendBtn.style.cursor = 'pointer';
             }
         }
 
