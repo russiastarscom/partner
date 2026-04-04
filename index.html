@@ -2030,14 +2030,6 @@
             opacity: 1;
         }
 
-        /* Состояние записи для кнопок внутри поля */
-        .msg-inner-btn.recording {
-            background: var(--danger-color);
-            color: #fff;
-            opacity: 1;
-            transform: scale(1.02);
-        }
-
         /* Кнопка отправки — снаружи справа, всегда по центру */
         .message-input > #send-btn {
             background: linear-gradient(135deg, var(--primary-color) 0%, #8b7cf8 100%);
@@ -4438,8 +4430,6 @@
                         </div>
                         <textarea id="message-text" placeholder="Введите сообщение..." autocomplete="off" rows="1"></textarea>
                         <button id="gift-btn" title="Отправить подарок" class="msg-inner-btn">🎁</button>
-                        <button id="mic-btn" title="Записать голос" class="msg-inner-btn mic-btn">🎤</button>
-                        <button id="video-circle-btn" title="Видео-кружочек" class="msg-inner-btn video-btn">🎥</button>
                     </div>
                     <button id="send-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24"
@@ -4667,7 +4657,6 @@
             <h2 class="modal-title">Настройки профиля</h2>
 
             <input type="text" class="modal-input" id="profile-username-input" placeholder="Ваше имя">
-            <input type="text" class="modal-input" id="profile-username-change" placeholder="Юзернейм (латиница, цифры, _)" title="Только латинские буквы, цифры и подчёркивания">
 
             <div class="emoji-selector">
                 <label>Ваш статус:</label>
@@ -5073,7 +5062,7 @@
         const createGroupConfirmBtn = document.getElementById('create-group-confirm-btn');
         const blockUserBtn = document.getElementById('block-user-btn');
         const deleteChatBtn = document.getElementById('delete-chat-btn');
-        let connectionStatus = document.getElementById('connection-status');
+        const connectionStatus = document.getElementById('connection-status');
         const blockedList = document.getElementById('blocked-list');
         const groupSettingsBtn = document.getElementById('group-settings-btn');
         const groupSettingsModal = document.getElementById('group-settings-modal');
@@ -5113,8 +5102,6 @@
         let currentChat = null;
         let currentChatType = null; // 'user', 'group', 'channel'
         let messageListeners = {};
-        let chatStatusListeners = {};
-        let typingTimeouts = {};
         let activeTab = 'chats';
         let userEmoji = '😊';
         let editingMessageId = null;
@@ -5313,12 +5300,9 @@
             const savedUser = localStorage.getItem('messenger_user');
             if (savedUser) {
                 let userData = null;
-                try { userData = JSON.parse(savedUser); } catch(e) {
-                    // Поддержка старых версий, где в localStorage хранился просто username как строка
-                    userData = { username: savedUser };
-                }
+                try { userData = JSON.parse(savedUser); } catch(e) {}
 
-                if (userData && userData.username) {
+                if (userData && userData.username && userData.password) {
                     // Ждём Firebase до 5 секунд
                     let dbWait = 0;
                     while (typeof database === 'undefined' && dbWait < 10) {
@@ -5326,7 +5310,8 @@
                         dbWait++;
                     }
 
-                    // Ставим локальные значения сразу
+                    // Входим сразу по локальным данным — не ждём Firebase.
+                    // Это решает проблему с GitHub Pages где Firebase WebSocket ненадёжен.
                     currentUser = userData.username;
                     userEmoji = '😊';
                     currentUserEl.querySelector('span:last-child').textContent = userData.username;
@@ -5339,8 +5324,8 @@
                             const snapshot = await userRef.once('value');
                             if (snapshot.exists()) {
                                 const dbUserData = snapshot.val();
-                                // Если в локальных данных есть пароль — сверим его, иначе пропускаем проверку
-                                if (userData.password && dbUserData.password && dbUserData.password !== userData.password) {
+                                // Если пароль не совпадает — выходим
+                                if (dbUserData.password !== userData.password) {
                                     currentUser = null;
                                     localStorage.removeItem('messenger_user');
                                     requestUsername();
@@ -5485,7 +5470,6 @@
                 }
             }
             const newName = document.getElementById('profile-username-input').value.trim();
-            const newUsername = (document.getElementById('profile-username-change')||{value:''}).value.trim();
 
             if (!newName) {
                 showNotification('Пожалуйста, введите имя');
@@ -5493,7 +5477,6 @@
             }
 
             try {
-                // Сначала сохраняем имя/эмодзи в существующем узле
                 _dataCache.invalidate('users_all');
                 await database.ref('users/' + encodeURIComponent(currentUser)).update({
                     name: newName,
@@ -5503,43 +5486,6 @@
                 if (currentUserData) {
                     currentUserData.name = newName;
                     currentUserData.emoji = userEmoji;
-                }
-
-                // Если пользователь захотел сменить юзернейм
-                if (newUsername && newUsername !== currentUser) {
-                    // валидация формата
-                    if (!/^[a-zA-Z0-9_]+$/.test(newUsername)) {
-                        showNotification('Неверный формат юзернейма');
-                        return;
-                    }
-
-                    // проверим занятость
-                    const newRef = database.ref('users/' + encodeURIComponent(newUsername));
-                    const snap = await newRef.once('value');
-                    if (snap.exists()) {
-                        showNotification('Этот юзернейм уже занят');
-                        return;
-                    }
-
-                    // переносим данные: копируем на новый путь и удаляем старый
-                    const oldRef = database.ref('users/' + encodeURIComponent(currentUser));
-                    const oldSnap = await oldRef.once('value');
-                    const userData = oldSnap.exists() ? oldSnap.val() : {};
-                    // Обновим поле username внутри данных
-                    userData.username = newUsername;
-
-                    await newRef.set(userData);
-                    await oldRef.remove();
-
-                    // Обновляем localStorage и переменные в памяти
-                    try {
-                        const saved = JSON.parse(localStorage.getItem('messenger_user') || '{}');
-                        saved.username = newUsername;
-                        localStorage.setItem('messenger_user', JSON.stringify(saved));
-                    } catch (e) {}
-
-                    currentUser = newUsername;
-                    currentUserData = userData;
                 }
 
                 userEmojiEl.textContent = userEmoji;
@@ -5776,8 +5722,6 @@
             messageText.addEventListener('input', () => {
                 messageText.style.height = 'auto';
                 messageText.style.height = Math.min(messageText.scrollHeight, 120) + 'px';
-                // Отправляем сигнал "печатает" в личных чатах
-                try { sendTypingSignal(); } catch(e) {}
             });
 
             messageText.addEventListener('focus', () => {
@@ -5920,41 +5864,12 @@
         }
 
         function updateConnectionStatus() {
-            const statusP = document.querySelector('.user-profile p');
-            if (!statusP) return;
-
-            // Найдём или создадим span.indicator внутри <p>
-            let span = statusP.querySelector('.connection-status');
-            if (!span) {
-                if (connectionStatus && connectionStatus.parentNode && connectionStatus.parentNode !== statusP) {
-                    // Переместим глобальный элемент в нужное место
-                    statusP.appendChild(connectionStatus);
-                    span = connectionStatus;
-                } else {
-                    span = document.createElement('span');
-                    span.className = 'connection-status';
-                    span.id = 'connection-status';
-                    statusP.appendChild(span);
-                    connectionStatus = span;
-                }
-            } else {
-                if (connectionStatus !== span) connectionStatus = span;
-            }
-
             if (isOnline) {
-                span.classList.remove('offline');
-                if (statusP.firstChild && statusP.firstChild.nodeType === 3) {
-                    statusP.firstChild.nodeValue = 'Онлайн ';
-                } else {
-                    statusP.insertBefore(document.createTextNode('Онлайн '), span);
-                }
+                connectionStatus.classList.remove('offline');
+                document.querySelector('.user-profile p').innerHTML = 'Онлайн <span class="connection-status" id="connection-status"></span>';
             } else {
-                span.classList.add('offline');
-                if (statusP.firstChild && statusP.firstChild.nodeType === 3) {
-                    statusP.firstChild.nodeValue = 'Офлайн ';
-                } else {
-                    statusP.insertBefore(document.createTextNode('Офлайн '), span);
-                }
+                connectionStatus.classList.add('offline');
+                document.querySelector('.user-profile p').innerHTML = 'Офлайн <span class="connection-status offline" id="connection-status"></span>';
             }
         }
 
@@ -6201,39 +6116,25 @@
 
             try {
                 if (newUsername !== currentUser) {
-                    // Получаем текущие данные пользователя, переносим их под новый ключ
-                    const oldRef = database.ref('users/' + encodeURIComponent(currentUser));
-                    const oldSnap = await oldRef.once('value');
-                    const existingData = oldSnap.exists() ? oldSnap.val() : {};
+                    const userRef = database.ref('users/' + encodeURIComponent(newUsername));
+                    const snapshot = await userRef.once('value');
 
-                    const newRef = database.ref('users/' + encodeURIComponent(newUsername));
-                    const newSnap = await newRef.once('value');
-                    if (newSnap.exists()) {
+                    if (snapshot.exists()) {
                         showNotification('Этот никнейм уже занят');
                         return;
                     }
 
-                    // Обновляем поля в копии данных
-                    existingData.username = newUsername;
-                    existingData.emoji = userEmoji;
-                    existingData.blockedUsers = blockedUsers;
-                    existingData.subscribedChannels = subscribedChannels;
-                    existingData.online = true;
-                    existingData.lastSeen = Date.now();
+                    await database.ref('users/' + encodeURIComponent(currentUser)).remove();
+                    await database.ref('users/' + encodeURIComponent(newUsername)).set({
+                        nickname: newUsername,
+                        emoji: userEmoji,
+                        online: true,
+                        lastSeen: Date.now(),
+                        blockedUsers: blockedUsers,
+                        subscribedChannels: subscribedChannels
+                    });
 
-                    // Сохраняем под новым ключом и удаляем старый
-                    await newRef.set(existingData);
-                    await oldRef.remove();
-
-                    // Обновляем localStorage в корректном формате (JSON)
-                    try {
-                        const saved = JSON.parse(localStorage.getItem('messenger_user') || '{}');
-                        saved.username = newUsername;
-                        localStorage.setItem('messenger_user', JSON.stringify(saved));
-                    } catch (e) {
-                        localStorage.setItem('messenger_user', JSON.stringify({ username: newUsername }));
-                    }
-
+                    localStorage.setItem('messenger_user', newUsername);
                     currentUser = newUsername;
                     currentUserEl.querySelector('span:last-child').textContent = newUsername;
                 } else {
@@ -6687,28 +6588,17 @@
                     // Удаляем сообщения
                     await database.ref('messages/' + chatId).remove();
 
-                    // Удаляем запись из recentChats — надёжно находим собеседника
+                    // Удаляем пользователя из recentChats
+                    const otherUser = chatId.replace(currentUser, '').replace('_', '');
                     const userRef = database.ref('users/' + encodeURIComponent(currentUser));
                     const snapshot = await userRef.once('value');
                     const userData = snapshot.val();
 
-                    if (userData && Array.isArray(userData.recentChats)) {
-                        // Ищем запись, которая соответствует этому chatId
-                        const entry = userData.recentChats.find(c => {
-                            try { return getChatId(currentUser, c.username) === chatId; } catch(e) { return false; }
-                        });
-                        const otherUser = entry ? entry.username : null;
+                    if (userData && userData.recentChats) {
                         const updatedRecentChats = userData.recentChats.filter(chat => chat.username !== otherUser);
                         await userRef.update({ recentChats: updatedRecentChats });
-                        if (currentUserData && currentUserData.recentChats) currentUserData.recentChats = updatedRecentChats;
+                        currentUserData.recentChats = updatedRecentChats;
                     }
-
-                    // Инвалидируем кэш сообщений и готового списка чатов
-                    try {
-                        _dataCache.invalidate('msgs_' + chatId);
-                        _dataCache.invalidate('messages_all');
-                        _dataCache.invalidate('recent_chats_built');
-                    } catch (e) {}
 
                     showNotification('Чат удален');
                 }
@@ -6822,96 +6712,6 @@
             });
 
             messageText.focus();
-        }
-
-        // Отписаться от слушателей статуса/печатает для предыдущего чата
-        function detachChatStatusListeners() {
-            try {
-                if (!chatStatusListeners) return;
-                Object.values(chatStatusListeners).forEach(obj => {
-                    try {
-                        if (obj.onlineRef && typeof obj.onlineRef.off === 'function') obj.onlineRef.off();
-                    } catch(e) {}
-                    try {
-                        if (obj.typingRef && typeof obj.typingRef.off === 'function') obj.typingRef.off();
-                    } catch(e) {}
-                });
-            } catch(e) {}
-            // Также удаляем наш флаг "печатает" для предыдущих чатов
-            try {
-                Object.keys(chatStatusListeners).forEach(chatId => {
-                    try { database.ref('typing/' + chatId + '/' + currentUser).remove(); } catch(e) {}
-                    if (typingTimeouts[chatId]) { clearTimeout(typingTimeouts[chatId]); delete typingTimeouts[chatId]; }
-                });
-            } catch(e) {}
-            chatStatusListeners = {};
-            // Скрываем подзаголовок
-            const subtitleEl = document.getElementById('chat-header-subtitle');
-            if (subtitleEl) { subtitleEl.classList.remove('visible'); subtitleEl.textContent = ''; }
-        }
-
-        // Подписываемся на online/typing собеседника (личный чат)
-        function attachChatStatusListeners(otherUsername) {
-            if (!otherUsername || typeof database === 'undefined') return;
-            const chatId = getChatId(currentUser, otherUsername);
-            const subtitleEl = document.getElementById('chat-header-subtitle');
-            if (!subtitleEl) return;
-
-            // Покажем подзаголовок
-            subtitleEl.classList.add('visible');
-
-            // Online status listener
-            try {
-                const onlineRef = database.ref('users/' + encodeURIComponent(otherUsername) + '/online');
-                const onlineCb = (snap) => {
-                    const val = snap.val();
-                    if (val === true) {
-                        subtitleEl.textContent = 'Онлайн';
-                    } else {
-                        subtitleEl.textContent = 'Не в сети';
-                    }
-                };
-                onlineRef.on('value', onlineCb);
-
-                // Typing listener
-                const typingRef = database.ref('typing/' + chatId + '/' + otherUsername);
-                const typingCb = (snap) => {
-                    const v = snap.val();
-                    if (v) {
-                        subtitleEl.textContent = 'Печатает…';
-                    } else {
-                        // вернём онлайн/офлайн статус — запросим единоразово
-                        onlineRef.once('value').then(s => {
-                            const isOn = s.val();
-                            subtitleEl.textContent = isOn ? 'Онлайн' : 'Не в сети';
-                        }).catch(() => {});
-                    }
-                };
-                typingRef.on('value', typingCb);
-
-                chatStatusListeners[chatId] = { onlineRef, typingRef };
-            } catch (e) {
-                console.error('attachChatStatusListeners error', e);
-            }
-        }
-
-        // Отправляем флаг "печатает" для текущего пользователя (личные чаты)
-        function sendTypingSignal() {
-            try {
-                if (currentChatType !== 'user' || !currentChat || !currentUser || typeof database === 'undefined') return;
-                const chatId = getChatId(currentUser, currentChat);
-                const myTypingRef = database.ref('typing/' + chatId + '/' + currentUser);
-                // Установим флаг
-                myTypingRef.set(true).catch(() => {});
-                // Попробуем удалить флаг при разрыве соединения
-                try { myTypingRef.onDisconnect().remove(); } catch(e) {}
-                // Сброс через 1.5 с неактивности
-                if (typingTimeouts[chatId]) clearTimeout(typingTimeouts[chatId]);
-                typingTimeouts[chatId] = setTimeout(() => {
-                    try { myTypingRef.remove(); } catch(e) {}
-                    delete typingTimeouts[chatId];
-                }, 1500);
-            } catch (e) { console.error('sendTypingSignal error', e); }
         }
 
         // Загрузка сообщений AI ассистента
@@ -7345,8 +7145,6 @@
             if (currentChat && messageListeners[currentChat]) {
                 clearInterval(messageListeners[currentChat]);
             }
-            // Снимаем слушатели статуса предыдущего чата
-            detachChatStatusListeners();
 
             currentChat = username;
             currentChatType = 'user';
@@ -7376,10 +7174,6 @@
             // Скрываем подзаголовок (он только для каналов)
             const subtitleElUser = document.getElementById('chat-header-subtitle');
             if (subtitleElUser) subtitleElUser.classList.remove('visible');
-
-            // Отписываем старые слушатели статуса/печатает и подписываемся на нового собеседника
-            detachChatStatusListeners();
-            attachChatStatusListeners(username);
 
             // Скрываем кнопку очистки истории AI
             const clearHistoryBtn = document.getElementById('clear-history-btn');
@@ -8695,13 +8489,13 @@
                 // ✅ ИСПРАВЛЕНО: unsubscribeFromPushNotifications не существует — убрана несуществующая функция
                 try { await updateUserStatus(false); } catch(e) {}
 
-                // Не удаляем запись из сохранённых аккаунтов — оставляем историю.
-                // Просто переключаем `messenger_user` на другой сохранённый аккаунт (если есть),
-                // либо удаляем текущую сессию.
-                const accounts = getAccounts();
-                const remaining = accounts.filter(a => a.username !== currentUser);
-                if (remaining.length > 0) {
-                    localStorage.setItem('messenger_user', JSON.stringify(remaining[0]));
+                // Удаляем текущий аккаунт из списка сохранённых
+                const accounts = getAccounts().filter(a => a.username !== currentUser);
+                localStorage.setItem('messenger_accounts', JSON.stringify(accounts));
+
+                // Если есть другой аккаунт — переключаемся на него
+                if (accounts.length > 0) {
+                    localStorage.setItem('messenger_user', JSON.stringify(accounts[0]));
                 } else {
                     localStorage.removeItem('messenger_user');
                 }
@@ -9547,8 +9341,6 @@
             if (currentChat && messageListeners[currentChat]) {
                 clearInterval(messageListeners[currentChat]);
             }
-            // Снимаем слушатели статуса предыдущего чата
-            detachChatStatusListeners();
 
             // Удаляем кнопку просмотра профиля (она только для личных чатов)
             const oldProfileBtn = document.getElementById('profile-view-btn');
@@ -10309,8 +10101,6 @@
             if (currentChat && messageListeners[currentChat]) {
                 clearInterval(messageListeners[currentChat]);
             }
-            // Снимаем слушатели статуса предыдущего чата
-            detachChatStatusListeners();
 
             // Удаляем кнопку просмотра профиля (она только для личных чатов)
             const oldProfileBtn = document.getElementById('profile-view-btn');
@@ -10677,13 +10467,7 @@
                     closeChat();
 
                     if (activeTab === 'chats') {
-                            // Инвалидируем кэш чтобы обновление было мгновенным
-                            try {
-                                _dataCache.invalidate('msgs_' + chatId);
-                                _dataCache.invalidate('messages_all');
-                                _dataCache.invalidate('recent_chats_built');
-                            } catch(e) {}
-                            await loadRecentChats();
+                        await loadRecentChats();
                     }
                 } catch (error) {
                     showNotification('Ошибка: ' + error.message);
@@ -10971,12 +10755,6 @@ async function requestUsername() {
     const regPasswordNonLatin = document.getElementById('reg-password-nonlatin');
     const loginPasswordNonLatin = document.getElementById('login-password-nonlatin');
     const submitRegister = document.getElementById('submit-register');
-
-    // Ограничение поля username только латиницей (английские буквы, цифры, _)
-    if (regUsername) {
-        regUsername.setAttribute('pattern', '^[a-zA-Z0-9_]+$');
-        regUsername.setAttribute('title', 'Только латинские буквы, цифры и подчёркивания');
-    }
 
     // Функция проверки нелатинских символов
     function hasNonLatin(str) {
@@ -13126,81 +12904,45 @@ document.addEventListener('click', function(e) {
         // ==================== СИСТЕМА ЗВОНКОВ (Jitsi Meet — бесплатно, без токенов) ====================
         // Используем публичный meet.jit.si — не требует JWT/AppID
 
-        let jitsiApi        = null;   // Текущий экземпляр Jitsi
-        let callListener    = null;   // Слушатель Firebase входящих звонков
-        let incomingCallData = null;  // Данные входящего звонка
-        let ringtoneInterval = null;  // Таймер рингтона
-        let ringtoneCtx     = null;   // Web Audio контекст для рингтона
-        let callTimeoutId   = null;   // Таймаут "нет ответа"
+        // Ссылка на текущий экземпляр Jitsi API
+        let jitsiApi = null;
+        // Слушатель входящих звонков
+        let callListener = null;
+        // Текущая комната входящего звонка
+        let incomingCallData = null;
 
-        // ─── Рингтон через Web Audio API (без внешних файлов) ─────────────────
-        function playRingtone() {
-            stopRingtone();
-            function beep() {
-                try {
-                    if (!ringtoneCtx)
-                        ringtoneCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    const osc  = ringtoneCtx.createOscillator();
-                    const gain = ringtoneCtx.createGain();
-                    osc.connect(gain);
-                    gain.connect(ringtoneCtx.destination);
-                    osc.frequency.setValueAtTime(880, ringtoneCtx.currentTime);
-                    osc.frequency.setValueAtTime(660, ringtoneCtx.currentTime + 0.18);
-                    gain.gain.setValueAtTime(0.35, ringtoneCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, ringtoneCtx.currentTime + 0.5);
-                    osc.start(ringtoneCtx.currentTime);
-                    osc.stop(ringtoneCtx.currentTime + 0.5);
-                } catch (e) {}
-            }
-            beep();
-            ringtoneInterval = setInterval(beep, 1600);
-        }
-
-        function stopRingtone() {
-            if (ringtoneInterval) { clearInterval(ringtoneInterval); ringtoneInterval = null; }
-        }
-
-        // ─── Генерация имени комнаты ────────────────────────────────────────────
+        /**
+         * Генерирует уникальное имя комнаты для пары пользователей.
+         * Имя всегда одинаковое для одной и той же пары, независимо от порядка.
+         * Добавляем префикс 'twiin-' чтобы избежать конфликтов с чужими комнатами.
+         */
         function getCallRoomName(userA, userB) {
             const sorted = [userA, userB].sort().join('--').replace(/[^a-zA-Z0-9\-_]/g, '_');
             return 'twiin-' + sorted;
         }
 
-        // ─── Загрузка Jitsi External API ────────────────────────────────────────
+        /**
+         * Загружает Jitsi External API скрипт с meet.jit.si (если ещё не загружен).
+         */
         function loadJitsiScript() {
             return new Promise((resolve, reject) => {
-                if (window.JitsiMeetExternalAPI) { resolve(); return; }
+                if (window.JitsiMeetExternalAPI) {
+                    resolve();
+                    return;
+                }
                 const script = document.createElement('script');
                 script.src = 'https://meet.jit.si/external_api.js';
-                script.onload  = resolve;
+                script.onload = resolve;
                 script.onerror = () => reject(new Error('Не удалось загрузить Jitsi API'));
                 document.head.appendChild(script);
             });
         }
 
         /**
-         * ИСПРАВЛЕНИЕ #1: Запрашиваем разрешения на микрофон/камеру ДО запуска Jitsi.
-         * Без этого браузер может заблокировать доступ внутри iframe.
-         */
-        async function requestMediaPermissions(needVideo) {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia(
-                    needVideo ? { audio: true, video: true } : { audio: true }
-                );
-                // Сразу освобождаем треки — Jitsi откроет их сам
-                stream.getTracks().forEach(t => t.stop());
-                return true;
-            } catch (e) {
-                console.warn('[Twiin Calls] Media permission denied:', e.name, e.message);
-                return false;
-            }
-        }
-
-        /**
-         * Запускает звонок.
-         * @param {string}  targetUser  - юзернейм собеседника
-         * @param {string}  callType    - 'audio' | 'video'
-         * @param {boolean} isIncoming  - входящий ли звонок
+         * Запускает звонок:
+         * @param {string} targetUser - юзернейм собеседника
+         * @param {string} callType   - 'audio' или 'video'
+         * @param {boolean} isIncoming - входящий ли это звонок
          * @param {string|null} roomOverride - имя комнаты (для входящего)
          */
         async function startCall(targetUser, callType, isIncoming = false, roomOverride = null) {
@@ -13212,131 +12954,83 @@ document.addEventListener('click', function(e) {
                 return;
             }
 
+            const roomName = roomOverride || getCallRoomName(currentUser, targetUser);
+            const displayName = currentUserData ? (currentUserData.name || currentUser) : currentUser;
             const isAudioOnly = callType === 'audio';
 
-            // ИСПРАВЛЕНИЕ #1 — просим разрешения до Jitsi
-            const hasPerms = await requestMediaPermissions(!isAudioOnly);
-            if (!hasPerms) {
-                showNotification(
-                    isAudioOnly
-                        ? '❌ Разрешите доступ к микрофону в настройках браузера'
-                        : '❌ Разрешите доступ к микрофону и камере в настройках браузера'
-                );
-                return;
-            }
-
-            const roomName    = roomOverride || getCallRoomName(currentUser, targetUser);
-            const displayName = currentUserData ? (currentUserData.name || currentUser) : currentUser;
-
-            stopRingtone();
-            if (callTimeoutId) { clearTimeout(callTimeoutId); callTimeoutId = null; }
-
-            const overlay   = document.getElementById('call-overlay');
-            const titleEl   = document.getElementById('call-overlay-title');
+            // Показываем оверлей
+            const overlay = document.getElementById('call-overlay');
+            const titleEl = document.getElementById('call-overlay-title');
             const container = document.getElementById('jitsi-container');
-
             titleEl.textContent = `${isAudioOnly ? '📞 Аудио' : '📹 Видео'} звонок с ${targetUser}`;
             container.innerHTML = '';
             overlay.classList.add('active');
 
-            // Инициализируем Jitsi
+            // Инициализируем через Jitsi External API (meet.jit.si — без токена)
             jitsiApi = new window.JitsiMeetExternalAPI('meet.jit.si', {
                 roomName: roomName,
                 parentNode: container,
-                width:  '100%',
+                width: '100%',
                 height: '100%',
                 userInfo: {
                     displayName: displayName,
                     email: `${currentUser}@twiin.ru`
                 },
                 configOverwrite: {
-                    startWithAudioMuted:  false,     // ВАЖНО: микрофон включён
-                    startWithVideoMuted:  isAudioOnly,
-                    prejoinPageEnabled:   false,
-                    disableDeepLinking:   true,       // Не редиректим в нативное приложение
-                    enableClosePage:      false,
+                    startWithAudioMuted: false,
+                    startWithVideoMuted: isAudioOnly,
+                    prejoinPageEnabled: false,
+                    // Критично для мобильных: запрещаем редирект в native-приложение
+                    disableDeepLinking: true,
                     disableThirdPartyRequests: false,
-                    enableNoisyMicDetection:   false, // Меньше ложных срабатываний на мобильных
-                    // ИСПРАВЛЕНИЕ #2 — P2P с STUN/TURN для прохождения через NAT
-                    p2p: {
-                        enabled:     true,
-                        useStunTurn: true,   // Критично: включаем TURN-сервер для NAT traversal
-                        preferH264:  false,  // H264 — только для видео, не влияет на аудио
-                    },
-                    // ИСПРАВЛЕНИЕ #3 — явные параметры аудио
-                    audioQuality: {
-                        stereo: false,
-                        opusMaxAverageBitrate: 24000,
-                    },
-                    startAudioOnly: isAudioOnly,
-                    enableUnifiedOnChrome: true,
+                    enableClosePage: false,
+                    // P2P быстрее на мобильных (меньше задержка)
+                    p2p: { enabled: true, preferH264: true },
+                    // Отключаем детектор шума (на мобильных часто ложные срабатывания)
+                    enableNoisyMicDetection: false,
+                    // Упрощённый тулбар для мобильных
                     toolbarButtons: isAudioOnly
                         ? ['microphone', 'hangup', 'raisehand']
                         : ['microphone', 'camera', 'hangup', 'raisehand', 'tileview'],
                 },
                 interfaceConfigOverwrite: {
-                    SHOW_JITSI_WATERMARK:          false,
-                    SHOW_WATERMARK_FOR_GUESTS:     false,
-                    MOBILE_APP_PROMO:              false,
-                    HIDE_INVITE_MORE_HEADER:       true,
+                    SHOW_JITSI_WATERMARK: false,
+                    SHOW_WATERMARK_FOR_GUESTS: false,
+                    // Скрываем промо мобильного приложения (иначе предлагает открыть app)
+                    MOBILE_APP_PROMO: false,
+                    HIDE_INVITE_MORE_HEADER: true,
                     DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,
-                    DISABLE_FOCUS_INDICATOR:       true,
-                    DEFAULT_REMOTE_DISPLAY_NAME:   targetUser,
+                    // Без анимации — быстрее на слабых телефонах
+                    DISABLE_FOCUS_INDICATOR: true,
                 }
             });
 
-            /**
-             * ИСПРАВЛЕНИЕ #4 (ГЛАВНЫЙ ФИКСe) — добавляем атрибут allow на iframe.
-             * Без него браузер блокирует доступ к микрофону/камере внутри iframe,
-             * поэтому собеседники не слышат друг друга.
-             */
-            function patchIframePermissions() {
-                const iframe = container.querySelector('iframe');
-                if (iframe) {
-                    iframe.setAttribute('allow',
-                        'camera *; microphone *; display-capture *; fullscreen *; autoplay *; screen-wake-lock *;'
-                    );
-                    console.log('[Twiin Calls] iframe allow патч применён ✅');
-                } else {
-                    // Ждём появления iframe
-                    setTimeout(patchIframePermissions, 300);
-                }
-            }
-            setTimeout(patchIframePermissions, 200);
-
-            // События Jitsi
-            jitsiApi.addEventListener('readyToClose', () => endCall());
-
-            jitsiApi.addEventListener('participantJoined', (p) => {
-                showNotification(`✅ ${p.displayName || targetUser} подключился к звонку`);
-                // Убеждаемся что микрофон не замьючен
-                try { jitsiApi.isAudioMuted().then(muted => {
-                    if (muted) jitsiApi.executeCommand('toggleAudio');
-                }); } catch(e) {}
+            // Когда звонок завершён через кнопку внутри Jitsi
+            jitsiApi.addEventListener('readyToClose', () => {
+                endCall();
             });
 
-            // Если ИСХОДЯЩИЙ — пишем в Firebase чтобы второй увидел входящий
+            // Если это ИСХОДЯЩИЙ звонок — создаём запись в Firebase,
+            // чтобы другой пользователь увидел входящий звонок
             if (!isIncoming) {
                 const callRef = database.ref(`calls/${encodeURIComponent(targetUser)}/incoming`);
                 await callRef.set({
-                    from:      currentUser,
-                    fromName:  displayName,
-                    callType:  callType,
-                    room:      roomName,
+                    from: currentUser,
+                    fromName: displayName,
+                    callType: callType,
+                    room: roomName,
                     timestamp: Date.now(),
-                    status:    'ringing'
+                    status: 'ringing'
                 });
-                // Через 60 секунд — нет ответа
-                callTimeoutId = setTimeout(async () => {
+                // Через 60 секунд убираем запись (не принят)
+                setTimeout(async () => {
                     const snap = await callRef.once('value');
                     if (snap.val() && snap.val().status === 'ringing') {
                         await callRef.remove();
-                        showNotification('📵 Нет ответа');
-                        endCall();
                     }
                 }, 60000);
             } else {
-                // Принятый звонок — удаляем запись, чтобы модалка пропала
+                // Принятый звонок — обновляем статус
                 await database.ref(`calls/${encodeURIComponent(currentUser)}/incoming`).remove();
             }
         }
@@ -13345,10 +13039,8 @@ document.addEventListener('click', function(e) {
          * Завершает текущий звонок.
          */
         function endCall() {
-            if (callTimeoutId) { clearTimeout(callTimeoutId); callTimeoutId = null; }
-            stopRingtone();
             if (jitsiApi) {
-                try { jitsiApi.dispose(); } catch (e) {}
+                try { jitsiApi.dispose(); } catch (e) { /* игнорируем */ }
                 jitsiApi = null;
             }
             document.getElementById('jitsi-container').innerHTML = '';
@@ -13366,7 +13058,6 @@ document.addEventListener('click', function(e) {
             document.getElementById('ic-call-type').textContent =
                 data.callType === 'audio' ? '🔊 Аудио звонок' : '📹 Видео звонок';
             modal.classList.add('active');
-            playRingtone();
         }
 
         /**
@@ -13375,7 +13066,6 @@ document.addEventListener('click', function(e) {
         function hideIncomingCallModal() {
             document.getElementById('incoming-call-modal').classList.remove('active');
             incomingCallData = null;
-            stopRingtone();
         }
 
         /**
@@ -13390,7 +13080,10 @@ document.addEventListener('click', function(e) {
 
             callRef.on('value', async (snapshot) => {
                 const data = snapshot.val();
-                if (!data) { hideIncomingCallModal(); return; }
+                if (!data) {
+                    hideIncomingCallModal();
+                    return;
+                }
                 if (data.status === 'ringing' && !jitsiApi) {
                     showIncomingCallModal(data);
                 }
@@ -13554,15 +13247,11 @@ document.addEventListener('click', function(e) {
 
         function saveAccountToList(username, password) {
             const accounts = getAccounts();
-            // Привязываем сохранённый аккаунт к тому пользователю, который его сохранил (currentUser)
-            const owner = typeof currentUser !== 'undefined' && currentUser ? currentUser : null;
             const idx = accounts.findIndex(a => a.username === username);
             if (idx === -1) {
-                accounts.push({ username, password, owner });
+                accounts.push({ username, password });
             } else {
                 accounts[idx].password = password; // обновляем пароль на случай смены
-                // если у записи нет владельца, назначим текущего
-                if (!accounts[idx].owner && owner) accounts[idx].owner = owner;
             }
             localStorage.setItem('messenger_accounts', JSON.stringify(accounts));
         }
@@ -13570,12 +13259,7 @@ document.addEventListener('click', function(e) {
         function renderAccountsList() {
             const list = document.getElementById('accounts-list');
             if (!list) return;
-            // Показываем только аккаунты, привязанные к текущему пользователю
-            const accounts = getAccounts().filter(a => {
-                // legacy: если у записи нет поля owner — показываем (чтобы не терять старые записи)
-                if (!a.owner) return true;
-                return a.owner === currentUser || a.username === currentUser;
-            });
+            const accounts = getAccounts();
             list.innerHTML = '';
 
             if (accounts.length === 0) {
@@ -16244,7 +15928,6 @@ document.addEventListener('click', function(e) {
         let clickCount = 0;
         let clickTimer = null;
         let isRecordingAudio = false;
-        let audioCanceled = false;
         let isRecordingVideo = false;
         let audioRecorder = null;
         let videoRecorder = null;
@@ -16327,19 +16010,6 @@ document.addEventListener('click', function(e) {
             sendBtn.addEventListener('touchend', handleSendButtonRelease);
             sendBtn.addEventListener('mouseleave', handleSendButtonRelease);
             sendBtn.addEventListener('touchcancel', handleSendButtonRelease);
-            // Отдельные кнопки микрофона и видео-кружочка рядом с полем ввода
-            const micBtnEl = document.getElementById('mic-btn');
-            const videoBtnEl = document.getElementById('video-circle-btn');
-            if (micBtnEl) {
-                micBtnEl.addEventListener('mousedown', function(e){ e.preventDefault(); if(!isRecordingAudio) startAudioRecording(); });
-                micBtnEl.addEventListener('touchstart', function(e){ e.preventDefault(); if(!isRecordingAudio) startAudioRecording(); }, { passive: false });
-                micBtnEl.addEventListener('mouseup', function(){ if(isRecordingAudio) stopAudioRecording(); });
-                micBtnEl.addEventListener('touchend', function(){ if(isRecordingAudio) stopAudioRecording(); });
-                micBtnEl.addEventListener('mouseleave', function(){ if(isRecordingAudio) stopAudioRecording(); });
-            }
-            if (videoBtnEl) {
-                videoBtnEl.addEventListener('click', function(e){ e.preventDefault(); openVideoCircleModal(); });
-            }
             
             // Скрыть меню при клике вне
             document.addEventListener('click', function(e) {
@@ -16467,7 +16137,6 @@ document.addEventListener('click', function(e) {
                 };
                 
                 audioRecorder.onstop = function() {
-                    if (audioCanceled) { audioChunks = []; audioCanceled = false; return; }
                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                     sendAudioMessage(audioBlob);
                 };
@@ -16475,8 +16144,6 @@ document.addEventListener('click', function(e) {
                 audioRecorder.start();
                 isRecordingAudio = true;
                 recordingStartTime = Date.now();
-                const micBtn = document.getElementById('mic-btn');
-                if (micBtn) micBtn.classList.add('recording');
                 
                 // Показываем индикатор записи
                 voiceRecordContainer.classList.add('active');
@@ -16511,8 +16178,6 @@ document.addEventListener('click', function(e) {
             
             isRecordingAudio = false;
             voiceRecordContainer.classList.remove('active');
-            const micBtn = document.getElementById('mic-btn');
-            if (micBtn) micBtn.classList.remove('recording');
             clearInterval(recordingTimer);
             
             // Вибрация на мобильных
@@ -16522,7 +16187,6 @@ document.addEventListener('click', function(e) {
         // Отменить запись аудио
         function cancelAudioRecording() {
             if (audioRecorder && audioRecorder.state !== 'inactive') {
-                audioCanceled = true;
                 audioRecorder.stop();
             }
             if (audioStream) {
@@ -16530,8 +16194,6 @@ document.addEventListener('click', function(e) {
             }
             isRecordingAudio = false;
             voiceRecordContainer.classList.remove('active');
-            const micBtn = document.getElementById('mic-btn');
-            if (micBtn) micBtn.classList.remove('recording');
             clearInterval(recordingTimer);
             audioChunks = [];
         }
@@ -16572,11 +16234,11 @@ document.addEventListener('click', function(e) {
                 formData.append('upload_preset', 'twiin_unsigned');
                 formData.append('folder', 'twiin_chat');
                 
-                const response = await fetch('https://api.cloudinary.com/v1_1/dzrlzyjpg/auto/upload', {
+                const response = await fetch('https://api.cloudinary.com/v1_1/dzrlzyjpg/video/upload', {
                     method: 'POST',
                     body: formData
                 });
-                if (!response.ok) throw new Error('Upload failed: ' + response.status + ' ' + response.statusText);
+                
                 const data = await response.json();
                 
                 if (data.secure_url) {
@@ -16672,8 +16334,6 @@ document.addEventListener('click', function(e) {
             
             const btn = document.getElementById('video-record-btn');
             btn.classList.add('recording');
-            const videoBtn = document.getElementById('video-circle-btn');
-            if (videoBtn) videoBtn.classList.add('recording');
             
             videoChunks = [];
             
@@ -16720,8 +16380,6 @@ document.addEventListener('click', function(e) {
             
             const btn = document.getElementById('video-record-btn');
             btn.classList.remove('recording');
-            const videoBtn = document.getElementById('video-circle-btn');
-            if (videoBtn) videoBtn.classList.remove('recording');
             
             videoRecorder.stop();
             
@@ -16767,11 +16425,11 @@ document.addEventListener('click', function(e) {
                 formData.append('upload_preset', 'twiin_unsigned');
                 formData.append('folder', 'twiin_chat');
                 
-                const response = await fetch('https://api.cloudinary.com/v1_1/dzrlzyjpg/auto/upload', {
+                const response = await fetch('https://api.cloudinary.com/v1_1/dzrlzyjpg/video/upload', {
                     method: 'POST',
                     body: formData
                 });
-                if (!response.ok) throw new Error('Upload failed: ' + response.status + ' ' + response.statusText);
+                
                 const data = await response.json();
                 
                 if (data.secure_url) {
