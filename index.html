@@ -4667,6 +4667,7 @@
             <h2 class="modal-title">Настройки профиля</h2>
 
             <input type="text" class="modal-input" id="profile-username-input" placeholder="Ваше имя">
+            <input type="text" class="modal-input" id="profile-username-change" placeholder="Юзернейм (латиница, цифры, _)" title="Только латинские буквы, цифры и подчёркивания">
 
             <div class="emoji-selector">
                 <label>Ваш статус:</label>
@@ -5112,6 +5113,8 @@
         let currentChat = null;
         let currentChatType = null; // 'user', 'group', 'channel'
         let messageListeners = {};
+        let chatStatusListeners = {};
+        let typingTimeouts = {};
         let activeTab = 'chats';
         let userEmoji = '😊';
         let editingMessageId = null;
@@ -5480,6 +5483,7 @@
                 }
             }
             const newName = document.getElementById('profile-username-input').value.trim();
+            const newUsername = (document.getElementById('profile-username-change')||{value:''}).value.trim();
 
             if (!newName) {
                 showNotification('Пожалуйста, введите имя');
@@ -5487,6 +5491,7 @@
             }
 
             try {
+                // Сначала сохраняем имя/эмодзи в существующем узле
                 _dataCache.invalidate('users_all');
                 await database.ref('users/' + encodeURIComponent(currentUser)).update({
                     name: newName,
@@ -5496,6 +5501,43 @@
                 if (currentUserData) {
                     currentUserData.name = newName;
                     currentUserData.emoji = userEmoji;
+                }
+
+                // Если пользователь захотел сменить юзернейм
+                if (newUsername && newUsername !== currentUser) {
+                    // валидация формата
+                    if (!/^[a-zA-Z0-9_]+$/.test(newUsername)) {
+                        showNotification('Неверный формат юзернейма');
+                        return;
+                    }
+
+                    // проверим занятость
+                    const newRef = database.ref('users/' + encodeURIComponent(newUsername));
+                    const snap = await newRef.once('value');
+                    if (snap.exists()) {
+                        showNotification('Этот юзернейм уже занят');
+                        return;
+                    }
+
+                    // переносим данные: копируем на новый путь и удаляем старый
+                    const oldRef = database.ref('users/' + encodeURIComponent(currentUser));
+                    const oldSnap = await oldRef.once('value');
+                    const userData = oldSnap.exists() ? oldSnap.val() : {};
+                    // Обновим поле username внутри данных
+                    userData.username = newUsername;
+
+                    await newRef.set(userData);
+                    await oldRef.remove();
+
+                    // Обновляем localStorage и переменные в памяти
+                    try {
+                        const saved = JSON.parse(localStorage.getItem('messenger_user') || '{}');
+                        saved.username = newUsername;
+                        localStorage.setItem('messenger_user', JSON.stringify(saved));
+                    } catch (e) {}
+
+                    currentUser = newUsername;
+                    currentUserData = userData;
                 }
 
                 userEmojiEl.textContent = userEmoji;
@@ -5732,6 +5774,8 @@
             messageText.addEventListener('input', () => {
                 messageText.style.height = 'auto';
                 messageText.style.height = Math.min(messageText.scrollHeight, 120) + 'px';
+                // Отправляем сигнал "печатает" в личных чатах
+                try { sendTypingSignal(); } catch(e) {}
             });
 
             messageText.addEventListener('focus', () => {
@@ -5874,12 +5918,41 @@
         }
 
         function updateConnectionStatus() {
-            if (isOnline) {
-                connectionStatus.classList.remove('offline');
-                document.querySelector('.user-profile p').innerHTML = 'Онлайн <span class="connection-status" id="connection-status"></span>';
+            const statusP = document.querySelector('.user-profile p');
+            if (!statusP) return;
+
+            // Найдём или создадим span.indicator внутри <p>
+            let span = statusP.querySelector('.connection-status');
+            if (!span) {
+                if (connectionStatus && connectionStatus.parentNode && connectionStatus.parentNode !== statusP) {
+                    // Переместим глобальный элемент в нужное место
+                    statusP.appendChild(connectionStatus);
+                    span = connectionStatus;
+                } else {
+                    span = document.createElement('span');
+                    span.className = 'connection-status';
+                    span.id = 'connection-status';
+                    statusP.appendChild(span);
+                    connectionStatus = span;
+                }
             } else {
-                connectionStatus.classList.add('offline');
-                document.querySelector('.user-profile p').innerHTML = 'Офлайн <span class="connection-status offline" id="connection-status"></span>';
+                if (connectionStatus !== span) connectionStatus = span;
+            }
+
+            if (isOnline) {
+                span.classList.remove('offline');
+                if (statusP.firstChild && statusP.firstChild.nodeType === 3) {
+                    statusP.firstChild.nodeValue = 'Онлайн ';
+                } else {
+                    statusP.insertBefore(document.createTextNode('Онлайн '), span);
+                }
+            } else {
+                span.classList.add('offline');
+                if (statusP.firstChild && statusP.firstChild.nodeType === 3) {
+                    statusP.firstChild.nodeValue = 'Офлайн ';
+                } else {
+                    statusP.insertBefore(document.createTextNode('Офлайн '), span);
+                }
             }
         }
 
@@ -6724,6 +6797,96 @@
             messageText.focus();
         }
 
+        // Отписаться от слушателей статуса/печатает для предыдущего чата
+        function detachChatStatusListeners() {
+            try {
+                if (!chatStatusListeners) return;
+                Object.values(chatStatusListeners).forEach(obj => {
+                    try {
+                        if (obj.onlineRef && typeof obj.onlineRef.off === 'function') obj.onlineRef.off();
+                    } catch(e) {}
+                    try {
+                        if (obj.typingRef && typeof obj.typingRef.off === 'function') obj.typingRef.off();
+                    } catch(e) {}
+                });
+            } catch(e) {}
+            // Также удаляем наш флаг "печатает" для предыдущих чатов
+            try {
+                Object.keys(chatStatusListeners).forEach(chatId => {
+                    try { database.ref('typing/' + chatId + '/' + currentUser).remove(); } catch(e) {}
+                    if (typingTimeouts[chatId]) { clearTimeout(typingTimeouts[chatId]); delete typingTimeouts[chatId]; }
+                });
+            } catch(e) {}
+            chatStatusListeners = {};
+            // Скрываем подзаголовок
+            const subtitleEl = document.getElementById('chat-header-subtitle');
+            if (subtitleEl) { subtitleEl.classList.remove('visible'); subtitleEl.textContent = ''; }
+        }
+
+        // Подписываемся на online/typing собеседника (личный чат)
+        function attachChatStatusListeners(otherUsername) {
+            if (!otherUsername || typeof database === 'undefined') return;
+            const chatId = getChatId(currentUser, otherUsername);
+            const subtitleEl = document.getElementById('chat-header-subtitle');
+            if (!subtitleEl) return;
+
+            // Покажем подзаголовок
+            subtitleEl.classList.add('visible');
+
+            // Online status listener
+            try {
+                const onlineRef = database.ref('users/' + encodeURIComponent(otherUsername) + '/online');
+                const onlineCb = (snap) => {
+                    const val = snap.val();
+                    if (val === true) {
+                        subtitleEl.textContent = 'Онлайн';
+                    } else {
+                        subtitleEl.textContent = 'Не в сети';
+                    }
+                };
+                onlineRef.on('value', onlineCb);
+
+                // Typing listener
+                const typingRef = database.ref('typing/' + chatId + '/' + otherUsername);
+                const typingCb = (snap) => {
+                    const v = snap.val();
+                    if (v) {
+                        subtitleEl.textContent = 'Печатает…';
+                    } else {
+                        // вернём онлайн/офлайн статус — запросим единоразово
+                        onlineRef.once('value').then(s => {
+                            const isOn = s.val();
+                            subtitleEl.textContent = isOn ? 'Онлайн' : 'Не в сети';
+                        }).catch(() => {});
+                    }
+                };
+                typingRef.on('value', typingCb);
+
+                chatStatusListeners[chatId] = { onlineRef, typingRef };
+            } catch (e) {
+                console.error('attachChatStatusListeners error', e);
+            }
+        }
+
+        // Отправляем флаг "печатает" для текущего пользователя (личные чаты)
+        function sendTypingSignal() {
+            try {
+                if (currentChatType !== 'user' || !currentChat || !currentUser || typeof database === 'undefined') return;
+                const chatId = getChatId(currentUser, currentChat);
+                const myTypingRef = database.ref('typing/' + chatId + '/' + currentUser);
+                // Установим флаг
+                myTypingRef.set(true).catch(() => {});
+                // Попробуем удалить флаг при разрыве соединения
+                try { myTypingRef.onDisconnect().remove(); } catch(e) {}
+                // Сброс через 1.5 с неактивности
+                if (typingTimeouts[chatId]) clearTimeout(typingTimeouts[chatId]);
+                typingTimeouts[chatId] = setTimeout(() => {
+                    try { myTypingRef.remove(); } catch(e) {}
+                    delete typingTimeouts[chatId];
+                }, 1500);
+            } catch (e) { console.error('sendTypingSignal error', e); }
+        }
+
         // Загрузка сообщений AI ассистента
         async function loadAIMessages() {
             if (!currentChat || currentChatType !== 'ai') return;
@@ -7155,6 +7318,8 @@
             if (currentChat && messageListeners[currentChat]) {
                 clearInterval(messageListeners[currentChat]);
             }
+            // Снимаем слушатели статуса предыдущего чата
+            detachChatStatusListeners();
 
             currentChat = username;
             currentChatType = 'user';
@@ -7184,6 +7349,10 @@
             // Скрываем подзаголовок (он только для каналов)
             const subtitleElUser = document.getElementById('chat-header-subtitle');
             if (subtitleElUser) subtitleElUser.classList.remove('visible');
+
+            // Отписываем старые слушатели статуса/печатает и подписываемся на нового собеседника
+            detachChatStatusListeners();
+            attachChatStatusListeners(username);
 
             // Скрываем кнопку очистки истории AI
             const clearHistoryBtn = document.getElementById('clear-history-btn');
@@ -9351,6 +9520,8 @@
             if (currentChat && messageListeners[currentChat]) {
                 clearInterval(messageListeners[currentChat]);
             }
+            // Снимаем слушатели статуса предыдущего чата
+            detachChatStatusListeners();
 
             // Удаляем кнопку просмотра профиля (она только для личных чатов)
             const oldProfileBtn = document.getElementById('profile-view-btn');
@@ -10111,6 +10282,8 @@
             if (currentChat && messageListeners[currentChat]) {
                 clearInterval(messageListeners[currentChat]);
             }
+            // Снимаем слушатели статуса предыдущего чата
+            detachChatStatusListeners();
 
             // Удаляем кнопку просмотра профиля (она только для личных чатов)
             const oldProfileBtn = document.getElementById('profile-view-btn');
@@ -10765,6 +10938,12 @@ async function requestUsername() {
     const regPasswordNonLatin = document.getElementById('reg-password-nonlatin');
     const loginPasswordNonLatin = document.getElementById('login-password-nonlatin');
     const submitRegister = document.getElementById('submit-register');
+
+    // Ограничение поля username только латиницей (английские буквы, цифры, _)
+    if (regUsername) {
+        regUsername.setAttribute('pattern', '^[a-zA-Z0-9_]+$');
+        regUsername.setAttribute('title', 'Только латинские буквы, цифры и подчёркивания');
+    }
 
     // Функция проверки нелатинских символов
     function hasNonLatin(str) {
