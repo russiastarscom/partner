@@ -5313,9 +5313,12 @@
             const savedUser = localStorage.getItem('messenger_user');
             if (savedUser) {
                 let userData = null;
-                try { userData = JSON.parse(savedUser); } catch(e) {}
+                try { userData = JSON.parse(savedUser); } catch(e) {
+                    // Поддержка старых версий, где в localStorage хранился просто username как строка
+                    userData = { username: savedUser };
+                }
 
-                if (userData && userData.username && userData.password) {
+                if (userData && userData.username) {
                     // Ждём Firebase до 5 секунд
                     let dbWait = 0;
                     while (typeof database === 'undefined' && dbWait < 10) {
@@ -5323,8 +5326,7 @@
                         dbWait++;
                     }
 
-                    // Входим сразу по локальным данным — не ждём Firebase.
-                    // Это решает проблему с GitHub Pages где Firebase WebSocket ненадёжен.
+                    // Ставим локальные значения сразу
                     currentUser = userData.username;
                     userEmoji = '😊';
                     currentUserEl.querySelector('span:last-child').textContent = userData.username;
@@ -5337,8 +5339,8 @@
                             const snapshot = await userRef.once('value');
                             if (snapshot.exists()) {
                                 const dbUserData = snapshot.val();
-                                // Если пароль не совпадает — выходим
-                                if (dbUserData.password !== userData.password) {
+                                // Если в локальных данных есть пароль — сверим его, иначе пропускаем проверку
+                                if (userData.password && dbUserData.password && dbUserData.password !== userData.password) {
                                     currentUser = null;
                                     localStorage.removeItem('messenger_user');
                                     requestUsername();
@@ -6685,17 +6687,28 @@
                     // Удаляем сообщения
                     await database.ref('messages/' + chatId).remove();
 
-                    // Удаляем пользователя из recentChats
-                    const otherUser = chatId.replace(currentUser, '').replace('_', '');
+                    // Удаляем запись из recentChats — надёжно находим собеседника
                     const userRef = database.ref('users/' + encodeURIComponent(currentUser));
                     const snapshot = await userRef.once('value');
                     const userData = snapshot.val();
 
-                    if (userData && userData.recentChats) {
+                    if (userData && Array.isArray(userData.recentChats)) {
+                        // Ищем запись, которая соответствует этому chatId
+                        const entry = userData.recentChats.find(c => {
+                            try { return getChatId(currentUser, c.username) === chatId; } catch(e) { return false; }
+                        });
+                        const otherUser = entry ? entry.username : null;
                         const updatedRecentChats = userData.recentChats.filter(chat => chat.username !== otherUser);
                         await userRef.update({ recentChats: updatedRecentChats });
-                        currentUserData.recentChats = updatedRecentChats;
+                        if (currentUserData && currentUserData.recentChats) currentUserData.recentChats = updatedRecentChats;
                     }
+
+                    // Инвалидируем кэш сообщений и готового списка чатов
+                    try {
+                        _dataCache.invalidate('msgs_' + chatId);
+                        _dataCache.invalidate('messages_all');
+                        _dataCache.invalidate('recent_chats_built');
+                    } catch (e) {}
 
                     showNotification('Чат удален');
                 }
@@ -8682,13 +8695,13 @@
                 // ✅ ИСПРАВЛЕНО: unsubscribeFromPushNotifications не существует — убрана несуществующая функция
                 try { await updateUserStatus(false); } catch(e) {}
 
-                // Удаляем текущий аккаунт из списка сохранённых
-                const accounts = getAccounts().filter(a => a.username !== currentUser);
-                localStorage.setItem('messenger_accounts', JSON.stringify(accounts));
-
-                // Если есть другой аккаунт — переключаемся на него
-                if (accounts.length > 0) {
-                    localStorage.setItem('messenger_user', JSON.stringify(accounts[0]));
+                // Не удаляем запись из сохранённых аккаунтов — оставляем историю.
+                // Просто переключаем `messenger_user` на другой сохранённый аккаунт (если есть),
+                // либо удаляем текущую сессию.
+                const accounts = getAccounts();
+                const remaining = accounts.filter(a => a.username !== currentUser);
+                if (remaining.length > 0) {
+                    localStorage.setItem('messenger_user', JSON.stringify(remaining[0]));
                 } else {
                     localStorage.removeItem('messenger_user');
                 }
@@ -10664,7 +10677,13 @@
                     closeChat();
 
                     if (activeTab === 'chats') {
-                        await loadRecentChats();
+                            // Инвалидируем кэш чтобы обновление было мгновенным
+                            try {
+                                _dataCache.invalidate('msgs_' + chatId);
+                                _dataCache.invalidate('messages_all');
+                                _dataCache.invalidate('recent_chats_built');
+                            } catch(e) {}
+                            await loadRecentChats();
                     }
                 } catch (error) {
                     showNotification('Ошибка: ' + error.message);
@@ -13535,11 +13554,15 @@ document.addEventListener('click', function(e) {
 
         function saveAccountToList(username, password) {
             const accounts = getAccounts();
+            // Привязываем сохранённый аккаунт к тому пользователю, который его сохранил (currentUser)
+            const owner = typeof currentUser !== 'undefined' && currentUser ? currentUser : null;
             const idx = accounts.findIndex(a => a.username === username);
             if (idx === -1) {
-                accounts.push({ username, password });
+                accounts.push({ username, password, owner });
             } else {
                 accounts[idx].password = password; // обновляем пароль на случай смены
+                // если у записи нет владельца, назначим текущего
+                if (!accounts[idx].owner && owner) accounts[idx].owner = owner;
             }
             localStorage.setItem('messenger_accounts', JSON.stringify(accounts));
         }
@@ -13547,7 +13570,12 @@ document.addEventListener('click', function(e) {
         function renderAccountsList() {
             const list = document.getElementById('accounts-list');
             if (!list) return;
-            const accounts = getAccounts();
+            // Показываем только аккаунты, привязанные к текущему пользователю
+            const accounts = getAccounts().filter(a => {
+                // legacy: если у записи нет поля owner — показываем (чтобы не терять старые записи)
+                if (!a.owner) return true;
+                return a.owner === currentUser || a.username === currentUser;
+            });
             list.innerHTML = '';
 
             if (accounts.length === 0) {
