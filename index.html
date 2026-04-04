@@ -12904,45 +12904,81 @@ document.addEventListener('click', function(e) {
         // ==================== СИСТЕМА ЗВОНКОВ (Jitsi Meet — бесплатно, без токенов) ====================
         // Используем публичный meet.jit.si — не требует JWT/AppID
 
-        // Ссылка на текущий экземпляр Jitsi API
-        let jitsiApi = null;
-        // Слушатель входящих звонков
-        let callListener = null;
-        // Текущая комната входящего звонка
-        let incomingCallData = null;
+        let jitsiApi        = null;   // Текущий экземпляр Jitsi
+        let callListener    = null;   // Слушатель Firebase входящих звонков
+        let incomingCallData = null;  // Данные входящего звонка
+        let ringtoneInterval = null;  // Таймер рингтона
+        let ringtoneCtx     = null;   // Web Audio контекст для рингтона
+        let callTimeoutId   = null;   // Таймаут "нет ответа"
 
-        /**
-         * Генерирует уникальное имя комнаты для пары пользователей.
-         * Имя всегда одинаковое для одной и той же пары, независимо от порядка.
-         * Добавляем префикс 'twiin-' чтобы избежать конфликтов с чужими комнатами.
-         */
+        // ─── Рингтон через Web Audio API (без внешних файлов) ─────────────────
+        function playRingtone() {
+            stopRingtone();
+            function beep() {
+                try {
+                    if (!ringtoneCtx)
+                        ringtoneCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc  = ringtoneCtx.createOscillator();
+                    const gain = ringtoneCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ringtoneCtx.destination);
+                    osc.frequency.setValueAtTime(880, ringtoneCtx.currentTime);
+                    osc.frequency.setValueAtTime(660, ringtoneCtx.currentTime + 0.18);
+                    gain.gain.setValueAtTime(0.35, ringtoneCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ringtoneCtx.currentTime + 0.5);
+                    osc.start(ringtoneCtx.currentTime);
+                    osc.stop(ringtoneCtx.currentTime + 0.5);
+                } catch (e) {}
+            }
+            beep();
+            ringtoneInterval = setInterval(beep, 1600);
+        }
+
+        function stopRingtone() {
+            if (ringtoneInterval) { clearInterval(ringtoneInterval); ringtoneInterval = null; }
+        }
+
+        // ─── Генерация имени комнаты ────────────────────────────────────────────
         function getCallRoomName(userA, userB) {
             const sorted = [userA, userB].sort().join('--').replace(/[^a-zA-Z0-9\-_]/g, '_');
             return 'twiin-' + sorted;
         }
 
-        /**
-         * Загружает Jitsi External API скрипт с meet.jit.si (если ещё не загружен).
-         */
+        // ─── Загрузка Jitsi External API ────────────────────────────────────────
         function loadJitsiScript() {
             return new Promise((resolve, reject) => {
-                if (window.JitsiMeetExternalAPI) {
-                    resolve();
-                    return;
-                }
+                if (window.JitsiMeetExternalAPI) { resolve(); return; }
                 const script = document.createElement('script');
                 script.src = 'https://meet.jit.si/external_api.js';
-                script.onload = resolve;
+                script.onload  = resolve;
                 script.onerror = () => reject(new Error('Не удалось загрузить Jitsi API'));
                 document.head.appendChild(script);
             });
         }
 
         /**
-         * Запускает звонок:
-         * @param {string} targetUser - юзернейм собеседника
-         * @param {string} callType   - 'audio' или 'video'
-         * @param {boolean} isIncoming - входящий ли это звонок
+         * ИСПРАВЛЕНИЕ #1: Запрашиваем разрешения на микрофон/камеру ДО запуска Jitsi.
+         * Без этого браузер может заблокировать доступ внутри iframe.
+         */
+        async function requestMediaPermissions(needVideo) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia(
+                    needVideo ? { audio: true, video: true } : { audio: true }
+                );
+                // Сразу освобождаем треки — Jitsi откроет их сам
+                stream.getTracks().forEach(t => t.stop());
+                return true;
+            } catch (e) {
+                console.warn('[Twiin Calls] Media permission denied:', e.name, e.message);
+                return false;
+            }
+        }
+
+        /**
+         * Запускает звонок.
+         * @param {string}  targetUser  - юзернейм собеседника
+         * @param {string}  callType    - 'audio' | 'video'
+         * @param {boolean} isIncoming  - входящий ли звонок
          * @param {string|null} roomOverride - имя комнаты (для входящего)
          */
         async function startCall(targetUser, callType, isIncoming = false, roomOverride = null) {
@@ -12954,83 +12990,131 @@ document.addEventListener('click', function(e) {
                 return;
             }
 
-            const roomName = roomOverride || getCallRoomName(currentUser, targetUser);
-            const displayName = currentUserData ? (currentUserData.name || currentUser) : currentUser;
             const isAudioOnly = callType === 'audio';
 
-            // Показываем оверлей
-            const overlay = document.getElementById('call-overlay');
-            const titleEl = document.getElementById('call-overlay-title');
+            // ИСПРАВЛЕНИЕ #1 — просим разрешения до Jitsi
+            const hasPerms = await requestMediaPermissions(!isAudioOnly);
+            if (!hasPerms) {
+                showNotification(
+                    isAudioOnly
+                        ? '❌ Разрешите доступ к микрофону в настройках браузера'
+                        : '❌ Разрешите доступ к микрофону и камере в настройках браузера'
+                );
+                return;
+            }
+
+            const roomName    = roomOverride || getCallRoomName(currentUser, targetUser);
+            const displayName = currentUserData ? (currentUserData.name || currentUser) : currentUser;
+
+            stopRingtone();
+            if (callTimeoutId) { clearTimeout(callTimeoutId); callTimeoutId = null; }
+
+            const overlay   = document.getElementById('call-overlay');
+            const titleEl   = document.getElementById('call-overlay-title');
             const container = document.getElementById('jitsi-container');
+
             titleEl.textContent = `${isAudioOnly ? '📞 Аудио' : '📹 Видео'} звонок с ${targetUser}`;
             container.innerHTML = '';
             overlay.classList.add('active');
 
-            // Инициализируем через Jitsi External API (meet.jit.si — без токена)
+            // Инициализируем Jitsi
             jitsiApi = new window.JitsiMeetExternalAPI('meet.jit.si', {
                 roomName: roomName,
                 parentNode: container,
-                width: '100%',
+                width:  '100%',
                 height: '100%',
                 userInfo: {
                     displayName: displayName,
                     email: `${currentUser}@twiin.ru`
                 },
                 configOverwrite: {
-                    startWithAudioMuted: false,
-                    startWithVideoMuted: isAudioOnly,
-                    prejoinPageEnabled: false,
-                    // Критично для мобильных: запрещаем редирект в native-приложение
-                    disableDeepLinking: true,
+                    startWithAudioMuted:  false,     // ВАЖНО: микрофон включён
+                    startWithVideoMuted:  isAudioOnly,
+                    prejoinPageEnabled:   false,
+                    disableDeepLinking:   true,       // Не редиректим в нативное приложение
+                    enableClosePage:      false,
                     disableThirdPartyRequests: false,
-                    enableClosePage: false,
-                    // P2P быстрее на мобильных (меньше задержка)
-                    p2p: { enabled: true, preferH264: true },
-                    // Отключаем детектор шума (на мобильных часто ложные срабатывания)
-                    enableNoisyMicDetection: false,
-                    // Упрощённый тулбар для мобильных
+                    enableNoisyMicDetection:   false, // Меньше ложных срабатываний на мобильных
+                    // ИСПРАВЛЕНИЕ #2 — P2P с STUN/TURN для прохождения через NAT
+                    p2p: {
+                        enabled:     true,
+                        useStunTurn: true,   // Критично: включаем TURN-сервер для NAT traversal
+                        preferH264:  false,  // H264 — только для видео, не влияет на аудио
+                    },
+                    // ИСПРАВЛЕНИЕ #3 — явные параметры аудио
+                    audioQuality: {
+                        stereo: false,
+                        opusMaxAverageBitrate: 24000,
+                    },
+                    startAudioOnly: isAudioOnly,
+                    enableUnifiedOnChrome: true,
                     toolbarButtons: isAudioOnly
                         ? ['microphone', 'hangup', 'raisehand']
                         : ['microphone', 'camera', 'hangup', 'raisehand', 'tileview'],
                 },
                 interfaceConfigOverwrite: {
-                    SHOW_JITSI_WATERMARK: false,
-                    SHOW_WATERMARK_FOR_GUESTS: false,
-                    // Скрываем промо мобильного приложения (иначе предлагает открыть app)
-                    MOBILE_APP_PROMO: false,
-                    HIDE_INVITE_MORE_HEADER: true,
+                    SHOW_JITSI_WATERMARK:          false,
+                    SHOW_WATERMARK_FOR_GUESTS:     false,
+                    MOBILE_APP_PROMO:              false,
+                    HIDE_INVITE_MORE_HEADER:       true,
                     DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,
-                    // Без анимации — быстрее на слабых телефонах
-                    DISABLE_FOCUS_INDICATOR: true,
+                    DISABLE_FOCUS_INDICATOR:       true,
+                    DEFAULT_REMOTE_DISPLAY_NAME:   targetUser,
                 }
             });
 
-            // Когда звонок завершён через кнопку внутри Jitsi
-            jitsiApi.addEventListener('readyToClose', () => {
-                endCall();
+            /**
+             * ИСПРАВЛЕНИЕ #4 (ГЛАВНЫЙ ФИКСe) — добавляем атрибут allow на iframe.
+             * Без него браузер блокирует доступ к микрофону/камере внутри iframe,
+             * поэтому собеседники не слышат друг друга.
+             */
+            function patchIframePermissions() {
+                const iframe = container.querySelector('iframe');
+                if (iframe) {
+                    iframe.setAttribute('allow',
+                        'camera *; microphone *; display-capture *; fullscreen *; autoplay *; screen-wake-lock *;'
+                    );
+                    console.log('[Twiin Calls] iframe allow патч применён ✅');
+                } else {
+                    // Ждём появления iframe
+                    setTimeout(patchIframePermissions, 300);
+                }
+            }
+            setTimeout(patchIframePermissions, 200);
+
+            // События Jitsi
+            jitsiApi.addEventListener('readyToClose', () => endCall());
+
+            jitsiApi.addEventListener('participantJoined', (p) => {
+                showNotification(`✅ ${p.displayName || targetUser} подключился к звонку`);
+                // Убеждаемся что микрофон не замьючен
+                try { jitsiApi.isAudioMuted().then(muted => {
+                    if (muted) jitsiApi.executeCommand('toggleAudio');
+                }); } catch(e) {}
             });
 
-            // Если это ИСХОДЯЩИЙ звонок — создаём запись в Firebase,
-            // чтобы другой пользователь увидел входящий звонок
+            // Если ИСХОДЯЩИЙ — пишем в Firebase чтобы второй увидел входящий
             if (!isIncoming) {
                 const callRef = database.ref(`calls/${encodeURIComponent(targetUser)}/incoming`);
                 await callRef.set({
-                    from: currentUser,
-                    fromName: displayName,
-                    callType: callType,
-                    room: roomName,
+                    from:      currentUser,
+                    fromName:  displayName,
+                    callType:  callType,
+                    room:      roomName,
                     timestamp: Date.now(),
-                    status: 'ringing'
+                    status:    'ringing'
                 });
-                // Через 60 секунд убираем запись (не принят)
-                setTimeout(async () => {
+                // Через 60 секунд — нет ответа
+                callTimeoutId = setTimeout(async () => {
                     const snap = await callRef.once('value');
                     if (snap.val() && snap.val().status === 'ringing') {
                         await callRef.remove();
+                        showNotification('📵 Нет ответа');
+                        endCall();
                     }
                 }, 60000);
             } else {
-                // Принятый звонок — обновляем статус
+                // Принятый звонок — удаляем запись, чтобы модалка пропала
                 await database.ref(`calls/${encodeURIComponent(currentUser)}/incoming`).remove();
             }
         }
@@ -13039,8 +13123,10 @@ document.addEventListener('click', function(e) {
          * Завершает текущий звонок.
          */
         function endCall() {
+            if (callTimeoutId) { clearTimeout(callTimeoutId); callTimeoutId = null; }
+            stopRingtone();
             if (jitsiApi) {
-                try { jitsiApi.dispose(); } catch (e) { /* игнорируем */ }
+                try { jitsiApi.dispose(); } catch (e) {}
                 jitsiApi = null;
             }
             document.getElementById('jitsi-container').innerHTML = '';
@@ -13058,6 +13144,7 @@ document.addEventListener('click', function(e) {
             document.getElementById('ic-call-type').textContent =
                 data.callType === 'audio' ? '🔊 Аудио звонок' : '📹 Видео звонок';
             modal.classList.add('active');
+            playRingtone();
         }
 
         /**
@@ -13066,6 +13153,7 @@ document.addEventListener('click', function(e) {
         function hideIncomingCallModal() {
             document.getElementById('incoming-call-modal').classList.remove('active');
             incomingCallData = null;
+            stopRingtone();
         }
 
         /**
@@ -13080,10 +13168,7 @@ document.addEventListener('click', function(e) {
 
             callRef.on('value', async (snapshot) => {
                 const data = snapshot.val();
-                if (!data) {
-                    hideIncomingCallModal();
-                    return;
-                }
+                if (!data) { hideIncomingCallModal(); return; }
                 if (data.status === 'ringing' && !jitsiApi) {
                     showIncomingCallModal(data);
                 }
