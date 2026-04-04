@@ -5073,7 +5073,7 @@
         const createGroupConfirmBtn = document.getElementById('create-group-confirm-btn');
         const blockUserBtn = document.getElementById('block-user-btn');
         const deleteChatBtn = document.getElementById('delete-chat-btn');
-        const connectionStatus = document.getElementById('connection-status');
+        let connectionStatus = document.getElementById('connection-status');
         const blockedList = document.getElementById('blocked-list');
         const groupSettingsBtn = document.getElementById('group-settings-btn');
         const groupSettingsModal = document.getElementById('group-settings-modal');
@@ -6199,25 +6199,39 @@
 
             try {
                 if (newUsername !== currentUser) {
-                    const userRef = database.ref('users/' + encodeURIComponent(newUsername));
-                    const snapshot = await userRef.once('value');
+                    // Получаем текущие данные пользователя, переносим их под новый ключ
+                    const oldRef = database.ref('users/' + encodeURIComponent(currentUser));
+                    const oldSnap = await oldRef.once('value');
+                    const existingData = oldSnap.exists() ? oldSnap.val() : {};
 
-                    if (snapshot.exists()) {
+                    const newRef = database.ref('users/' + encodeURIComponent(newUsername));
+                    const newSnap = await newRef.once('value');
+                    if (newSnap.exists()) {
                         showNotification('Этот никнейм уже занят');
                         return;
                     }
 
-                    await database.ref('users/' + encodeURIComponent(currentUser)).remove();
-                    await database.ref('users/' + encodeURIComponent(newUsername)).set({
-                        nickname: newUsername,
-                        emoji: userEmoji,
-                        online: true,
-                        lastSeen: Date.now(),
-                        blockedUsers: blockedUsers,
-                        subscribedChannels: subscribedChannels
-                    });
+                    // Обновляем поля в копии данных
+                    existingData.username = newUsername;
+                    existingData.emoji = userEmoji;
+                    existingData.blockedUsers = blockedUsers;
+                    existingData.subscribedChannels = subscribedChannels;
+                    existingData.online = true;
+                    existingData.lastSeen = Date.now();
 
-                    localStorage.setItem('messenger_user', newUsername);
+                    // Сохраняем под новым ключом и удаляем старый
+                    await newRef.set(existingData);
+                    await oldRef.remove();
+
+                    // Обновляем localStorage в корректном формате (JSON)
+                    try {
+                        const saved = JSON.parse(localStorage.getItem('messenger_user') || '{}');
+                        saved.username = newUsername;
+                        localStorage.setItem('messenger_user', JSON.stringify(saved));
+                    } catch (e) {
+                        localStorage.setItem('messenger_user', JSON.stringify({ username: newUsername }));
+                    }
+
                     currentUser = newUsername;
                     currentUserEl.querySelector('span:last-child').textContent = newUsername;
                 } else {
