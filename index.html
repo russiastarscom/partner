@@ -2030,6 +2030,14 @@
             opacity: 1;
         }
 
+        /* Состояние записи для кнопок внутри поля */
+        .msg-inner-btn.recording {
+            background: var(--danger-color);
+            color: #fff;
+            opacity: 1;
+            transform: scale(1.02);
+        }
+
         /* Кнопка отправки — снаружи справа, всегда по центру */
         .message-input > #send-btn {
             background: linear-gradient(135deg, var(--primary-color) 0%, #8b7cf8 100%);
@@ -4430,6 +4438,8 @@
                         </div>
                         <textarea id="message-text" placeholder="Введите сообщение..." autocomplete="off" rows="1"></textarea>
                         <button id="gift-btn" title="Отправить подарок" class="msg-inner-btn">🎁</button>
+                        <button id="mic-btn" title="Записать голос" class="msg-inner-btn mic-btn">🎤</button>
+                        <button id="video-circle-btn" title="Видео-кружочек" class="msg-inner-btn video-btn">🎥</button>
                     </div>
                     <button id="send-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24"
@@ -16013,6 +16023,7 @@ document.addEventListener('click', function(e) {
         let clickCount = 0;
         let clickTimer = null;
         let isRecordingAudio = false;
+        let audioCanceled = false;
         let isRecordingVideo = false;
         let audioRecorder = null;
         let videoRecorder = null;
@@ -16095,6 +16106,19 @@ document.addEventListener('click', function(e) {
             sendBtn.addEventListener('touchend', handleSendButtonRelease);
             sendBtn.addEventListener('mouseleave', handleSendButtonRelease);
             sendBtn.addEventListener('touchcancel', handleSendButtonRelease);
+            // Отдельные кнопки микрофона и видео-кружочка рядом с полем ввода
+            const micBtnEl = document.getElementById('mic-btn');
+            const videoBtnEl = document.getElementById('video-circle-btn');
+            if (micBtnEl) {
+                micBtnEl.addEventListener('mousedown', function(e){ e.preventDefault(); if(!isRecordingAudio) startAudioRecording(); });
+                micBtnEl.addEventListener('touchstart', function(e){ e.preventDefault(); if(!isRecordingAudio) startAudioRecording(); }, { passive: false });
+                micBtnEl.addEventListener('mouseup', function(){ if(isRecordingAudio) stopAudioRecording(); });
+                micBtnEl.addEventListener('touchend', function(){ if(isRecordingAudio) stopAudioRecording(); });
+                micBtnEl.addEventListener('mouseleave', function(){ if(isRecordingAudio) stopAudioRecording(); });
+            }
+            if (videoBtnEl) {
+                videoBtnEl.addEventListener('click', function(e){ e.preventDefault(); openVideoCircleModal(); });
+            }
             
             // Скрыть меню при клике вне
             document.addEventListener('click', function(e) {
@@ -16222,6 +16246,7 @@ document.addEventListener('click', function(e) {
                 };
                 
                 audioRecorder.onstop = function() {
+                    if (audioCanceled) { audioChunks = []; audioCanceled = false; return; }
                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                     sendAudioMessage(audioBlob);
                 };
@@ -16229,6 +16254,8 @@ document.addEventListener('click', function(e) {
                 audioRecorder.start();
                 isRecordingAudio = true;
                 recordingStartTime = Date.now();
+                const micBtn = document.getElementById('mic-btn');
+                if (micBtn) micBtn.classList.add('recording');
                 
                 // Показываем индикатор записи
                 voiceRecordContainer.classList.add('active');
@@ -16263,6 +16290,8 @@ document.addEventListener('click', function(e) {
             
             isRecordingAudio = false;
             voiceRecordContainer.classList.remove('active');
+            const micBtn = document.getElementById('mic-btn');
+            if (micBtn) micBtn.classList.remove('recording');
             clearInterval(recordingTimer);
             
             // Вибрация на мобильных
@@ -16272,6 +16301,7 @@ document.addEventListener('click', function(e) {
         // Отменить запись аудио
         function cancelAudioRecording() {
             if (audioRecorder && audioRecorder.state !== 'inactive') {
+                audioCanceled = true;
                 audioRecorder.stop();
             }
             if (audioStream) {
@@ -16279,6 +16309,8 @@ document.addEventListener('click', function(e) {
             }
             isRecordingAudio = false;
             voiceRecordContainer.classList.remove('active');
+            const micBtn = document.getElementById('mic-btn');
+            if (micBtn) micBtn.classList.remove('recording');
             clearInterval(recordingTimer);
             audioChunks = [];
         }
@@ -16319,11 +16351,11 @@ document.addEventListener('click', function(e) {
                 formData.append('upload_preset', 'twiin_unsigned');
                 formData.append('folder', 'twiin_chat');
                 
-                const response = await fetch('https://api.cloudinary.com/v1_1/dzrlzyjpg/video/upload', {
+                const response = await fetch('https://api.cloudinary.com/v1_1/dzrlzyjpg/auto/upload', {
                     method: 'POST',
                     body: formData
                 });
-                
+                if (!response.ok) throw new Error('Upload failed: ' + response.status + ' ' + response.statusText);
                 const data = await response.json();
                 
                 if (data.secure_url) {
@@ -16419,6 +16451,8 @@ document.addEventListener('click', function(e) {
             
             const btn = document.getElementById('video-record-btn');
             btn.classList.add('recording');
+            const videoBtn = document.getElementById('video-circle-btn');
+            if (videoBtn) videoBtn.classList.add('recording');
             
             videoChunks = [];
             
@@ -16465,6 +16499,8 @@ document.addEventListener('click', function(e) {
             
             const btn = document.getElementById('video-record-btn');
             btn.classList.remove('recording');
+            const videoBtn = document.getElementById('video-circle-btn');
+            if (videoBtn) videoBtn.classList.remove('recording');
             
             videoRecorder.stop();
             
@@ -16510,11 +16546,11 @@ document.addEventListener('click', function(e) {
                 formData.append('upload_preset', 'twiin_unsigned');
                 formData.append('folder', 'twiin_chat');
                 
-                const response = await fetch('https://api.cloudinary.com/v1_1/dzrlzyjpg/video/upload', {
+                const response = await fetch('https://api.cloudinary.com/v1_1/dzrlzyjpg/auto/upload', {
                     method: 'POST',
                     body: formData
                 });
-                
+                if (!response.ok) throw new Error('Upload failed: ' + response.status + ' ' + response.statusText);
                 const data = await response.json();
                 
                 if (data.secure_url) {
