@@ -1,0 +1,8 @@
+```
+# Service worker files
+OneSignalSDKWorker.js
+ROOT_service-worker.js
+notification-sw.js
+notifications.html
+push-sender.js
+```
