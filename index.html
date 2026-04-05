@@ -3833,365 +3833,6 @@
         .bv-link-copy:hover{background:var(--primary-color);color:#fff}
         .bv-act{padding:12px 16px;display:flex;flex-direction:column;gap:8px}
         /* ==================== КОНЕЦ БОТОВ ==================== */
-
-        /* ==================== ЗАПИСЬ АУДИО И ВИДЕО-КРУЖОЧКИ ==================== */
-        
-        /* Контейнер для записи аудио */
-        .voice-record-container {
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--modal-bg);
-            border-radius: 24px;
-            padding: 12px 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-            display: none;
-            align-items: center;
-            gap: 12px;
-            z-index: 1001;
-            border: 1px solid var(--border-color);
-            animation: recordSlideUp 0.2s ease;
-        }
-        .voice-record-container.active {
-            display: flex;
-        }
-        @keyframes recordSlideUp {
-            from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-        
-        /* Анимированная волна записи */
-        .voice-wave {
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            height: 30px;
-        }
-        .voice-wave-bar {
-            width: 3px;
-            background: var(--primary-color);
-            border-radius: 3px;
-            animation: wave 0.5s ease-in-out infinite;
-        }
-        .voice-wave-bar:nth-child(1) { height: 8px; animation-delay: 0s; }
-        .voice-wave-bar:nth-child(2) { height: 16px; animation-delay: 0.1s; }
-        .voice-wave-bar:nth-child(3) { height: 24px; animation-delay: 0.2s; }
-        .voice-wave-bar:nth-child(4) { height: 18px; animation-delay: 0.15s; }
-        .voice-wave-bar:nth-child(5) { height: 12px; animation-delay: 0.05s; }
-        @keyframes wave {
-            0%, 100% { transform: scaleY(0.6); }
-            50% { transform: scaleY(1); }
-        }
-        
-        .voice-timer {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--primary-color);
-            font-variant-numeric: tabular-nums;
-            min-width: 50px;
-            text-align: center;
-        }
-        
-        .voice-cancel-hint {
-            font-size: 0.75rem;
-            color: var(--text-light);
-            white-space: nowrap;
-        }
-        
-        /* Индикатор записи */
-        .recording-dot {
-            width: 10px;
-            height: 10px;
-            background: #e74c3c;
-            border-radius: 50%;
-            animation: pulse-record 1s ease-in-out infinite;
-        }
-        @keyframes pulse-record {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(0.9); }
-        }
-        
-        /* Кнопка отправки с режимами */
-        .send-btn-modes {
-            position: absolute;
-            bottom: calc(100% + 8px);
-            right: 0;
-            background: var(--modal-bg);
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-            padding: 8px;
-            display: none;
-            flex-direction: column;
-            gap: 4px;
-            z-index: 1001;
-            border: 1px solid var(--border-color);
-            min-width: 160px;
-        }
-        .send-btn-modes.active {
-            display: flex;
-            animation: modesPop 0.2s cubic-bezier(.34,1.56,.64,1);
-        }
-        @keyframes modesPop {
-            from { opacity: 0; transform: translateY(8px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        
-        .send-mode-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: background 0.15s;
-            border: none;
-            background: transparent;
-            font-family: inherit;
-            font-size: 0.88rem;
-            color: var(--text-color);
-            text-align: left;
-            width: 100%;
-        }
-        .send-mode-item:hover {
-            background: rgba(108,92,231,0.1);
-        }
-        .send-mode-item.active {
-            background: rgba(108,92,231,0.15);
-        }
-        .send-mode-item .mode-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-        }
-        .send-mode-item.text-mode .mode-icon { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
-        .send-mode-item.voice-mode .mode-icon { background: linear-gradient(135deg, #55efc4, #00b894); }
-        .send-mode-item.video-mode .mode-icon { background: linear-gradient(135deg, #fd79a8, #e84393); }
-        
-        .send-mode-item .mode-label {
-            font-weight: 600;
-        }
-        .send-mode-item .mode-hint {
-            font-size: 0.72rem;
-            color: var(--text-light);
-            margin-top: 2px;
-        }
-        
-        /* Индикатор текущего режима на кнопке */
-        .send-mode-indicator {
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            border: 2px solid var(--modal-bg);
-            display: none;
-        }
-        .send-mode-indicator.voice { background: linear-gradient(135deg, #55efc4, #00b894); }
-        .send-mode-indicator.video { background: linear-gradient(135deg, #fd79a8, #e84393); }
-        .send-mode-indicator.active {
-            display: block;
-        }
-        
-        /* Видео-кружочек в чате */
-        .video-circle-wrap {
-            width: 240px;
-            height: 240px;
-            border-radius: 50%;
-            overflow: hidden;
-            position: relative;
-            background: #000;
-            margin: 4px 0;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-        .video-circle-wrap video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .video-circle-duration {
-            position: absolute;
-            bottom: 12px;
-            right: 12px;
-            background: rgba(0,0,0,0.6);
-            color: #fff;
-            font-size: 0.75rem;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-variant-numeric: tabular-nums;
-        }
-        
-        /* Модалка записи видео-кружочка */
-        .video-circle-record-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.9);
-            z-index: 10000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .video-circle-record-modal.active {
-            display: flex;
-        }
-        .video-circle-preview {
-            width: 280px;
-            height: 280px;
-            border-radius: 50%;
-            overflow: hidden;
-            background: #000;
-            border: 4px solid var(--primary-color);
-            position: relative;
-        }
-        .video-circle-preview video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scaleX(-1); /* Зеркало для фронтальной камеры */
-        }
-        .video-circle-controls {
-            display: flex;
-            gap: 30px;
-            margin-top: 40px;
-            align-items: center;
-        }
-        .video-circle-record-btn {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            background: #e74c3c;
-            border: 4px solid #fff;
-            cursor: pointer;
-            transition: transform 0.15s, background 0.15s;
-            position: relative;
-        }
-        .video-circle-record-btn:active {
-            transform: scale(0.92);
-        }
-        .video-circle-record-btn.recording {
-            background: #fff;
-        }
-        .video-circle-record-btn.recording::after {
-            content: '';
-            position: absolute;
-            inset: 12px;
-            background: #e74c3c;
-            border-radius: 4px;
-        }
-        .video-circle-timer {
-            position: absolute;
-            top: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #fff;
-            font-size: 1.2rem;
-            font-weight: 600;
-            background: rgba(0,0,0,0.5);
-            padding: 8px 16px;
-            border-radius: 20px;
-        }
-        .video-circle-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: #fff;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.3rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .video-circle-switch-camera {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: #fff;
-            cursor: pointer;
-            font-size: 1.3rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        /* Оптимизация для Android */
-        @media (max-width: 768px) {
-            .voice-record-container {
-                left: 10px;
-                right: 10px;
-                transform: none;
-                bottom: calc(100% + 8px);
-                padding: 10px 14px;
-            }
-            .voice-record-container.active {
-                animation: recordSlideUpMobile 0.2s ease;
-            }
-            @keyframes recordSlideUpMobile {
-                from { opacity: 0; transform: translateY(10px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-            
-            .video-circle-wrap {
-                width: 180px;
-                height: 180px;
-            }
-            .video-circle-preview {
-                width: 220px;
-                height: 220px;
-            }
-            
-            /* Увеличенные тач-зоны для Android */
-            .message-input > #send-btn {
-                width: 52px;
-                height: 52px;
-                min-width: 52px;
-                min-height: 52px;
-            }
-            
-            /* Предотвращение случайных нажатий */
-            .send-btn-modes {
-                right: -10px;
-                bottom: calc(100% + 12px);
-            }
-        }
-        
-        /* Предотвращение выделения текста при долгом нажатии на Android */
-        .android-optimized * {
-            -webkit-user-select: none;
-            user-select: none;
-        }
-        .android-optimized input,
-        .android-optimized textarea {
-            -webkit-user-select: text;
-            user-select: text;
-        }
-        
-        /* Улучшенная отзывчивость тач-событий */
-        .touch-optimized {
-            touch-action: manipulation;
-            -webkit-touch-callout: none;
-        }
-        
-        /* Предотвращение bounce-эффекта на iOS */
-        .ios-optimized {
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: none;
-        }
-        
-        /* ==================== КОНЕЦ ЗАПИСИ АУДИО ==================== */
     </style>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -5117,7 +4758,6 @@
         let notifiedMessageIds = new Set();
         let currentUserData = null; // ✅ ИСПРАВЛЕНО: переменная не была объявлена
         let _chatListRendering = false; // мьютекс: предотвращает параллельный рендер списка чатов
-        let isSendingMessage = false; // флаг: предотвращает повторную отправку сообщения
 
         // ============================================================
         // 🚀 СИСТЕМА ХЕШИРОВАНИЯ И КЭШИРОВАНИЯ ДАННЫХ
@@ -5244,10 +4884,6 @@
             invalidate(key) {
                 delete this.store[key];
                 try { localStorage.removeItem('_dc_' + key); } catch(e) {}
-                // При инвалидации готового списка чатов — сбрасываем хеш рендера
-                if (key === 'recent_chats_built' || key === 'messages_all') {
-                    if (typeof _lastRecentChatsHash !== 'undefined') _lastRecentChatsHash = null;
-                }
             },
 
             /** Инвалидировать все ключи с префиксом */
@@ -5609,8 +5245,6 @@
             // ── Отправка медиа-сообщения ─────────────────────────────
             async function sendMediaMessage(mediaData) {
                 if (!currentChat) return;
-                if (isSendingMessage) return;
-                isSendingMessage = true;
                 const chatId = (currentChatType === 'group' || currentChatType === 'channel')
                     ? currentChat : getChatId(currentUser, currentChat);
                 const msg = { sender: currentUser, text: '', timestamp: Date.now(), ...mediaData };
@@ -5624,8 +5258,6 @@
                     lastMessageTimestamp = msg.timestamp;
                 } catch(err) {
                     showNotification('Ошибка отправки: ' + (err.message || err));
-                } finally {
-                    isSendingMessage = false;
                 }
             }
 
@@ -5927,7 +5559,7 @@
                 if (chatId.includes(currentUser) || (chatId.startsWith('group_') && groups.some(g => g.id === chatId)) || (chatId.startsWith('channel_') && subscribedChannels.includes(chatId))) {
                     const messages = allChats[chatId];
                     const messagesArray = Object.keys(messages).map(key => ({ id: key, ...messages[key] }));
-                    const latestMessage = messagesArray.filter(msg => (msg.text || msg.image || msg.video || msg.audio || msg.file || msg.videoCircle) && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0];
+                    const latestMessage = messagesArray.filter(msg => (msg.text || msg.image || msg.video || msg.audio || msg.file) && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0];
                     if (!latestMessage) return;
                     if (latestMessage.timestamp > lastMessageTimestamp && latestMessage.sender !== currentUser && !notifiedMessageIds.has(latestMessage.id)) {
                         notifiedMessageIds.add(latestMessage.id);
@@ -5936,7 +5568,7 @@
                         if (chatId.startsWith('group_')) { const g = groups.find(g => g.id === chatId); if (g) { chatName = g.name; notificationType = 'group_message'; } }
                         else if (chatId.startsWith('channel_')) { const c = channels.find(c => c.id === chatId); if (c) { chatName = c.name; notificationType = 'channel_message'; } }
                         else { chatName = latestMessage.sender; }
-                        const notifPreview = latestMessage.text || (latestMessage.image ? '🖼 Фото' : latestMessage.video ? '🎬 Видео' : latestMessage.audio ? '🎵 Аудио' : latestMessage.videoCircle ? '⚫ Видео-кружочек' : latestMessage.file ? ('📄 ' + (latestMessage.fileName || 'Файл')) : '');
+                        const notifPreview = latestMessage.text || (latestMessage.image ? '🖼 Фото' : latestMessage.video ? '🎬 Видео' : latestMessage.audio ? '🎵 Аудио' : latestMessage.file ? ('📄 ' + (latestMessage.fileName || 'Файл')) : '');
                         if (document.hidden || currentChat !== chatId) {
                             showToastNotification({ title: chatName, message: notifPreview, type: chatId.startsWith('group_') ? 'group' : chatId.startsWith('channel_') ? 'channel' : 'message', chatId, avatar: chatId.startsWith('group_') ? '👥' : chatId.startsWith('channel_') ? '📢' : chatName.charAt(0).toUpperCase(), duration: 6000 });
                         }
@@ -6031,8 +5663,6 @@
 
         function switchTab(tab) {
             activeTab = tab;
-            // Сбрасываем хеш — searchResults мог быть заменён другим контентом
-            _lastRecentChatsHash = null;
 
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
 
@@ -6234,174 +5864,84 @@
             try { await _doBuildRecentChatsList(allChats); } finally { _chatListRendering = false; }
         }
 
-        // Хеш последнего отрендеренного списка чатов — пропускаем рендер если ничего не изменилось
-        let _lastRecentChatsHash = null;
-
-        // Вспомогательная функция: получить медиа-текст последнего сообщения
-        function _getMsgPreviewText(msg) {
-            if (!msg) return '';
-            return msg.text || (msg.image ? '🖼 Фото' : msg.video ? '🎬 Видео' : msg.audio ? '🎵 Аудио' : msg.videoCircle ? '⚫ Видео-кружочек' : msg.file ? ('📄 ' + (msg.fileName || 'Файл')) : '');
-        }
-
-        // Надёжно извлечь имя собеседника из chatId (формат: sorted([user1,user2]).join('_'))
-        function _getOtherUserFromChatId(chatId, me) {
-            // getChatId сортирует: [me, other].sort() → joined
-            // Значит chatId === [me, other].sort().join('_')
-            // Ищем вариант при котором одна из частей == me
-            if (chatId.startsWith(me + '_')) return chatId.slice(me.length + 1);
-            if (chatId.endsWith('_' + me)) return chatId.slice(0, chatId.length - me.length - 1);
-            return null;
-        }
-
         async function _doBuildRecentChatsList(allChats) {
             const recentChats = [];
-            // Единый Set по chatId — исключает любые дубли независимо от типа
-            const seenChatIds = new Set();
-            // Set по username — быстрый поиск при переборе allChats
-            const seenUsernames = new Set();
+            const addedUsernames = new Set();
 
-            // ── 1. Чаты из профиля пользователя (recentChats в Firebase) ──────────
             if (currentUserData && currentUserData.recentChats) {
                 for (const chat of currentUserData.recentChats) {
-                    if (!chat.username) continue;
-                    const chatId = getChatId(currentUser, chat.username);
-                    if (seenChatIds.has(chatId)) continue;
-                    seenChatIds.add(chatId);
-                    seenUsernames.add(chat.username);
-
-                    // Берём данные юзера из кэша — без лишних Firebase-запросов
-                    const userCached = _dataCache.get('user_' + chat.username);
-                    let userData = userCached ? userCached.data : null;
-                    if (!userData) {
-                        try {
-                            const snap = await database.ref('users/' + encodeURIComponent(chat.username)).once('value');
-                            userData = snap.val();
+                    if (chat.username && !addedUsernames.has(chat.username)) {
+                        addedUsernames.add(chat.username);
+                        const userCached = _dataCache.get('user_' + chat.username);
+                        let userData = userCached ? userCached.data : null;
+                        if (!userData) {
+                            const userSnapshot = await database.ref('users/' + encodeURIComponent(chat.username)).once('value');
+                            userData = userSnapshot.val();
                             if (userData) _dataCache.set('user_' + chat.username, userData);
-                        } catch(e) {}
+                        }
+                        const chatId = getChatId(currentUser, chat.username);
+                        let lastMessageText = 'Нет сообщений';
+                        let lastTimestamp = chat.addedAt || Date.now();
+                        let lastSender = null;
+                        if (allChats && allChats[chatId]) {
+                            const messages = allChats[chatId];
+                            const messagesArray = Object.keys(messages).map(key => ({ id: key, ...messages[key] }));
+                            const lastMessage = messagesArray.filter(msg => (msg.text || msg.image || msg.video || msg.audio || msg.file) && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0];
+                            if (lastMessage) { lastMessageText = lastMessage.text || (lastMessage.image ? '🖼 Фото' : lastMessage.video ? '🎬 Видео' : lastMessage.audio ? '🎵 Аудио' : lastMessage.file ? ('📄 ' + (lastMessage.fileName || 'Файл')) : ''); lastTimestamp = lastMessage.timestamp; lastSender = lastMessage.sender; }
+                        }
+                        recentChats.push({ id: chatId, user: chat.username, name: userData ? userData.name : chat.name, emoji: userData ? userData.emoji : (chat.emoji || '😊'), lastMessage: lastMessageText, timestamp: lastTimestamp, sender: lastSender, type: 'user' });
                     }
-
-                    let lastMessageText = 'Нет сообщений';
-                    let lastTimestamp = chat.addedAt || 0;
-                    let lastSender = null;
-                    if (allChats && allChats[chatId]) {
-                        const msgs = Object.values(allChats[chatId]);
-                        const last = msgs.filter(m => (m.text || m.image || m.video || m.audio || m.file || m.videoCircle) && m.sender && m.timestamp)
-                                        .sort((a, b) => b.timestamp - a.timestamp)[0];
-                        if (last) { lastMessageText = _getMsgPreviewText(last); lastTimestamp = last.timestamp; lastSender = last.sender; }
-                    }
-                    recentChats.push({
-                        id: chatId,
-                        user: chat.username,
-                        name: userData ? (userData.name || userData.nickname || chat.username) : (chat.name || chat.username),
-                        emoji: userData ? (userData.emoji || '😊') : (chat.emoji || '😊'),
-                        lastMessage: lastMessageText,
-                        timestamp: lastTimestamp,
-                        sender: lastSender,
-                        type: 'user'
-                    });
                 }
             }
-
-            // ── 2. Чаты из messages (могут быть не в recentChats, но есть история) ─
             if (allChats) {
-                for (const chatId of Object.keys(allChats)) {
-                    if (chatId.startsWith('group_') || chatId.startsWith('channel_')) continue;
-                    if (seenChatIds.has(chatId)) continue;
-                    // Проверяем что это чат с участием текущего пользователя
-                    const otherUser = _getOtherUserFromChatId(chatId, currentUser);
-                    if (!otherUser || seenUsernames.has(otherUser)) continue;
-
-                    const msgs = Object.values(allChats[chatId]);
-                    const last = msgs.filter(m => (m.text || m.image || m.video || m.audio || m.file || m.videoCircle) && m.sender && m.timestamp)
-                                    .sort((a, b) => b.timestamp - a.timestamp)[0];
-                    if (!last) continue;
-
-                    seenChatIds.add(chatId);
-                    seenUsernames.add(otherUser);
-
-                    // Берём имя из кэша
-                    const userCached = _dataCache.get('user_' + otherUser);
-                    const userData = userCached ? userCached.data : null;
-
-                    recentChats.push({
-                        id: chatId,
-                        user: otherUser,
-                        name: userData ? (userData.name || userData.nickname || otherUser) : otherUser,
-                        emoji: userData ? (userData.emoji || '😊') : '😊',
-                        lastMessage: _getMsgPreviewText(last),
-                        timestamp: last.timestamp,
-                        sender: last.sender,
-                        type: 'user'
-                    });
-                }
+                Object.keys(allChats).forEach(chatId => {
+                    if (chatId.includes(currentUser) && !chatId.startsWith('group_') && !chatId.startsWith('channel_')) {
+                        const messages = allChats[chatId];
+                        const messagesArray = Object.keys(messages).map(key => ({ id: key, ...messages[key] }));
+                        const lastMessage = messagesArray.filter(msg => (msg.text || msg.image || msg.video || msg.audio || msg.file) && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0];
+                        if (lastMessage) {
+                            // Корректно извлекаем имя собеседника из chatId вида "user1_user2"
+                            const parts = chatId.split('_');
+                            const otherUser = parts[0] === currentUser ? parts.slice(1).join('_') : parts.slice(0, parts.length - 1).join('_') === currentUser ? parts[parts.length - 1] : parts.filter(p => p !== currentUser).join('_');
+                            const lastMsgText = lastMessage.text || (lastMessage.image ? '🖼 Фото' : lastMessage.video ? '🎬 Видео' : lastMessage.audio ? '🎵 Аудио' : lastMessage.file ? ('📄 ' + (lastMessage.fileName || 'Файл')) : '');
+                            if (otherUser && !addedUsernames.has(otherUser)) { addedUsernames.add(otherUser); recentChats.push({ id: chatId, user: otherUser, lastMessage: lastMsgText, timestamp: lastMessage.timestamp, sender: lastMessage.sender, type: 'user' }); }
+                        }
+                    }
+                });
             }
-
-            // ── 3. Группы ────────────────────────────────────────────────────────────
+            const addedChatIds = new Set(recentChats.map(c => c.id));
             for (const group of groups) {
                 const groupId = group.id;
-                if (seenChatIds.has(groupId)) continue;
-                seenChatIds.add(groupId);
-                const groupMsgs = allChats && allChats[groupId];
-                let lastItem = { lastMessage: 'Нет сообщений', timestamp: group.createdAt || 0, sender: null };
-                if (groupMsgs) {
-                    const last = Object.values(groupMsgs)
-                        .filter(m => (m.text || m.image || m.video || m.audio || m.file || m.videoCircle) && m.sender && m.timestamp)
-                        .sort((a, b) => b.timestamp - a.timestamp)[0];
-                    if (last) lastItem = { lastMessage: _getMsgPreviewText(last), timestamp: last.timestamp, sender: last.sender };
-                }
-                recentChats.push({ id: groupId, name: group.name, ...lastItem, type: 'group' });
+                if (addedChatIds.has(groupId)) continue;
+                addedChatIds.add(groupId);
+                const groupMessages = allChats && allChats[groupId];
+                if (groupMessages) { const messagesArray = Object.keys(groupMessages).map(key => ({ id: key, ...groupMessages[key] })); const lastMessage = messagesArray.filter(msg => (msg.text || msg.image || msg.video || msg.audio || msg.file) && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0]; if (lastMessage) { const lmText = lastMessage.text || (lastMessage.image ? '🖼 Фото' : lastMessage.video ? '🎬 Видео' : lastMessage.audio ? '🎵 Аудио' : lastMessage.file ? ('📄 ' + (lastMessage.fileName || 'Файл')) : ''); recentChats.push({ id: groupId, name: group.name, lastMessage: lmText, timestamp: lastMessage.timestamp, sender: lastMessage.sender, type: 'group' }); } }
+                else { recentChats.push({ id: groupId, name: group.name, lastMessage: 'Нет сообщений', timestamp: group.createdAt, sender: null, type: 'group' }); }
             }
-
-            // ── 4. Каналы (только подписанные) ───────────────────────────────────────
             for (const channel of channels) {
                 const channelId = channel.id;
                 if (!subscribedChannels.includes(channelId)) continue;
-                if (seenChatIds.has(channelId)) continue;
-                seenChatIds.add(channelId);
-                const chMsgs = allChats && allChats[channelId];
-                let lastItem = { lastMessage: 'Нет сообщений', timestamp: channel.createdAt || 0, sender: null };
-                if (chMsgs) {
-                    const last = Object.values(chMsgs)
-                        .filter(m => (m.text || m.image || m.video || m.audio || m.file || m.videoCircle) && m.sender && m.timestamp)
-                        .sort((a, b) => b.timestamp - a.timestamp)[0];
-                    if (last) lastItem = { lastMessage: _getMsgPreviewText(last), timestamp: last.timestamp, sender: last.sender };
-                }
-                recentChats.push({ id: channelId, name: channel.name, ...lastItem, type: 'channel' });
+                if (addedChatIds.has(channelId)) continue;
+                addedChatIds.add(channelId);
+                const channelMessages = allChats && allChats[channelId];
+                if (channelMessages) { const messagesArray = Object.keys(channelMessages).map(key => ({ id: key, ...channelMessages[key] })); const lastMessage = messagesArray.filter(msg => (msg.text || msg.image || msg.video || msg.audio || msg.file) && msg.sender && msg.timestamp).sort((a, b) => b.timestamp - a.timestamp)[0]; if (lastMessage) { const lmText = lastMessage.text || (lastMessage.image ? '🖼 Фото' : lastMessage.video ? '🎬 Видео' : lastMessage.audio ? '🎵 Аудио' : lastMessage.file ? ('📄 ' + (lastMessage.fileName || 'Файл')) : ''); recentChats.push({ id: channelId, name: channel.name, lastMessage: lmText, timestamp: lastMessage.timestamp, sender: lastMessage.sender, type: 'channel' }); } }
+                else { recentChats.push({ id: channelId, name: channel.name, lastMessage: 'Нет сообщений', timestamp: channel.createdAt, sender: null, type: 'channel' }); }
             }
-
             recentChats.sort((a, b) => b.timestamp - a.timestamp);
-
-            // ── Умный пропуск рендера: если список не изменился — не трогаем DOM ────
-            const listHash = _dataCache._hash(JSON.stringify(recentChats));
-            if (listHash === _lastRecentChatsHash) return;
-            _lastRecentChatsHash = listHash;
-
-            // Кэшируем готовый список (для мгновенного старта при следующем открытии)
-            _dataCache.set('recent_chats_built', recentChats);
-
             displayRecentChats(recentChats);
         }
 
         async function loadRecentChats() {
             try {
-                // Мгновенный рендер: сначала пробуем готовый кэшированный список чатов
-                const builtCache = _dataCache.get('recent_chats_built');
-                if (builtCache && builtCache.data && builtCache.data.length > 0) {
-                    const listHash = _dataCache._hash(JSON.stringify(builtCache.data));
-                    if (listHash !== _lastRecentChatsHash) {
-                        _lastRecentChatsHash = listHash;
-                        displayRecentChats(builtCache.data);
-                    }
+                // Мгновенный рендер из кэша если есть, иначе показываем лоадер
+                const cached = _dataCache.get('messages_all');
+                if (cached) {
+                    await _buildRecentChatsList(cached.data);
                 } else {
-                    const cached = _dataCache.get('messages_all');
-                    if (cached) {
-                        await _buildRecentChatsList(cached.data);
-                    } else {
-                        searchResults.innerHTML = '<div style="text-align: center; padding: 10px; color: var(--text-light);">Загрузка чатов...</div>';
-                    }
+                    searchResults.innerHTML = '<div style="text-align: center; padding: 10px; color: var(--text-light);">Загрузка чатов...</div>';
                 }
 
-                // Создаём подписку только один раз — обновляем список при новых данных
+                // Создаём подписку только один раз
                 if (!_dataCache.listeners['messages_all']) {
                     _dataCache.subscribe('messages_all', database.ref('messages'), async (allChats, fromCache) => {
                         if (!fromCache && activeTab === 'chats') await _buildRecentChatsList(allChats);
@@ -6417,7 +5957,7 @@
         async function displayRecentChats(chats) {
             searchResults.innerHTML = '';
 
-            // Финальная защита от дублей по id (на случай если список пришёл из старого кэша)
+            // Дедупликация по id — защита от дублей при параллельных вызовах
             const seenIds = new Set();
             chats = chats.filter(chat => {
                 if (seenIds.has(chat.id)) return false;
@@ -6430,54 +5970,69 @@
                 return;
             }
 
-            // Обогащаем user-чаты без имён данными из _dataCache (без Firebase запросов)
-            // Если в кэше нет — запускаем фоновую загрузку и используем username как fallback
-            const userChatsWithoutName = chats.filter(c => c.type === 'user' && !c.name);
-            if (userChatsWithoutName.length > 0) {
-                // Фоновая подгрузка — не блокируем рендер
-                Promise.all(userChatsWithoutName.map(async chat => {
-                    if (_dataCache.get('user_' + chat.user)) return;
-                    try {
-                        const snap = await database.ref('users/' + encodeURIComponent(chat.user)).once('value');
-                        const ud = snap.val();
-                        if (ud) {
-                            _dataCache.set('user_' + chat.user, ud);
-                            // После подгрузки инвалидируем готовый список — при след. обновлении подтянется
-                            _dataCache.invalidate('recent_chats_built');
-                            _lastRecentChatsHash = null;
-                        }
-                    } catch(e) {}
-                }));
-            }
+            // Получаем данные пользователей для чатов без данных
+            const usersPromises = chats
+                .filter(chat => chat.type === 'user' && !chat.name)
+                .map(async chat => {
+                    const snapshot = await database.ref('users/' + encodeURIComponent(chat.user)).once('value');
+                    const userData = snapshot.val();
+                    return {
+                        ...chat,
+                        userData: userData || { name: chat.user, username: chat.user, online: false, emoji: '😊' }
+                    };
+                });
 
-            chats.forEach(chat => {
+            const chatsWithUserData = await Promise.all(usersPromises);
+
+            // Объединяем чаты с данными
+            const allChats = chats.map(chat => {
+                if (chat.type === 'user' && !chat.name) {
+                    const chatWithData = chatsWithUserData.find(c => c.id === chat.id);
+                    return chatWithData || chat;
+                }
+                return chat;
+            });
+
+            allChats.forEach(chat => {
                 const userItem = document.createElement('div');
                 userItem.className = 'user-item';
 
+                const messageDate = new Date(chat.timestamp);
+                const timeString = messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
                 let lastMessageText = chat.lastMessage;
                 if (chat.type === 'user') {
-                    if (chat.sender === currentUser) lastMessageText = `Вы: ${lastMessageText}`;
+                    if (chat.sender === currentUser) {
+                        lastMessageText = `Вы: ${lastMessageText}`;
+                    }
                 } else {
-                    if (chat.sender) lastMessageText = `${chat.sender}: ${lastMessageText}`;
+                    if (chat.sender) {
+                        lastMessageText = `${chat.sender}: ${lastMessageText}`;
+                    }
                 }
 
                 let avatar, name, emoji, username;
                 if (chat.type === 'user') {
-                    // Ищем актуальные данные из _dataCache для корректного имени/эмодзи
-                    const cached = _dataCache.get('user_' + chat.user);
-                    const ud = cached ? cached.data : null;
-                    const displayName = chat.name || (ud ? (ud.name || ud.nickname || chat.user) : chat.user) || 'Unknown';
-                    const displayEmoji = chat.emoji || (ud ? ud.emoji : '😊') || '😊';
+                    const displayName = chat.name || (chat.userData ? chat.userData.name : chat.user) || 'Unknown';
+                    const displayEmoji = chat.emoji || (chat.userData ? chat.userData.emoji : '😊');
+                    const displayUsername = chat.user || (chat.userData ? chat.userData.username : '');
                     avatar = displayName.charAt(0).toUpperCase();
                     name = displayName;
                     emoji = displayEmoji;
-                    username = chat.user;
+                    username = displayUsername;
                 } else if (chat.type === 'group') {
-                    avatar = '👥'; name = chat.name; emoji = '👥';
-                } else {
+                    avatar = '👥';
+                    name = chat.name;
+                    emoji = '👥';
+                } else { // channel
                     const channel = channels.find(c => c.id === chat.id);
-                    avatar = (channel && channel.icons && channel.icons.length > 0) ? getChannelIconHtml(channel) : '📢';
-                    name = chat.name; emoji = '📢';
+                    if (channel && channel.icons && channel.icons.length > 0) {
+                        avatar = getChannelIconHtml(channel);
+                    } else {
+                        avatar = '📢';
+                    }
+                    name = chat.name;
+                    emoji = '📢';
                 }
 
                 userItem.innerHTML = `
@@ -6500,14 +6055,16 @@
                 `;
 
                 userItem.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('delete-chat-btn') || e.target.closest('.delete-chat-btn')) return;
-                    if (e.target.classList.contains('view-profile-btn') || e.target.closest('.view-profile-btn')) return;
+                    if (e.target.classList.contains('delete-chat-btn') || e.target.closest('.delete-chat-btn')) {
+                        return;
+                    }
+                    if (e.target.classList.contains('view-profile-btn') || e.target.closest('.view-profile-btn')) {
+                        return;
+                    }
 
                     if (chat.type === 'user') {
-                        const cached = _dataCache.get('user_' + chat.user);
-                        const ud = cached ? cached.data : null;
-                        const displayName = chat.name || (ud ? (ud.name || ud.nickname || chat.user) : chat.user);
-                        const displayEmoji = chat.emoji || (ud ? ud.emoji : '😊') || '😊';
+                        const displayName = chat.name || (chat.userData ? chat.userData.name : chat.user);
+                        const displayEmoji = chat.emoji || (chat.userData ? chat.userData.emoji : '😊');
                         openChat(chat.user, displayEmoji, displayName);
                     } else if (chat.type === 'group') {
                         openGroupChat(chat.id, chat.name);
@@ -6521,28 +6078,38 @@
                     profileViewBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
                         const targetUsername = profileViewBtn.getAttribute('data-username');
-                        if (targetUsername) openUserProfile(targetUsername);
+                        if (targetUsername) {
+                            openUserProfile(targetUsername);
+                        }
                     });
                 }
 
                 const deleteBtn = userItem.querySelector('.delete-chat-btn');
                 deleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
+
                     let confirmMessage = '';
                     if (chat.type === 'group') {
                         const group = groups.find(g => g.id === chat.id);
-                        confirmMessage = (group && group.admin === currentUser)
-                            ? 'Вы уверены, что хотите удалить эту группу? Это действие необратимо.'
-                            : 'Вы уверены, что хотите покинуть эту группу?';
+                        if (group && group.admin === currentUser) {
+                            confirmMessage = 'Вы уверены, что хотите удалить эту группу? Это действие необратимо.';
+                        } else {
+                            confirmMessage = 'Вы уверены, что хотите покинуть эту группу?';
+                        }
                     } else if (chat.type === 'channel') {
                         const channel = channels.find(c => c.id === chat.id);
-                        confirmMessage = (channel && channel.creator === currentUser)
-                            ? 'Вы уверены, что хотите удалить этот канал? Это действие необратимо.'
-                            : 'Вы уверены, что хотите отписаться от этого канала?';
+                        if (channel && channel.creator === currentUser) {
+                            confirmMessage = 'Вы уверены, что хотите удалить этот канал? Это действие необратимо.';
+                        } else {
+                            confirmMessage = 'Вы уверены, что хотите отписаться от этого канала?';
+                        }
                     } else {
                         confirmMessage = 'Вы уверены, что хотите удалить этот чат? Все сообщения будут удалены.';
                     }
-                    if (confirm(confirmMessage)) deleteChatById(chat.id, chat.type);
+
+                    if (confirm(confirmMessage)) {
+                        deleteChatById(chat.id, chat.type);
+                    }
                 });
 
                 searchResults.appendChild(userItem);
@@ -7320,7 +6887,7 @@
             });
 
             const sortedMessages = filteredMessages
-                .filter(msg => (msg.text || msg.image || msg.video || msg.audio || msg.file || msg.videoCircle) && msg.sender && msg.timestamp)
+                .filter(msg => (msg.text || msg.image || msg.video || msg.audio || msg.file) && msg.sender && msg.timestamp)
                 .sort((a, b) => {
                     if (a.timestamp !== b.timestamp) {
                         return a.timestamp - b.timestamp;
@@ -7393,10 +6960,6 @@
   <audio class="chat-audio-hidden" src="${message.audio}" preload="metadata"></audio>
 </div></div>`;
                     }
-                    if (message.videoCircle) {
-                        const vdur = message.videoDuration ? formatAudioTime(Math.round(message.videoDuration)) : '0:00';
-                        messageContentHtml += `<div class="video-circle-wrap"><video src="${message.videoCircle}" autoplay loop muted playsinline></video><span class="video-circle-duration">${vdur}</span></div>`;
-                    }
                     if (message.file) {
                         const fname = message.fileName || 'Файл';
                         const fsize = message.fileSize ? (Math.round(message.fileSize/1024) + ' КБ') : '';
@@ -7437,7 +7000,7 @@
 
             const sortedMessages = Object.keys(messages)
                 .map(k => ({ id: k, ...messages[k] }))
-                .filter(msg => (msg.text || msg.image || msg.video || msg.audio || msg.file || msg.videoCircle) && msg.sender && msg.timestamp)
+                .filter(msg => (msg.text || msg.image || msg.video || msg.audio || msg.file) && msg.sender && msg.timestamp)
                 .sort((a, b) => a.timestamp - b.timestamp || a.id.localeCompare(b.id));
 
             if (sortedMessages.length === 0) {
@@ -7768,7 +7331,6 @@
          */
         window.submitComment = async function(postId) {
             if (!currentUser || !currentChat) return;
-            if (isSendingMessage) return;
             const sid = safePostId(postId);
             const inp = document.getElementById('new-comment-input-' + sid);
             if (!inp) return;
@@ -7776,7 +7338,6 @@
             if (!text) return;
 
             try {
-                isSendingMessage = true;
                 inp.disabled = true;
                 await database.ref('comments/' + currentChat + '/' + postId).push({
                     author: currentUser,
@@ -7790,7 +7351,6 @@
             } catch(e) {
                 showNotification('Ошибка: ' + e.message);
             } finally {
-                isSendingMessage = false;
                 inp.disabled = false;
                 inp.focus();
             }
@@ -7801,7 +7361,6 @@
          */
         window.submitReply = async function(postId, commentId, formId) {
             if (!currentUser || !currentChat) return;
-            if (isSendingMessage) return;
             const form = document.getElementById(formId);
             if (!form) return;
             const inp = form.querySelector('input');
@@ -7810,7 +7369,6 @@
             if (!text) return;
 
             try {
-                isSendingMessage = true;
                 inp.disabled = true;
                 await database.ref('comments/' + currentChat + '/' + postId + '/' + commentId + '/replies').push({
                     author: currentUser,
@@ -7824,7 +7382,6 @@
             } catch(e) {
                 showNotification('Ошибка: ' + e.message);
             } finally {
-                isSendingMessage = false;
                 inp.disabled = false;
             }
         };
@@ -8118,16 +7675,8 @@
 
 
         async function sendMessage() {
-            // Предотвращаем повторную отправку
-            if (isSendingMessage) return;
-
             const text = messageText.value.trim();
             if (!text || !currentChat) return;
-
-            isSendingMessage = true;
-            sendBtn.disabled = true;
-            sendBtn.style.opacity = '0.6';
-            sendBtn.style.cursor = 'not-allowed';
 
             // Обработка сообщений для AI ассистента
             if (currentChatType === 'ai') {
@@ -8148,11 +7697,6 @@
                     lastMessageTimestamp = message.timestamp;
                 } catch (error) {
                     showNotification('Ошибка: ' + error.message);
-                } finally {
-                    isSendingMessage = false;
-                    sendBtn.disabled = false;
-                    sendBtn.style.opacity = '1';
-                    sendBtn.style.cursor = 'pointer';
                 }
                 return;
             }
@@ -8168,10 +7712,6 @@
                 const channel = channels.find(c => c.id === chatId);
                 if (!channel || channel.creator !== currentUser) {
                     showNotification('Только создатель канала может отправлять сообщения');
-                    isSendingMessage = false;
-                    sendBtn.disabled = false;
-                    sendBtn.style.opacity = '1';
-                    sendBtn.style.cursor = 'pointer';
                     return;
                 }
             }
@@ -8184,28 +7724,16 @@
 
                 if (count < 1 || count > 100) {
                     showNotification('Количество повторов должно быть от 1 до 100');
-                    isSendingMessage = false;
-                    sendBtn.disabled = false;
-                    sendBtn.style.opacity = '1';
-                    sendBtn.style.cursor = 'pointer';
                     return;
                 }
 
                 if (!messageToRepeat) {
                     showNotification('Введите сообщение для повтора');
-                    isSendingMessage = false;
-                    sendBtn.disabled = false;
-                    sendBtn.style.opacity = '1';
-                    sendBtn.style.cursor = 'pointer';
                     return;
                 }
 
                 messageText.value = ''; messageText.style.height = 'auto';
                 await sendRepeatedMessages(chatId, messageToRepeat, count);
-                isSendingMessage = false;
-                sendBtn.disabled = false;
-                sendBtn.style.opacity = '1';
-                sendBtn.style.cursor = 'pointer';
                 return;
             }
 
@@ -8243,11 +7771,6 @@
                 lastMessageTimestamp = message.timestamp;
             } catch (error) {
                 showNotification('Ошибка: ' + error.message);
-            } finally {
-                isSendingMessage = false;
-                sendBtn.disabled = false;
-                sendBtn.style.opacity = '1';
-                sendBtn.style.cursor = 'pointer';
             }
         }
 
@@ -15903,607 +15426,5 @@ document.addEventListener('click', function(e) {
     })();
     </script>
     <!-- ===== КОНЕЦ СИСТЕМЫ ПРИГЛАШЕНИЯ ===== -->
-
-    <!-- ===== МОДАЛКА ЗАПИСИ ВИДЕО-КРУЖОЧКА ===== -->
-    <div class="video-circle-record-modal" id="video-circle-modal">
-        <button class="video-circle-close" onclick="closeVideoCircleModal()">✕</button>
-        <div class="video-circle-timer" id="video-circle-timer">0:00</div>
-        <div class="video-circle-preview">
-            <video id="video-circle-preview-video" autoplay muted playsinline></video>
-        </div>
-        <div class="video-circle-controls">
-            <button class="video-circle-switch-camera" onclick="switchCamera()" title="Переключить камеру">🔄</button>
-            <button class="video-circle-record-btn" id="video-record-btn" onclick="toggleVideoCircleRecording()"></button>
-        </div>
-    </div>
-
-    <!-- ===== СКРИПТ ЗАПИСИ АУДИО И ВИДЕО ===== -->
-    <script>
-    // ==================== СИСТЕМА ЗАПИСИ АУДИО И ВИДЕО ====================
-    (function() {
-        'use strict';
-        
-        // Состояние
-        let currentSendMode = 'text'; // 'text', 'voice', 'video'
-        let clickCount = 0;
-        let clickTimer = null;
-        let isRecordingAudio = false;
-        let isRecordingVideo = false;
-        let audioRecorder = null;
-        let videoRecorder = null;
-        let audioChunks = [];
-        let videoChunks = [];
-        let recordingStartTime = 0;
-        let recordingTimer = null;
-        let audioStream = null;
-        let videoStream = null;
-        let currentCamera = 'user'; // 'user' или 'environment'
-        
-        // DOM элементы
-        let sendBtn, sendModesMenu, voiceRecordContainer, messageInputContainer;
-        let modeIndicator;
-        
-        // Инициализация
-        document.addEventListener('DOMContentLoaded', function() {
-            initSendButtonModes();
-            initVoiceRecording();
-            optimizeForAndroid();
-        });
-        
-        // ==================== МУЛЬТИ-РЕЖИМ КНОПКИ ОТПРАВКИ ====================
-        function initSendButtonModes() {
-            sendBtn = document.getElementById('send-btn');
-            messageInputContainer = document.getElementById('message-input-container');
-            if (!sendBtn || !messageInputContainer) return;
-            
-            // Создаем меню режимов
-            sendModesMenu = document.createElement('div');
-            sendModesMenu.className = 'send-btn-modes';
-            sendModesMenu.id = 'send-btn-modes';
-            sendModesMenu.innerHTML = `
-                <button class="send-mode-item text-mode active" data-mode="text">
-                    <span class="mode-icon">✉️</span>
-                    <div>
-                        <div class="mode-label">Текст</div>
-                        <div class="mode-hint">Нажмите для отправки</div>
-                    </div>
-                </button>
-                <button class="send-mode-item voice-mode" data-mode="voice">
-                    <span class="mode-icon">🎤</span>
-                    <div>
-                        <div class="mode-label">Голосовое</div>
-                        <div class="mode-hint">Зажмите для записи</div>
-                    </div>
-                </button>
-                <button class="send-mode-item video-mode" data-mode="video">
-                    <span class="mode-icon">🎥</span>
-                    <div>
-                        <div class="mode-label">Видео-кружочек</div>
-                        <div class="mode-hint">Нажмите для записи</div>
-                    </div>
-                </button>
-            `;
-            messageInputContainer.appendChild(sendModesMenu);
-            
-            // Индикатор режима на кнопке
-            modeIndicator = document.createElement('div');
-            modeIndicator.className = 'send-mode-indicator';
-            modeIndicator.id = 'send-mode-indicator';
-            sendBtn.appendChild(modeIndicator);
-            
-            // Обработчики для пунктов меню
-            sendModesMenu.querySelectorAll('.send-mode-item').forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    setSendMode(this.dataset.mode);
-                    hideSendModesMenu();
-                });
-            });
-            
-            // Обработчик кнопки отправки
-            sendBtn.addEventListener('click', handleSendButtonClick);
-            
-            // Обработчики для зажатия (для аудио)
-            sendBtn.addEventListener('mousedown', handleSendButtonPress);
-            sendBtn.addEventListener('touchstart', handleSendButtonPress, { passive: false });
-            sendBtn.addEventListener('mouseup', handleSendButtonRelease);
-            sendBtn.addEventListener('touchend', handleSendButtonRelease);
-            sendBtn.addEventListener('mouseleave', handleSendButtonRelease);
-            sendBtn.addEventListener('touchcancel', handleSendButtonRelease);
-            
-            // Скрыть меню при клике вне
-            document.addEventListener('click', function(e) {
-                if (!sendModesMenu.contains(e.target) && e.target !== sendBtn) {
-                    hideSendModesMenu();
-                }
-            });
-        }
-        
-        // Установка режима отправки
-        function setSendMode(mode) {
-            currentSendMode = mode;
-            
-            // Обновляем активный пункт меню
-            sendModesMenu.querySelectorAll('.send-mode-item').forEach(item => {
-                item.classList.toggle('active', item.dataset.mode === mode);
-            });
-            
-            // Обновляем индикатор на кнопке
-            modeIndicator.className = 'send-mode-indicator ' + mode;
-            modeIndicator.classList.toggle('active', mode !== 'text');
-            
-            // Обновляем иконку кнопки
-            updateSendButtonIcon();
-        }
-        
-        // Обновление иконки кнопки
-        function updateSendButtonIcon() {
-            const icons = {
-                text: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>',
-                voice: '🎤',
-                video: '🎥'
-            };
-            sendBtn.innerHTML = icons[currentSendMode] || icons.text;
-            if (modeIndicator) sendBtn.appendChild(modeIndicator);
-        }
-        
-        // Показать/скрыть меню режимов
-        function toggleSendModesMenu() {
-            sendModesMenu.classList.toggle('active');
-        }
-        function hideSendModesMenu() {
-            sendModesMenu.classList.remove('active');
-        }
-        
-        // Обработчик клика по кнопке отправки
-        function handleSendButtonClick(e) {
-            clickCount++;
-            
-            if (clickCount === 1) {
-                clickTimer = setTimeout(() => {
-                    // Одиночный клик
-                    if (currentSendMode === 'text') {
-                        sendMessage();
-                    } else if (currentSendMode === 'voice') {
-                        // Для голосового - показываем подсказку
-                        showNotification('Зажмите кнопку для записи голосового');
-                    } else if (currentSendMode === 'video') {
-                        openVideoCircleModal();
-                    }
-                    clickCount = 0;
-                }, 300);
-            } else if (clickCount === 2) {
-                // Двойной клик - режим голосового
-                clearTimeout(clickTimer);
-                setSendMode('voice');
-                showNotification('Режим: Голосовое сообщение (зажмите кнопку)');
-                clickCount = 0;
-            } else if (clickCount === 3) {
-                // Тройной клик - режим видео
-                clearTimeout(clickTimer);
-                setSendMode('video');
-                showNotification('Режим: Видео-кружочек');
-                clickCount = 0;
-            }
-        }
-        
-        // Обработчик нажатия кнопки (для аудио)
-        function handleSendButtonPress(e) {
-            if (currentSendMode === 'voice' && !isRecordingAudio) {
-                e.preventDefault();
-                startAudioRecording();
-            }
-        }
-        
-        // Обработчик отпускания кнопки (для аудио)
-        function handleSendButtonRelease(e) {
-            if (currentSendMode === 'voice' && isRecordingAudio) {
-                stopAudioRecording();
-            }
-        }
-        
-        // ==================== ЗАПИСЬ АУДИО ====================
-        function initVoiceRecording() {
-            // Создаем контейнер для записи
-            voiceRecordContainer = document.createElement('div');
-            voiceRecordContainer.className = 'voice-record-container';
-            voiceRecordContainer.id = 'voice-record-container';
-            voiceRecordContainer.innerHTML = `
-                <div class="recording-dot"></div>
-                <div class="voice-wave">
-                    <div class="voice-wave-bar"></div>
-                    <div class="voice-wave-bar"></div>
-                    <div class="voice-wave-bar"></div>
-                    <div class="voice-wave-bar"></div>
-                    <div class="voice-wave-bar"></div>
-                </div>
-                <span class="voice-timer" id="voice-timer">0:00</span>
-                <span class="voice-cancel-hint">Отпустите для отправки</span>
-            `;
-            if (messageInputContainer) {
-                messageInputContainer.appendChild(voiceRecordContainer);
-            }
-        }
-        
-        // Начать запись аудио
-        async function startAudioRecording() {
-            try {
-                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                audioRecorder = new MediaRecorder(audioStream);
-                audioChunks = [];
-                
-                audioRecorder.ondataavailable = function(e) {
-                    if (e.data.size > 0) audioChunks.push(e.data);
-                };
-                
-                audioRecorder.onstop = function() {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    sendAudioMessage(audioBlob);
-                };
-                
-                audioRecorder.start();
-                isRecordingAudio = true;
-                recordingStartTime = Date.now();
-                
-                // Показываем индикатор записи
-                voiceRecordContainer.classList.add('active');
-                
-                // Запускаем таймер
-                recordingTimer = setInterval(updateVoiceTimer, 100);
-                
-                // Вибрация на мобильных
-                if (navigator.vibrate) navigator.vibrate(50);
-                
-            } catch (err) {
-                console.error('Ошибка доступа к микрофону:', err);
-                showNotification('Не удалось получить доступ к микрофону');
-            }
-        }
-        
-        // Остановить запись аудио
-        function stopAudioRecording() {
-            if (!isRecordingAudio || !audioRecorder) return;
-            
-            const recordingDuration = Date.now() - recordingStartTime;
-            
-            // Минимальная длительность 1 секунда
-            if (recordingDuration < 1000) {
-                showNotification('Запись слишком короткая');
-                cancelAudioRecording();
-                return;
-            }
-            
-            audioRecorder.stop();
-            audioStream.getTracks().forEach(track => track.stop());
-            
-            isRecordingAudio = false;
-            voiceRecordContainer.classList.remove('active');
-            clearInterval(recordingTimer);
-            
-            // Вибрация на мобильных
-            if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
-        }
-        
-        // Отменить запись аудио
-        function cancelAudioRecording() {
-            if (audioRecorder && audioRecorder.state !== 'inactive') {
-                audioRecorder.stop();
-            }
-            if (audioStream) {
-                audioStream.getTracks().forEach(track => track.stop());
-            }
-            isRecordingAudio = false;
-            voiceRecordContainer.classList.remove('active');
-            clearInterval(recordingTimer);
-            audioChunks = [];
-        }
-        
-        // Обновление таймера записи
-        function updateVoiceTimer() {
-            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
-            const minutes = Math.floor(elapsed / 60);
-            const seconds = elapsed % 60;
-            const timerEl = document.getElementById('voice-timer');
-            if (timerEl) {
-                timerEl.textContent = minutes + ':' + seconds.toString().padStart(2, '0');
-            }
-            
-            // Максимальная длительность 5 минут
-            if (elapsed >= 300) {
-                stopAudioRecording();
-                showNotification('Максимальная длительность записи — 5 минут');
-            }
-        }
-        
-        // Отправка аудио сообщения
-        async function sendAudioMessage(audioBlob) {
-            if (!currentChat) {
-                showNotification('Выберите чат для отправки');
-                return;
-            }
-            
-            showNotification('Отправка голосового сообщения...');
-            
-            try {
-                // Конвертируем blob в файл для загрузки
-                const audioFile = new File([audioBlob], 'voice-message.webm', { type: 'audio/webm' });
-                
-                // Загружаем на Cloudinary
-                const formData = new FormData();
-                formData.append('file', audioFile);
-                formData.append('upload_preset', 'twiin_unsigned');
-                formData.append('folder', 'twiin_chat');
-                
-                const response = await fetch('https://api.cloudinary.com/v1_1/dzrlzyjpg/video/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                if (data.secure_url) {
-                    // Отправляем сообщение
-                    const chatId = (currentChatType === 'group' || currentChatType === 'channel')
-                        ? currentChat : getChatId(currentUser, currentChat);
-                    
-                    const msg = {
-                        sender: currentUser,
-                        audio: data.secure_url,
-                        audioDuration: Math.floor((Date.now() - recordingStartTime) / 1000),
-                        timestamp: Date.now()
-                    };
-                    
-                    if (currentChatType === 'user') msg.receiver = currentChat;
-                    
-                    await database.ref('messages/' + chatId).push(msg);
-                    loadMessages();
-                    showNotification('Голосовое сообщение отправлено');
-                }
-            } catch (err) {
-                console.error('Ошибка отправки аудио:', err);
-                showNotification('Ошибка отправки голосового сообщения');
-            }
-        }
-        
-        // ==================== ЗАПИСЬ ВИДЕО-КРУЖОЧКА ====================
-        window.openVideoCircleModal = function() {
-            const modal = document.getElementById('video-circle-modal');
-            modal.classList.add('active');
-            initVideoCircleCamera();
-        };
-        
-        window.closeVideoCircleModal = function() {
-            const modal = document.getElementById('video-circle-modal');
-            modal.classList.remove('active');
-            stopVideoCircleCamera();
-        };
-        
-        window.switchCamera = function() {
-            currentCamera = currentCamera === 'user' ? 'environment' : 'user';
-            initVideoCircleCamera();
-        };
-        
-        // Инициализация камеры для видео-кружочка
-        async function initVideoCircleCamera() {
-            const video = document.getElementById('video-circle-preview-video');
-            
-            try {
-                if (videoStream) {
-                    videoStream.getTracks().forEach(track => track.stop());
-                }
-                
-                videoStream = await navigator.mediaDevices.getUserMedia({
-                    video: { 
-                        facingMode: currentCamera,
-                        width: { ideal: 480 },
-                        height: { ideal: 480 }
-                    },
-                    audio: true
-                });
-                
-                video.srcObject = videoStream;
-            } catch (err) {
-                console.error('Ошибка доступа к камере:', err);
-                showNotification('Не удалось получить доступ к камере');
-            }
-        }
-        
-        // Остановка камеры
-        function stopVideoCircleCamera() {
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-                videoStream = null;
-            }
-            if (isRecordingVideo) {
-                stopVideoCircleRecording();
-            }
-        }
-        
-        // Переключение записи видео
-        window.toggleVideoCircleRecording = function() {
-            if (isRecordingVideo) {
-                stopVideoCircleRecording();
-            } else {
-                startVideoCircleRecording();
-            }
-        };
-        
-        // Начать запись видео
-        async function startVideoCircleRecording() {
-            if (!videoStream) return;
-            
-            const btn = document.getElementById('video-record-btn');
-            btn.classList.add('recording');
-            
-            videoChunks = [];
-            
-            // Создаем MediaRecorder с оптимальными настройками для мобильных
-            const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
-                ? 'video/webm;codecs=vp9'
-                : MediaRecorder.isTypeSupported('video/webm;codecs=vp8')
-                    ? 'video/webm;codecs=vp8'
-                    : 'video/webm';
-            
-            videoRecorder = new MediaRecorder(videoStream, { 
-                mimeType: mimeType,
-                videoBitsPerSecond: 1000000 // 1 Mbps для мобильных
-            });
-            
-            videoRecorder.ondataavailable = function(e) {
-                if (e.data.size > 0) videoChunks.push(e.data);
-            };
-            
-            videoRecorder.onstop = function() {
-                const videoBlob = new Blob(videoChunks, { type: mimeType });
-                sendVideoCircleMessage(videoBlob);
-            };
-            
-            videoRecorder.start(100); // Собираем данные каждые 100ms
-            isRecordingVideo = true;
-            recordingStartTime = Date.now();
-            
-            // Запускаем таймер
-            recordingTimer = setInterval(updateVideoCircleTimer, 100);
-            
-            // Вибрация
-            if (navigator.vibrate) navigator.vibrate(50);
-            
-            // Максимальная длительность 60 секунд
-            setTimeout(() => {
-                if (isRecordingVideo) stopVideoCircleRecording();
-            }, 60000);
-        }
-        
-        // Остановить запись видео
-        function stopVideoCircleRecording() {
-            if (!isRecordingVideo || !videoRecorder) return;
-            
-            const btn = document.getElementById('video-record-btn');
-            btn.classList.remove('recording');
-            
-            videoRecorder.stop();
-            
-            isRecordingVideo = false;
-            clearInterval(recordingTimer);
-            
-            // Сбрасываем таймер
-            const timerEl = document.getElementById('video-circle-timer');
-            if (timerEl) timerEl.textContent = '0:00';
-            
-            // Вибрация
-            if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
-            
-            // Закрываем модалку
-            closeVideoCircleModal();
-        }
-        
-        // Обновление таймера видео
-        function updateVideoCircleTimer() {
-            const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
-            const minutes = Math.floor(elapsed / 60);
-            const seconds = elapsed % 60;
-            const timerEl = document.getElementById('video-circle-timer');
-            if (timerEl) {
-                timerEl.textContent = minutes + ':' + seconds.toString().padStart(2, '0');
-            }
-        }
-        
-        // Отправка видео-кружочка
-        async function sendVideoCircleMessage(videoBlob) {
-            if (!currentChat) {
-                showNotification('Выберите чат для отправки');
-                return;
-            }
-            
-            showNotification('Отправка видео-кружочка...');
-            
-            try {
-                const videoFile = new File([videoBlob], 'video-circle.webm', { type: 'video/webm' });
-                
-                const formData = new FormData();
-                formData.append('file', videoFile);
-                formData.append('upload_preset', 'twiin_unsigned');
-                formData.append('folder', 'twiin_chat');
-                
-                const response = await fetch('https://api.cloudinary.com/v1_1/dzrlzyjpg/video/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                if (data.secure_url) {
-                    const chatId = (currentChatType === 'group' || currentChatType === 'channel')
-                        ? currentChat : getChatId(currentUser, currentChat);
-                    
-                    const msg = {
-                        sender: currentUser,
-                        videoCircle: data.secure_url,
-                        videoDuration: Math.floor((Date.now() - recordingStartTime) / 1000),
-                        timestamp: Date.now()
-                    };
-                    
-                    if (currentChatType === 'user') msg.receiver = currentChat;
-                    
-                    await database.ref('messages/' + chatId).push(msg);
-                    loadMessages();
-                    showNotification('Видео-кружочек отправлен');
-                }
-            } catch (err) {
-                console.error('Ошибка отправки видео:', err);
-                showNotification('Ошибка отправки видео-кружочка');
-            }
-        }
-        
-        // ==================== ОПТИМИЗАЦИЯ ДЛЯ ANDROID ====================
-        function optimizeForAndroid() {
-            const isAndroid = /Android/i.test(navigator.userAgent);
-            const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-            
-            if (isAndroid) {
-                document.body.classList.add('android-optimized', 'touch-optimized');
-                
-                // Предотвращаем масштабирование при двойном тапе
-                let lastTouchEnd = 0;
-                document.addEventListener('touchend', function(e) {
-                    const now = Date.now();
-                    if (now - lastTouchEnd <= 300) {
-                        e.preventDefault();
-                    }
-                    lastTouchEnd = now;
-                }, { passive: false });
-                
-                // Отключаем контекстное меню при долгом нажатии
-                document.addEventListener('contextmenu', function(e) {
-                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                        e.preventDefault();
-                    }
-                });
-                
-                // Предотвращаем pull-to-refresh
-                document.body.style.overscrollBehavior = 'none';
-            }
-            
-            if (isIOS) {
-                document.body.classList.add('ios-optimized');
-            }
-            
-            // Обработка изменения ориентации
-            window.addEventListener('orientationchange', function() {
-                setTimeout(function() {
-                    window.scrollTo(0, 0);
-                }, 100);
-            });
-        }
-        
-        // Экспортируем функции
-        window.setSendMode = setSendMode;
-        window.getSendMode = function() { return currentSendMode; };
-        
-    })();
-    </script>
-    <!-- ===== КОНЕЦ СКРИПТА ЗАПИСИ ===== -->
-
-</body>
 
 </html>
