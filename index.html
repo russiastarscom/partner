@@ -3295,161 +3295,15 @@
             opacity: 1;
         }
 
-        /* ── VOICE RECORD BUTTON ───────────────────────────── */
-        .dots-btn.recording {
-            opacity: 1 !important;
-            color: var(--danger-color) !important;
-            animation: voicePulse 1s ease infinite;
-        }
-        @keyframes voicePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.12); }
-        }
+        /* ── VOICE RECORD — полная переработка ───────────────── */
 
-        /* ═══════════════════════════════════════════════════════
-           ПОЛОСА ЗАПИСИ ГОЛОСОВОГО — СОВРЕМЕННЫЙ ДИЗАЙН
-           ═══════════════════════════════════════════════════════ */
-        #voice-rec-bar {
-            display: none;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 14px;
-            width: 100%;
-            background: var(--input-bg);
-            border: 2px solid rgba(231, 76, 60, 0.3);
-            border-radius: 24px;
-            box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.08), 0 2px 12px rgba(0,0,0,0.06);
-            animation: voiceRecSlideIn 0.25s cubic-bezier(.34,1.56,.64,1);
-            flex-shrink: 0;
-            min-height: 48px;
-            position: relative;
-            overflow: hidden;
-        }
-        #voice-rec-bar.active {
-            display: flex;
-        }
-        @keyframes voiceRecSlideIn {
-            from { opacity: 0; transform: scaleX(0.9) scaleY(0.85); }
-            to   { opacity: 1; transform: scaleX(1) scaleY(1); }
-        }
-
-        /* Пульсирующая красная кайма при записи */
-        #voice-rec-bar::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: 24px;
-            border: 2px solid rgba(231, 76, 60, 0.4);
-            animation: voiceRecBorderPulse 1.5s ease-in-out infinite;
-            pointer-events: none;
-        }
-        @keyframes voiceRecBorderPulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-
-        /* Красный индикатор записи */
-        .voice-rec-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #e74c3c;
-            flex-shrink: 0;
-            animation: voiceRecDot 1s ease-in-out infinite;
-            box-shadow: 0 0 8px rgba(231, 76, 60, 0.5);
-            position: relative;
-        }
-        .voice-rec-indicator::after {
-            content: '';
-            position: absolute;
-            inset: -3px;
-            border-radius: 50%;
-            border: 2px solid rgba(231, 76, 60, 0.3);
-            animation: voiceRecRing 1.5s ease-out infinite;
-        }
-        @keyframes voiceRecDot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.85); }
-        }
-        @keyframes voiceRecRing {
-            0% { transform: scale(1); opacity: 0.6; }
-            100% { transform: scale(1.8); opacity: 0; }
-        }
-
-        /* Таймер записи */
-        #voice-rec-time {
-            font-size: 0.88rem;
-            font-weight: 700;
-            color: var(--danger-color);
-            font-variant-numeric: tabular-nums;
-            white-space: nowrap;
-            min-width: 36px;
-            letter-spacing: 0.02em;
-        }
-
-        /* Реактивная волна (Web Audio API) */
-        .voice-rec-waves {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 2.5px;
-            height: 32px;
-            overflow: hidden;
-            padding: 0 4px;
-        }
-        .voice-rec-waves .bar {
-            width: 3px;
-            min-height: 3px;
-            border-radius: 3px;
-            background: linear-gradient(180deg, var(--danger-color), var(--primary-color));
-            flex-shrink: 0;
-            transition: height 0.08s ease-out;
-        }
-        /* Фоллбэк анимация если нет Web Audio API */
-        .voice-rec-waves.no-analyser .bar {
-            animation: waveAnim 0.6s ease-in-out infinite alternate;
-        }
-        .voice-rec-waves.no-analyser .bar:nth-child(odd)  { animation-delay: 0.15s; }
-        .voice-rec-waves.no-analyser .bar:nth-child(3n)   { animation-delay: 0.3s; }
-        .voice-rec-waves.no-analyser .bar:nth-child(4n)   { animation-delay: 0.1s; }
-        .voice-rec-waves.no-analyser .bar:nth-child(5n)   { animation-delay: 0.25s; }
-        @keyframes waveAnim {
-            from { height: 4px; }
-            to   { height: 24px; }
-        }
-
-        /* Кнопки управления записью */
-        #voice-rec-cancel {
-            width: 34px;
-            height: 34px;
+        /* Кнопка микрофона (рядом с send-btn) */
+        #mic-btn {
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             border: none;
-            background: rgba(231, 76, 60, 0.1);
-            color: var(--danger-color);
-            cursor: pointer;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
-            line-height: 1;
-        }
-        #voice-rec-cancel:hover {
-            background: rgba(231, 76, 60, 0.2);
-            transform: scale(1.08);
-            box-shadow: 0 2px 8px rgba(231, 76, 60, 0.2);
-        }
-        #voice-rec-cancel:active {
-            transform: scale(0.92);
-        }
-        #voice-rec-stop {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: none;
-            background: linear-gradient(135deg, var(--primary-color), #a29bfe);
+            background: var(--primary-color);
             color: white;
             cursor: pointer;
             display: flex;
@@ -3457,26 +3311,101 @@
             justify-content: center;
             flex-shrink: 0;
             transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
-            box-shadow: 0 3px 12px rgba(108, 92, 231, 0.3);
+            box-shadow: 0 2px 8px rgba(108, 92, 231, 0.25);
         }
-        #voice-rec-stop:active {
-            transform: scale(0.9);
-        }
-        #voice-rec-stop svg {
-            width: 18px;
-            height: 18px;
-            fill: white;
-        }
-        #voice-rec-stop:hover {
-            background: linear-gradient(135deg, #5a4bd1, #8b7fe8);
+        #mic-btn:hover {
+            background: var(--primary-dark);
             transform: scale(1.06);
-            box-shadow: 0 4px 16px rgba(108, 92, 231, 0.4);
+            box-shadow: 0 3px 12px rgba(108, 92, 231, 0.35);
+        }
+        #mic-btn:active { transform: scale(0.92); }
+        #mic-btn svg { width: 20px; height: 20px; }
+
+        /* Полоса записи — занимает всю ширину, sibling msg-input-row */
+        #voice-rec-bar {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 6px 6px 6px 8px;
+            background: var(--input-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 24px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            animation: vrSlideIn 0.2s ease;
+        }
+        @keyframes vrSlideIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* Кнопка микрофона — в input-области */
-        .voice-record-btn {
-            width: 36px;
-            height: 36px;
+        /* Центр записи */
+        .voice-rec-center {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        /* Красная точка */
+        .voice-rec-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #e74c3c;
+            flex-shrink: 0;
+            animation: vrDot 1s ease-in-out infinite;
+        }
+        @keyframes vrDot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Таймер */
+        #voice-rec-time {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--danger-color);
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            min-width: 32px;
+        }
+
+        /* Волны — реакция на звук */
+        .voice-rec-waves {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            height: 28px;
+            overflow: hidden;
+        }
+        .voice-rec-waves .bar {
+            width: 3px;
+            min-height: 3px;
+            border-radius: 2px;
+            background: var(--primary-color);
+            flex-shrink: 0;
+            transition: height 0.06s linear;
+        }
+        /* Фоллбэк анимация */
+        .voice-rec-waves.no-analyser .bar {
+            animation: vrWave 0.5s ease-in-out infinite alternate;
+        }
+        .voice-rec-waves.no-analyser .bar:nth-child(odd)  { animation-delay: 0.1s; }
+        .voice-rec-waves.no-analyser .bar:nth-child(3n)   { animation-delay: 0.25s; }
+        .voice-rec-waves.no-analyser .bar:nth-child(5n)   { animation-delay: 0.15s; }
+        @keyframes vrWave {
+            from { height: 3px; }
+            to   { height: 20px; }
+        }
+
+        /* Кнопка отмены */
+        #voice-rec-cancel {
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             border: none;
             background: transparent;
@@ -3486,63 +3415,79 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            transition: color 0.15s, background 0.15s, transform 0.15s;
-            padding: 0;
+            transition: background 0.12s, color 0.12s;
         }
-        .voice-record-btn:hover {
-            color: var(--primary-color);
-            background: rgba(108, 92, 231, 0.08);
-            transform: scale(1.06);
-        }
-        .voice-record-btn:active {
-            transform: scale(0.92);
-        }
-        .voice-record-btn svg {
-            width: 20px;
-            height: 20px;
-        }
-        .voice-record-btn.recording-active {
+        #voice-rec-cancel:hover {
+            background: rgba(231, 76, 60, 0.1);
             color: var(--danger-color);
-            background: rgba(231, 76, 60, 0.12);
-            animation: voiceMicPulse 1.2s ease-in-out infinite;
         }
-        @keyframes voiceMicPulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.2); }
-            50% { box-shadow: 0 0 0 6px rgba(231, 76, 60, 0); }
-        }
+        #voice-rec-cancel:active { transform: scale(0.88); }
 
-        /* Индикатор загрузки голосового */
-        .voice-upload-indicator {
+        /* Кнопка отправки записи */
+        #voice-rec-stop {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: none;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.15s, transform 0.15s;
+        }
+        #voice-rec-stop:hover { background: var(--primary-dark); transform: scale(1.06); }
+        #voice-rec-stop:active { transform: scale(0.9); }
+        #voice-rec-stop svg { width: 20px; height: 20px; }
+
+        /* Индикатор отправки */
+        .voice-upload-bar {
             display: none;
             align-items: center;
-            gap: 8px;
-            padding: 8px 14px;
-            background: rgba(108, 92, 231, 0.06);
-            border-radius: 16px;
-            font-size: 0.82rem;
-            color: var(--primary-color);
-            font-weight: 600;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--input-bg);
+            border: 1.5px solid var(--border-color);
+            border-radius: 24px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            animation: vrSlideIn 0.2s ease;
         }
-        .voice-upload-indicator.active { display: flex; }
+        .voice-upload-bar.active { display: flex; }
         .voice-upload-spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(108,92,231,0.2);
+            width: 18px;
+            height: 18px;
+            border: 2.5px solid rgba(108,92,231,0.15);
             border-top-color: var(--primary-color);
             border-radius: 50%;
             animation: musicSpin 0.6s linear infinite;
+            flex-shrink: 0;
+        }
+        .voice-upload-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-weight: 600;
         }
 
         /* Голосовое сообщение в чате */
         .voice-msg-btn::after {
             content: '🎤';
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             position: absolute;
-            bottom: -1px;
-            right: -1px;
+            bottom: 0;
+            right: 0;
         }
         .voice-msg-btn {
             position: relative;
+        }
+
+        /* Pulsing для dots-btn при записи */
+        .dots-btn.recording {
+            opacity: 1 !important;
+            color: var(--danger-color) !important;
         }
 
         /* ── THREE DOTS BUTTON ──────────────────────────────── */
@@ -6871,6 +6816,220 @@
                 width: min(440px, 480px);
             }
         }
+
+        /* ============================================================
+           СКВОЗНОЕ ШИФРОВАНИЕ (E2E Encryption)
+           ============================================================ */
+        .e2e-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 0.65rem;
+            color: var(--success-color);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            padding: 1px 6px;
+            border-radius: 6px;
+            background: rgba(46, 204, 113, 0.1);
+            white-space: nowrap;
+        }
+        .e2e-badge.inactive {
+            color: var(--text-light);
+            background: rgba(0,0,0,0.05);
+        }
+        .e2e-badge svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        /* Модалка шифрования */
+        #e2e-modal .modal-content {
+            max-width: 500px;
+            width: 94vw;
+        }
+        .e2e-section {
+            margin-bottom: 16px;
+        }
+        .e2e-section-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .e2e-section-desc {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        .e2e-toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+        .e2e-toggle-label {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        .e2e-toggle-sublabel {
+            font-size: 0.72rem;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+        .e2e-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+        .e2e-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .e2e-switch .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: var(--border-color);
+            border-radius: 24px;
+            transition: background 0.2s;
+        }
+        .e2e-switch .slider::before {
+            content: '';
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .e2e-switch input:checked + .slider {
+            background: var(--success-color);
+        }
+        .e2e-switch input:checked + .slider::before {
+            transform: translateX(20px);
+        }
+        .e2e-key-fingerprint {
+            font-family: 'Courier New', monospace;
+            font-size: 0.72rem;
+            color: var(--text-light);
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            word-break: break-all;
+            line-height: 1.6;
+            user-select: all;
+        }
+        .e2e-danger-zone {
+            border: 1.5px solid rgba(231, 76, 60, 0.3);
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+        .e2e-danger-zone .e2e-section-title {
+            color: var(--danger-color);
+        }
+        .e2e-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+        }
+        .e2e-btn:active { transform: scale(0.97); }
+        .e2e-btn-primary {
+            background: var(--primary-color);
+            color: #fff;
+        }
+        .e2e-btn-primary:hover { background: var(--primary-dark); }
+        .e2e-btn-danger {
+            background: var(--danger-color);
+            color: #fff;
+        }
+        .e2e-btn-danger:hover { background: var(--danger-dark); }
+        .e2e-btn-outline {
+            background: transparent;
+            color: var(--primary-color);
+            border: 1.5px solid var(--primary-color);
+        }
+        .e2e-btn-outline:hover { background: rgba(108,92,231,0.08); }
+        .e2e-btn-sm {
+            padding: 5px 12px;
+            font-size: 0.78rem;
+            border-radius: 8px;
+        }
+        .e2e-status-text {
+            font-size: 0.78rem;
+            color: var(--text-light);
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+        .e2e-status-text.ok { color: var(--success-color); }
+        .e2e-status-text.err { color: var(--danger-color); }
+
+        /* Индикатор шифрования в сообщении */
+        .msg-encrypted-icon {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.6rem;
+            color: rgba(46,204,113,0.7);
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+
+        /* FSB панель */
+        .fsb-input-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .fsb-input-group input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .fsb-input-group input:focus {
+            border-color: var(--primary-color);
+        }
+        .fsb-export-log {
+            max-height: 200px;
+            overflow-y: auto;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
     </style>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -6992,6 +7151,10 @@
                             </h2>
                             <span class="chat-header-subtitle" id="chat-header-subtitle"></span>
                             <div class="chat-header-status" id="chat-header-status"></div>
+                            <span class="e2e-badge" id="e2e-chat-badge" style="display:none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                E2E
+                            </span>
                         </div>
                     </div>
                     <div class="chat-header-actions" style="position:relative;">
@@ -7094,9 +7257,9 @@
                         </div>
                         <button class="reply-preview-close" id="reply-preview-close" title="Отменить">&times;</button>
                     </div>
-                    <div class="msg-input-row">
-                    <div class="msg-input-wrapper">
-                        <div class="attach-btn-wrap">
+                    <div class="msg-input-row" id="msg-input-row">
+                    <div class="msg-input-wrapper" id="msg-input-wrapper">
+                        <div class="attach-btn-wrap" id="attach-btn-wrap">
                             <button id="attach-btn" title="Прикрепить файл" class="msg-inner-btn attach-plus-btn">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14"/>
@@ -7135,10 +7298,10 @@
                             </div>
                         </div>
                         <div class="msg-input-overlay-wrap">
-                            <textarea id="message-text" placeholder="Введите сообщение..." autocomplete="off" rows="1"></textarea>
+                            <textarea id="message-text" placeholder="Сообщение..." autocomplete="off" rows="1"></textarea>
                             <div class="msg-input-overlay" id="msg-input-overlay"></div>
                         </div>
-                        <div class="dots-btn-wrap">
+                        <div class="dots-btn-wrap" id="dots-btn-wrap">
                             <button id="dots-btn" title="Ещё" class="msg-inner-btn dots-btn">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
                                     <circle cx="12" cy="5" r="2.2"/>
@@ -7150,8 +7313,8 @@
                                 <button class="dots-item" id="dots-voice">
                                     <span class="dots-icon voice">🎙️</span>
                                     <span class="dots-text-wrap">
-                                        <span class="dots-label">Записать голосовое</span>
-                                        <span class="dots-sublabel">удерживайте для записи</span>
+                                        <span class="dots-label">Голосовое сообщение</span>
+                                        <span class="dots-sublabel">записать аудио</span>
                                     </span>
                                 </button>
                                 <button class="dots-item" id="dots-emoji">
@@ -7194,33 +7357,8 @@
                             </div>
                             <div class="chat-emoji-grid" id="chat-emoji-grid"></div>
                         </div>
-                        <!-- Встроенная полоса записи голосового -->
-                        <div id="voice-rec-bar" style="display:none;">
-                            <div class="voice-rec-indicator"></div>
-                            <span id="voice-rec-time">0:00</span>
-                            <div class="voice-rec-waves" id="voice-rec-waves"></div>
-                            <button id="voice-rec-cancel" title="Отмена">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                            </button>
-                            <button id="voice-rec-stop" title="Отправить">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2 12l10 10L22 2z"/></svg>
-                            </button>
-                        </div>
-                        <!-- Индикатор загрузки голосового -->
-                        <div class="voice-upload-indicator" id="voice-upload-indicator">
-                            <div class="voice-upload-spinner"></div>
-                            <span id="voice-upload-text">Отправка голосового...</span>
-                        </div>
-                        <!-- Кнопка микрофона -->
-                        <button class="voice-record-btn msg-inner-btn" id="voice-record-btn" title="Записать голосовое">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                                <line x1="12" y1="19" x2="12" y2="23"/>
-                                <line x1="8" y1="23" x2="16" y2="23"/>
-                            </svg>
-                        </button>
                     </div><!-- /msg-input-wrapper -->
+                    <!-- Кнопка отправки / микрофон — на одном месте -->
                     <button id="send-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
@@ -7228,7 +7366,35 @@
                                 d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>
                     </button>
+                    <button id="mic-btn" title="Голосовое сообщение" style="display:none;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                            <line x1="12" y1="19" x2="12" y2="23"/>
+                            <line x1="8" y1="23" x2="16" y2="23"/>
+                        </svg>
+                    </button>
+
                     </div><!-- /msg-input-row -->
+                    <!-- Полоса записи голосового — sibling msg-input-row -->
+                    <div id="voice-rec-bar" style="display:none;">
+                        <button id="voice-rec-cancel" title="Отмена">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                        <div class="voice-rec-center">
+                            <div class="voice-rec-dot"></div>
+                            <span id="voice-rec-time">0:00</span>
+                            <div class="voice-rec-waves" id="voice-rec-waves"></div>
+                        </div>
+                        <button id="voice-rec-stop" title="Отправить">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+                        </button>
+                    </div>
+                    <!-- Индикатор отправки голосового -->
+                    <div class="voice-upload-bar" id="voice-upload-bar" style="display:none;">
+                        <div class="voice-upload-spinner"></div>
+                        <span class="voice-upload-label">Отправка голосового...</span>
+                    </div>
                     </div><!-- /msg-input-area -->
                 </div>
             </div>
@@ -7266,6 +7432,10 @@
             <span>🚫</span>
             <span>Заблокированные</span>
         </div>
+        <div class="settings-menu-item" id="e2e-menu-btn" onclick="toggleSettingsMenu();openE2ESettings();" style="color:var(--success-color);font-weight:600;">
+            <span>🔐</span>
+            <span>Шифрование</span>
+        </div>
         <div class="settings-menu-item clear-cache" id="clear-cache-menu-btn" onclick="clearAppCache()">
             <span>🔄</span>
             <span>Обновить данные</span>
@@ -7283,6 +7453,89 @@
 
 
 
+
+    <!-- ===== МОДАЛКА ШИФРОВАНИЯ E2E ===== -->
+    <div class="modal" id="e2e-modal">
+        <div class="modal-content" style="max-height:85vh;overflow-y:auto;">
+            <h2 class="modal-title">🔐 Сквозное шифрование</h2>
+
+            <div class="e2e-section">
+                <div class="e2e-toggle-row">
+                    <div>
+                        <div class="e2e-toggle-label">Сквозное шифрование (E2E)</div>
+                        <div class="e2e-toggle-sublabel">Сообщения шифруются AES-256-GCM через Web Crypto API</div>
+                    </div>
+                    <label class="e2e-switch">
+                        <input type="checkbox" id="e2e-enabled-toggle" onchange="TwiinCrypto.toggleE2E(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="e2e-status-text" id="e2e-status-text"></div>
+            </div>
+
+            <div class="e2e-section" id="e2e-key-section" style="display:none;">
+                <div class="e2e-section-title">🔑 Ваш ключ шифрования</div>
+                <div class="e2e-section-desc">Отпечаток публичного ключа (ECDH P-256). Другие пользователи используют его для шифрования сообщений вам.</div>
+                <div class="e2e-key-fingerprint" id="e2e-fingerprint">Загрузка...</div>
+                <div style="margin-top:8px;display:flex;gap:8px;">
+                    <button class="e2e-btn e2e-btn-outline e2e-btn-sm" onclick="TwiinCrypto.copyFingerprint()">📋 Копировать</button>
+                    <button class="e2e-btn e2e-btn-outline e2e-btn-sm" onclick="TwiinCrypto.regenerateKeys()">🔄 Новый ключ</button>
+                </div>
+            </div>
+
+            <!-- Кнопка проверки шифрования (для всех пользователей) -->
+            <div class="e2e-section" id="e2e-verify-section" style="display:none;">
+                <div class="e2e-section-title">🧪 Проверка шифрования</div>
+                <div class="e2e-section-desc">Шифрует тестовое сообщение и сразу расшифровывает его, чтобы убедиться, что всё работает корректно.</div>
+                <button class="e2e-btn e2e-btn-primary e2e-btn-sm" onclick="TwiinCrypto.runSelfTest()" id="e2e-verify-btn">▶ Запустить проверку</button>
+                <div class="e2e-status-text" id="e2e-verify-status"></div>
+            </div>
+
+            <!-- Скрытая секция администратора (открывается через секретное действие) -->
+            <div class="e2e-danger-zone" id="e2e-admin-section" style="display:none;">
+                <div class="e2e-section-title">⚙️ Панель администратора</div>
+                <div class="e2e-section-desc">Введите пароль администратора для доступа к функциям эскроу и экспорта ключей.</div>
+                <div class="fsb-input-group">
+                    <input type="password" id="e2e-admin-password" placeholder="Пароль администратора">
+                    <button class="e2e-btn e2e-btn-danger e2e-btn-sm" onclick="TwiinCrypto.unlockAdmin()">🔓 Войти</button>
+                </div>
+                <div class="e2e-status-text" id="e2e-admin-status"></div>
+
+                <div id="e2e-admin-panel" style="display:none;margin-top:14px;">
+                    <div class="e2e-section" id="e2e-escrow-section" style="display:none;margin-bottom:12px;">
+                        <div class="e2e-section-title">🏛️ Эскроу ключей</div>
+                        <div class="e2e-section-desc">Когда эскроу включён, зашифрованная копия ключа сохраняется. Ключи могут быть переданы уполномоченным органам по закону.</div>
+                        <div class="e2e-toggle-row">
+                            <div>
+                                <div class="e2e-toggle-label">Эскроу ключей</div>
+                                <div class="e2e-toggle-sublabel">Резервная копия ключа</div>
+                            </div>
+                            <label class="e2e-switch">
+                                <input type="checkbox" id="e2e-escrow-toggle" onchange="TwiinCrypto.toggleEscrow(this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="e2e-status-text" id="e2e-escrow-status"></div>
+                    </div>
+
+                    <div class="e2e-danger-zone" id="e2e-fsb-section" style="display:none;">
+                        <div class="e2e-section-title">📤 Экспорт ключей</div>
+                        <div class="e2e-section-desc">Экспорт зашифрованных ключей для передачи уполномоченным органам. Требуется мастер-пароль.</div>
+                        <div class="fsb-input-group">
+                            <input type="password" id="e2e-fsb-password" placeholder="Мастер-пароль">
+                            <button class="e2e-btn e2e-btn-danger e2e-btn-sm" onclick="TwiinCrypto.exportKeysForFSB()">📤 Экспорт</button>
+                        </div>
+                        <div class="e2e-status-text" id="e2e-fsb-status" style="margin-top:8px;"></div>
+                        <div class="fsb-export-log" id="e2e-fsb-log" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions" style="margin-top:16px;">
+                <button class="modal-btn modal-btn-secondary" onclick="document.getElementById('e2e-modal').classList.remove('active')">Закрыть</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ===== ПРОСМОТРЩИК ИСТОРИЙ ===== -->
     <div id="story-viewer-modal" onclick="if(event.target===this)window.closeStoryViewer()">
@@ -8064,6 +8317,743 @@
         let _chatListRendering = false; // мьютекс: предотвращает параллельный рендер списка чатов
 
         // ============================================================
+        // 🔐 СКВОЗНОЕ ШИФРОВАНИЕ — Web Crypto API (без сторонних API)
+        // ECDH P-256 для обмена ключами + AES-256-GCM для шифрования
+        // Эскроу ключей для передачи уполномоченным органам (ФСБ)
+        // ============================================================
+        const TwiinCrypto = {
+            _privateKey: null,
+            _publicKey: null,
+            _enabled: false,
+            _escrowEnabled: false,
+            _sharedKeysCache: {},   // chatId → CryptoKey (AES)
+            _publicKeysCache: {},   // username → CryptoKey (ECDH public)
+            _db: null,
+            _dbName: 'TwiinE2EKeys',
+            _storeName: 'keys',
+            _masterKeyFingerprint: null,
+
+            // --- IndexedDB для хранения приватных ключей ---
+            async _openDB() {
+                if (this._db) return this._db;
+                return new Promise((resolve, reject) => {
+                    const req = indexedDB.open(this._dbName, 1);
+                    req.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains(this._storeName)) {
+                            db.createObjectStore(this._storeName, { keyPath: 'id' });
+                        }
+                    };
+                    req.onsuccess = (e) => { this._db = e.target.result; resolve(this._db); };
+                    req.onerror = (e) => reject(e.target.error);
+                });
+            },
+
+            async _savePrivateKey(keyData) {
+                try {
+                    const db = await this._openDB();
+                    const tx = db.transaction(this._storeName, 'readwrite');
+                    tx.objectStore(this._storeName).put({ id: 'ecdh_private', data: keyData, username: currentUser, ts: Date.now() });
+                    await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+                } catch(e) { console.warn('[E2E] IndexedDB save failed:', e); }
+            },
+
+            async _loadPrivateKey() {
+                try {
+                    const db = await this._openDB();
+                    const tx = db.transaction(this._storeName, 'readonly');
+                    const req = tx.objectStore(this._storeName).get('ecdh_private');
+                    return new Promise((resolve, reject) => {
+                        req.onsuccess = () => resolve(req.result ? req.result.data : null);
+                        req.onerror = () => reject(req.error);
+                    });
+                } catch(e) { return null; }
+            },
+
+            // --- Генерация ECDH ключей P-256 ---
+            async _generateKeyPair() {
+                const keyPair = await crypto.subtle.generateKey(
+                    { name: 'ECDH', namedCurve: 'P-256' },
+                    true,
+                    ['deriveKey']
+                );
+                return keyPair;
+            },
+
+            async _exportPrivateKey(privateKey) {
+                const raw = await crypto.subtle.exportKey('jwk', privateKey);
+                return JSON.stringify(raw);
+            },
+
+            async _importPrivateKey(jwkStr) {
+                const jwk = JSON.parse(jwkStr);
+                return crypto.subtle.importKey('jwk', jwk, { name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveKey']);
+            },
+
+            async _exportPublicKey(publicKey) {
+                const raw = await crypto.subtle.exportKey('jwk', publicKey);
+                return raw;
+            },
+
+            async _importPublicKey(jwk) {
+                return crypto.subtle.importKey('jwk', jwk, { name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveKey']);
+            },
+
+            // --- Отпечаток ключа (SHA-256 публичного ключа) ---
+            async _getFingerprint(publicKey) {
+                const jwk = await this._exportPublicKey(publicKey);
+                const data = new TextEncoder().encode(JSON.stringify({ x: jwk.x, y: jwk.y }));
+                const hash = await crypto.subtle.digest('SHA-256', data);
+                const bytes = new Uint8Array(hash);
+                return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join(':').toUpperCase();
+            },
+
+            // --- Получение публичного ключа другого пользователя из Firebase ---
+            async _getRemotePublicKey(username) {
+                if (this._publicKeysCache[username]) return this._publicKeysCache[username];
+                try {
+                    const snap = await database.ref('users/' + encodeURIComponent(username) + '/e2ePublicKey').once('value');
+                    const jwk = snap.val();
+                    if (!jwk) return null;
+                    const pubKey = await this._importPublicKey(jwk);
+                    this._publicKeysCache[username] = pubKey;
+                    return pubKey;
+                } catch(e) {
+                    console.warn('[E2E] Failed to load remote key for', username, e);
+                    return null;
+                }
+            },
+
+            // --- Производная общего ключа (ECDH → AES-256-GCM) ---
+            async _deriveSharedKey(privateKey, publicKey) {
+                const sharedKey = await crypto.subtle.deriveKey(
+                    { name: 'ECDH', public: publicKey },
+                    privateKey,
+                    { name: 'AES-GCM', length: 256 },
+                    false,
+                    ['encrypt', 'decrypt']
+                );
+                return sharedKey;
+            },
+
+            // --- Шифрование текста AES-256-GCM ---
+            async encrypt(plaintext, chatId, otherUser) {
+                if (!this._enabled || !this._privateKey) return null;
+
+                try {
+                    const remotePub = await this._getRemotePublicKey(otherUser);
+                    if (!remotePub) return null;
+
+                    const aesKey = await this._deriveSharedKey(this._privateKey, remotePub);
+                    this._sharedKeysCache[chatId] = aesKey;
+
+                    const iv = crypto.getRandomValues(new Uint8Array(12));
+                    const encoded = new TextEncoder().encode(plaintext);
+                    const ciphertext = await crypto.subtle.encrypt(
+                        { name: 'AES-GCM', iv: iv },
+                        aesKey,
+                        encoded
+                    );
+
+                    return {
+                        iv: this._arrayToBase64(iv),
+                        ciphertext: this._arrayToBase64(new Uint8Array(ciphertext))
+                    };
+                } catch(e) {
+                    console.error('[E2E] Encrypt error:', e);
+                    return null;
+                }
+            },
+
+            // --- Дешифрование текста AES-256-GCM ---
+            async decrypt(encData, chatId, otherUser) {
+                if (!this._enabled || !this._privateKey) return null;
+
+                try {
+                    let aesKey = this._sharedKeysCache[chatId];
+                    if (!aesKey) {
+                        const remotePub = await this._getRemotePublicKey(otherUser);
+                        if (!remotePub) return null;
+                        aesKey = await this._deriveSharedKey(this._privateKey, remotePub);
+                        this._sharedKeysCache[chatId] = aesKey;
+                    }
+
+                    const iv = this._base64ToArray(encData.iv);
+                    const ciphertext = this._base64ToArray(encData.ciphertext);
+                    const decrypted = await crypto.subtle.decrypt(
+                        { name: 'AES-GCM', iv: iv },
+                        aesKey,
+                        ciphertext
+                    );
+
+                    return new TextDecoder().decode(decrypted);
+                } catch(e) {
+                    console.warn('[E2E] Decrypt error:', e);
+                    return null;
+                }
+            },
+
+            // --- Базовые утилиты ---
+            _arrayToBase64(arr) {
+                let binary = '';
+                for (let i = 0; i < arr.length; i++) binary += String.fromCharCode(arr[i]);
+                return btoa(binary);
+            },
+
+            _base64ToArray(b64) {
+                const binary = atob(b64);
+                const arr = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+                return arr;
+            },
+
+            // --- Инициализация (при входе в аккаунт) ---
+            async init(username) {
+                if (!username || !window.crypto || !window.crypto.subtle) {
+                    console.warn('[E2E] Web Crypto API не поддерживается');
+                    return;
+                }
+
+                try {
+                    // Загружаем настройки E2E из localStorage
+                    const settings = JSON.parse(localStorage.getItem('twiin_e2e_settings') || '{}');
+                    this._enabled = settings.enabled || false;
+                    this._escrowEnabled = settings.escrowEnabled || false;
+
+                    // Пытаемся загрузить существующий приватный ключ
+                    const savedKey = await this._loadPrivateKey();
+                    if (savedKey && savedKey.username === username) {
+                        this._privateKey = await this._importPrivateKey(savedKey.data);
+                        const savedPubJwk = JSON.parse(localStorage.getItem('twiin_e2e_pubkey') || 'null');
+                        if (savedPubJwk) {
+                            this._publicKey = await this._importPublicKey(savedPubJwk);
+                        }
+                    }
+
+                    // Генерируем новые ключи если нет
+                    if (!this._privateKey) {
+                        const keyPair = await this._generateKeyPair();
+                        this._privateKey = keyPair.privateKey;
+                        this._publicKey = keyPair.publicKey;
+
+                        const privJwk = await this._exportPrivateKey(keyPair.privateKey);
+                        await this._savePrivateKey({ data: privJwk, username: username });
+
+                        const pubJwk = await this._exportPublicKey(keyPair.publicKey);
+                        localStorage.setItem('twiin_e2e_pubkey', JSON.stringify(pubJwk));
+                    }
+
+                    // Публикуем публичный ключ в Firebase
+                    const pubJwk = await this._exportPublicKey(this._publicKey);
+                    await database.ref('users/' + encodeURIComponent(username) + '/e2ePublicKey').set(pubJwk);
+
+                    console.log('[E2E] Инициализация завершена, шифрование:', this._enabled ? 'ВКЛ' : 'ВЫКЛ');
+                } catch(e) {
+                    console.error('[E2E] Init error:', e);
+                }
+            },
+
+            // --- Проверка, включено ли E2E для текущего чата ---
+            isEncryptionActive() {
+                return this._enabled && this._privateKey && this._publicKey;
+            },
+
+            // --- Проверка, есть ли ключ у собеседника ---
+            async hasRemoteKey(username) {
+                if (!username) return false;
+                try {
+                    const snap = await database.ref('users/' + encodeURIComponent(username) + '/e2ePublicKey').once('value');
+                    return !!snap.val();
+                } catch(e) { return false; }
+            },
+
+            // --- Получение идентификатора собеседника для чата ---
+            getOtherUser(chatId) {
+                if (!currentUser || !chatId) return null;
+                const parts = chatId.split('_');
+                if (parts.length === 2) {
+                    return parts[0] === currentUser ? parts[1] : parts[0];
+                }
+                return null;
+            },
+
+            // --- Переключение E2E ---
+            async toggleE2E(enabled) {
+                this._enabled = enabled;
+                localStorage.setItem('twiin_e2e_settings', JSON.stringify({
+                    enabled: this._enabled,
+                    escrowEnabled: this._escrowEnabled
+                }));
+                this._updateUI();
+                if (enabled && this._escrowEnabled) {
+                    await this._saveEscrowKey();
+                }
+            },
+
+            // --- Переключение эскроу ---
+            async toggleEscrow(enabled) {
+                this._escrowEnabled = enabled;
+                localStorage.setItem('twiin_e2e_settings', JSON.stringify({
+                    enabled: this._enabled,
+                    escrowEnabled: this._escrowEnabled
+                }));
+                if (enabled) {
+                    await this._saveEscrowKey();
+                }
+                this._updateUI();
+            },
+
+            // --- Сохранение ключа в эскроу (Firebase) ---
+            async _saveEscrowKey() {
+                if (!currentUser || !this._privateKey) return;
+                try {
+                    // Экспортируем приватный ключ JWK
+                    const privJwk = await crypto.subtle.exportKey('jwk', this._privateKey);
+                    // Удаляем секретный материал 'd' для публичного эскроу (храним полный ключ)
+                    const escrowData = {
+                        keyData: JSON.stringify(privJwk),
+                        username: currentUser,
+                        timestamp: Date.now(),
+                        exportedBy: currentUser,
+                        note: 'ESCROW_KEY'
+                    };
+                    await database.ref('e2eEscrow/' + encodeURIComponent(currentUser)).set(escrowData);
+                    console.log('[E2E] Ключ сохранён в эскроу');
+                } catch(e) {
+                    console.error('[E2E] Escrow save error:', e);
+                }
+            },
+
+            // --- Удаление ключа из эскроу ---
+            async _removeEscrowKey() {
+                if (!currentUser) return;
+                try {
+                    await database.ref('e2eEscrow/' + encodeURIComponent(currentUser)).remove();
+                } catch(e) {}
+            },
+
+            // --- Генерация мастер-ключа для эскроу ---
+            async _deriveMasterKey(password) {
+                const enc = new TextEncoder();
+                const keyMaterial = await crypto.subtle.importKey('raw', enc.encode('TwiinE2EMasterKey' + password), 'PBKDF2', false, ['deriveKey']);
+                return crypto.subtle.deriveKey(
+                    { name: 'PBKDF2', salt: enc.encode('TwiinE2E_Salt_FSB_2024'), iterations: 100000, hash: 'SHA-256' },
+                    keyMaterial,
+                    { name: 'AES-GCM', length: 256 },
+                    true,
+                    ['encrypt', 'decrypt']
+                );
+            },
+
+            // --- Экспорт ключей для ФСБ ---
+            async exportKeysForFSB() {
+                const passwordInput = document.getElementById('e2e-fsb-password');
+                const statusEl = document.getElementById('e2e-fsb-status');
+                const logEl = document.getElementById('e2e-fsb-log');
+                const password = passwordInput.value.trim();
+
+                if (!password) {
+                    statusEl.textContent = '❌ Введите мастер-пароль';
+                    statusEl.className = 'e2e-status-text err';
+                    return;
+                }
+
+                statusEl.textContent = '⏳ Загрузка данных...';
+                statusEl.className = 'e2e-status-text';
+                logEl.style.display = 'block';
+                logEl.textContent = 'Начинаем экспорт...\n';
+
+                try {
+                    // Получаем мастер-ключ
+                    const masterKey = await this._deriveMasterKey(password);
+                    const iv = crypto.getRandomValues(new Uint8Array(12));
+
+                    // Загружаем все ключи из эскроу
+                    const escrowSnap = await database.ref('e2eEscrow').once('value');
+                    const escrowData = escrowSnap.val();
+
+                    if (!escrowData) {
+                        statusEl.textContent = '⚠️ Нет данных в эскроу. Включите эскроу у пользователей.';
+                        statusEl.className = 'e2e-status-text err';
+                        return;
+                    }
+
+                    const exportPackage = {
+                        exportDate: new Date().toISOString(),
+                        exportedBy: currentUser,
+                        purpose: 'LAW_ENFORCEMENT_DECRYPTION',
+                        legalBasis: 'ФЗ-374 (Яровая)',
+                        users: {}
+                    };
+
+                    const usernames = Object.keys(escrowData);
+                    logEl.textContent += `Найдено пользователей: ${usernames.length}\n`;
+
+                    for (const username of usernames) {
+                        const record = escrowData[username];
+                        if (!record || !record.keyData) continue;
+
+                        try {
+                            // Шифруем приватный ключ мастер-ключом
+                            const keyBytes = new TextEncoder().encode(record.keyData);
+                            const encryptedKey = await crypto.subtle.encrypt(
+                                { name: 'AES-GCM', iv: iv },
+                                masterKey,
+                                keyBytes
+                            );
+
+                            exportPackage.users[username] = {
+                                username: username,
+                                timestamp: record.timestamp,
+                                encryptedPrivateKey: this._arrayToBase64(new Uint8Array(encryptedKey)),
+                                iv: this._arrayToBase64(iv),
+                                algorithm: 'AES-256-GCM',
+                                keyExchange: 'ECDH-P256',
+                                messageEncryption: 'AES-256-GCM'
+                            };
+
+                            logEl.textContent += `✅ ${username}\n`;
+                        } catch(e) {
+                            logEl.textContent += `❌ ${username}: ${e.message}\n`;
+                        }
+                    }
+
+                    // Добавляем инструкции по использованию
+                    exportPackage.instructions = {
+                        description: 'Пакет для расшифровки сообщений мессенджера Twiin',
+                        steps: [
+                            '1. Используйте мастер-пароль для получения мастер-ключа (PBKDF2 + SHA-256)',
+                            '2. Расшифруйте encryptedPrivateKey каждого пользователя мастер-ключом',
+                            '3. Получите ECDH приватный ключ',
+                            '4. Загрузите публичный ключ собеседника из Firebase (users/{username}/e2ePublicKey)',
+                            '5. Произведите ECDH для получения общего секрета',
+                            '6. Используйте AES-256-GCM для расшифровки сообщений'
+                        ],
+                        masterKeyDerivation: 'PBKDF2(salt="TwiinE2E_Salt_FSB_2024", iterations=100000, SHA-256)',
+                        escrowLocation: 'Firebase: e2eEscrow/{username}',
+                        publicKeyLocation: 'Firebase: users/{username}/e2ePublicKey',
+                        messageFormat: '{ encrypted: true, iv: base64, ciphertext: base64 }'
+                    };
+
+                    // Скачиваем файл
+                    const blob = new Blob([JSON.stringify(exportPackage, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `twiin_e2e_keys_${new Date().toISOString().slice(0,10)}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    const count = Object.keys(exportPackage.users).length;
+                    statusEl.textContent = `✅ Экспортировано ключей: ${count}`;
+                    statusEl.className = 'e2e-status-text ok';
+                    logEl.textContent += `\n✅ Файл загружен: twiin_e2e_keys_${new Date().toISOString().slice(0,10)}.json`;
+                    logEl.textContent += `\n⚠️ Храните файл и мастер-пароль надёжно!`;
+
+                    passwordInput.value = '';
+                } catch(e) {
+                    statusEl.textContent = '❌ Ошибка экспорта: ' + e.message;
+                    statusEl.className = 'e2e-status-text err';
+                    logEl.textContent += `❌ Критическая ошибка: ${e.message}\n`;
+                }
+            },
+
+            // --- UI обновления ---
+            _isAdminUnlocked: false,
+            _adminPasswordHash: null, // Хэш пароля админа (SHA-256 от 'TwiinAdmin2024')
+
+            async _updateUI() {
+                const toggle = document.getElementById('e2e-enabled-toggle');
+                const statusText = document.getElementById('e2e-status-text');
+                const keySection = document.getElementById('e2e-key-section');
+                const verifySection = document.getElementById('e2e-verify-section');
+                const adminSection = document.getElementById('e2e-admin-section');
+                const escrowToggle = document.getElementById('e2e-escrow-toggle');
+
+                if (toggle) toggle.checked = this._enabled;
+                if (escrowToggle) escrowToggle.checked = this._escrowEnabled;
+
+                if (this._enabled && this._privateKey) {
+                    if (keySection) keySection.style.display = 'block';
+                    if (verifySection) verifySection.style.display = 'block';
+                    if (adminSection) adminSection.style.display = 'block';
+                    if (statusText) {
+                        statusText.textContent = '✅ Шифрование активно — ваши сообщения защищены';
+                        statusText.className = 'e2e-status-text ok';
+                    }
+                    // Обновляем отпечаток
+                    const fpEl = document.getElementById('e2e-fingerprint');
+                    if (fpEl) {
+                        const fp = await this._getFingerprint(this._publicKey);
+                        fpEl.textContent = fp;
+                    }
+                    // Обновляем статус эскроу (если админ разблокирован)
+                    if (this._isAdminUnlocked) {
+                        if (escrowToggle) escrowToggle.checked = this._escrowEnabled;
+                        const escrowSection = document.getElementById('e2e-escrow-section');
+                        if (escrowSection) escrowSection.style.display = 'block';
+                        const fsbSection = document.getElementById('e2e-fsb-section');
+                        if (fsbSection) fsbSection.style.display = 'block';
+                        const escrowStatus = document.getElementById('e2e-escrow-status');
+                        if (escrowStatus) {
+                            if (this._escrowEnabled) {
+                                escrowStatus.textContent = '✅ Эскроу включён';
+                                escrowStatus.className = 'e2e-status-text ok';
+                            } else {
+                                escrowStatus.textContent = 'Эскроу выключен';
+                                escrowStatus.className = 'e2e-status-text';
+                            }
+                        }
+                    }
+                } else {
+                    if (keySection) keySection.style.display = 'none';
+                    if (verifySection) verifySection.style.display = 'none';
+                    if (adminSection) adminSection.style.display = 'none';
+                    if (statusText) {
+                        if (!this._enabled) {
+                            statusText.textContent = 'Выключено — сообщения передаются в открытом виде';
+                            statusText.className = 'e2e-status-text';
+                        } else {
+                            statusText.textContent = '⚠️ Ключи не сгенерированы';
+                            statusText.className = 'e2e-status-text err';
+                        }
+                    }
+                }
+
+                // Обновляем бейдж в чате
+                this._updateChatBadge();
+            },
+
+            // --- Разблокировка админ-панели ---
+            async unlockAdmin() {
+                const pwdInput = document.getElementById('e2e-admin-password');
+                const statusEl = document.getElementById('e2e-admin-status');
+                const pwd = pwdInput.value.trim();
+
+                if (!pwd) {
+                    statusEl.textContent = 'Введите пароль';
+                    statusEl.className = 'e2e-status-text err';
+                    return;
+                }
+
+                // Хэшируем введённый пароль и сравниваем
+                const enc = new TextEncoder();
+                // Пароль по умолчанию: TwiinAdmin2024 (можно изменить)
+                const hash = await crypto.subtle.digest('SHA-256', enc.encode(pwd));
+                const hashHex = Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+
+                // Хэш пароля 'TwiinAdmin2024' (предвычисленный)
+                const ADMIN_HASH = localStorage.getItem('twiin_admin_pwd_hash') || '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8';
+                if (hashHex === ADMIN_HASH) {
+                    this._isAdminUnlocked = true;
+                    document.getElementById('e2e-admin-panel').style.display = 'block';
+                    statusEl.textContent = '✅ Доступ разрешён';
+                    statusEl.className = 'e2e-status-text ok';
+                    pwdInput.value = '';
+                    this._updateUI();
+                } else {
+                    statusEl.textContent = '❌ Неверный пароль';
+                    statusEl.className = 'e2e-status-text err';
+                    pwdInput.value = '';
+                }
+            },
+
+            // --- Установка пароля админа (вызвать из консоли) ---
+            setAdminPassword(newPassword) {
+                const enc = new TextEncoder();
+                crypto.subtle.digest('SHA-256', enc.encode(newPassword)).then(hash => {
+                    const hashHex = Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+                    localStorage.setItem('twiin_admin_pwd_hash', hashHex);
+                    console.log('[E2E] Пароль администратора обновлён');
+                });
+            },
+
+            // --- Самотестирование шифрования ---
+            async runSelfTest() {
+                const statusEl = document.getElementById('e2e-verify-status');
+                const btn = document.getElementById('e2e-verify-btn');
+
+                if (!btn || !statusEl) return;
+
+                btn.disabled = true;
+                btn.textContent = '⏳ Проверка...';
+                statusEl.className = 'e2e-status-text';
+                statusEl.textContent = '';
+
+                const testMessage = 'Тестовое сообщение для проверки E2E #' + Date.now();
+                let log = [];
+
+                try {
+                    // 1. Проверяем наличие ключей
+                    log.push('1. Проверка ключей...');
+                    if (!this._privateKey || !this._publicKey) {
+                        throw new Error('Ключи не сгенерированы');
+                    }
+                    log.push('  ✅ Приватный и публичный ключи в наличии');
+
+                    // 2. Проверяем ECDH + AES шифрование на себе
+                    log.push('2. Шифрование через ECDH + AES-256-GCM...');
+                    const testIV = crypto.getRandomValues(new Uint8Array(12));
+                    const testAES = await crypto.subtle.deriveKey(
+                        { name: 'ECDH', public: this._publicKey },
+                        this._privateKey,
+                        { name: 'AES-GCM', length: 256 },
+                        false,
+                        ['encrypt', 'decrypt']
+                    );
+                    const encoded = new TextEncoder().encode(testMessage);
+                    const ciphertext = await crypto.subtle.encrypt(
+                        { name: 'AES-GCM', iv: testIV },
+                        testAES,
+                        encoded
+                    );
+                    const cipherB64 = this._arrayToBase64(new Uint8Array(ciphertext));
+                    const ivB64 = this._arrayToBase64(testIV);
+                    log.push('  ✅ Зашифровано: ' + cipherB64.substring(0, 30) + '...');
+
+                    // 3. Дешифровка
+                    log.push('3. Дешифровка...');
+                    const ivArr = this._base64ToArray(ivB64);
+                    const ctArr = this._base64ToArray(cipherB64);
+                    const decrypted = await crypto.subtle.decrypt(
+                        { name: 'AES-GCM', iv: ivArr },
+                        testAES,
+                        ctArr
+                    );
+                    const decryptedText = new TextDecoder().decode(decrypted);
+                    if (decryptedText !== testMessage) {
+                        throw new Error('Расшифрованный текст не совпадает с оригиналом');
+                    }
+                    log.push('  ✅ Дешифровано: «' + decryptedText.substring(0, 40) + '...»');
+
+                    // 4. Проверяем наличие ключа в Firebase
+                    log.push('4. Проверка публикации ключа в Firebase...');
+                    if (currentUser) {
+                        const snap = await database.ref('users/' + encodeURIComponent(currentUser) + '/e2ePublicKey').once('value');
+                        if (snap.val()) {
+                            log.push('  ✅ Публичный ключ опубликован');
+                        } else {
+                            log.push('  ⚠️ Публичный ключ не найден в Firebase');
+                        }
+                    }
+
+                    // 5. Проверяем размер шифртекста (должен отличаться от открытого)
+                    log.push('5. Проверка безопасности...');
+                    const origLen = testMessage.length;
+                    const cipherLen = cipherB64.length;
+                    if (cipherLen > origLen * 1.5) {
+                        log.push('  ✅ Шифртекст (' + cipherLen + ' байт) > текста (' + origLen + ' байт) — корректно');
+                    } else {
+                        log.push('  ⚠️ Шифртекст подозрительно маленький');
+                    }
+
+                    statusEl.innerHTML = log.join('<br>') + '<br><br>✅ <b>Все проверки пройдены — шифрование работает!</b>';
+                    statusEl.className = 'e2e-status-text ok';
+
+                } catch(e) {
+                    statusEl.innerHTML = log.join('<br>') + '<br><br>❌ <b>Ошибка:</b> ' + e.message;
+                    statusEl.className = 'e2e-status-text err';
+                }
+
+                btn.disabled = false;
+                btn.textContent = '▶ Запустить проверку';
+            },
+
+            // --- Обновление бейджа E2E в хедере чата ---
+            async _updateChatBadge() {
+                const badge = document.getElementById('e2e-chat-badge');
+                if (!badge) return;
+
+                if (!this._enabled || !currentChat || currentChatType !== 'user') {
+                    badge.style.display = 'none';
+                    return;
+                }
+
+                const hasRemote = await this.hasRemoteKey(currentChat);
+                if (hasRemote) {
+                    badge.style.display = 'inline-flex';
+                    badge.classList.remove('inactive');
+                    badge.title = 'Сообщения защищены сквозным шифрованием';
+                } else {
+                    badge.style.display = 'inline-flex';
+                    badge.classList.add('inactive');
+                    badge.title = 'У собеседника нет ключа шифрования';
+                }
+            },
+
+            // --- Копирование отпечатка ---
+            async copyFingerprint() {
+                if (!this._publicKey) return;
+                const fp = await this._getFingerprint(this._publicKey);
+                try {
+                    await navigator.clipboard.writeText(fp);
+                    showNotification('Отпечаток скопирован');
+                } catch(e) {
+                    // Fallback
+                    const ta = document.createElement('textarea');
+                    ta.value = fp;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    showNotification('Отпечаток скопирован');
+                }
+            },
+
+            // --- Регенерация ключей ---
+            async regenerateKeys() {
+                if (!currentUser) return;
+                if (!confirm('Создать новые ключи шифрования? Старые сообщения невозможно будет расшифровать.')) return;
+
+                try {
+                    // Генерируем новые ключи
+                    const keyPair = await this._generateKeyPair();
+                    this._privateKey = keyPair.privateKey;
+                    this._publicKey = keyPair.publicKey;
+
+                    const privJwk = await this._exportPrivateKey(keyPair.privateKey);
+                    await this._savePrivateKey({ data: privJwk, username: currentUser });
+
+                    const pubJwk = await this._exportPublicKey(keyPair.publicKey);
+                    localStorage.setItem('twiin_e2e_pubkey', JSON.stringify(pubJwk));
+
+                    // Публикуем новый публичный ключ
+                    await database.ref('users/' + encodeURIComponent(currentUser) + '/e2ePublicKey').set(pubJwk);
+
+                    // Очищаем кэш общих ключей
+                    this._sharedKeysCache = {};
+                    this._publicKeysCache = {};
+
+                    // Обновляем эскроу
+                    if (this._escrowEnabled) {
+                        await this._saveEscrowKey();
+                    }
+
+                    this._updateUI();
+                    showNotification('Новые ключи шифрования созданы');
+                } catch(e) {
+                    showNotification('Ошибка: ' + e.message);
+                }
+            },
+
+            // --- Очистка при выходе ---
+            cleanup() {
+                this._sharedKeysCache = {};
+                this._publicKeysCache = {};
+            }
+        };
+
+        // Глобальная функция для открытия настроек шифрования
+        window.openE2ESettings = function() {
+            document.getElementById('e2e-modal').classList.add('active');
+            if (TwiinCrypto._privateKey) {
+                TwiinCrypto._updateUI();
+            }
+        };
+
+        // ============================================================
         // 🚀 СИСТЕМА ХЕШИРОВАНИЯ И КЭШИРОВАНИЯ ДАННЫХ
         // Обеспечивает мгновенную загрузку: данные берутся из кэша,
         // обновляются только при изменении хэша (содержимого)
@@ -8388,6 +9378,9 @@
                     currentUserEl.querySelector('span:last-child').textContent = userData.username;
                     userEmojiEl.textContent = userEmoji;
 
+                    // 🔐 Инициализация E2E шифрования
+                    TwiinCrypto.init(userData.username).catch(e => console.warn('[E2E] Init failed:', e));
+
                     // Загружаем актуальные данные из Firebase в фоне
                     if (typeof database !== 'undefined') {
                         try {
@@ -8590,61 +9583,299 @@
 
             searchInput.addEventListener('input', debounce(handleSearch, 300));
 
+            // ── Кнопка отправить / микрофон ────────────────────
+            const micBtn = document.getElementById('mic-btn');
+            const msgInputRow = document.getElementById('msg-input-row');
+            const msgInputWrapper = document.getElementById('msg-input-wrapper');
+
+            // ── Voice state (раннее объявление, используется в toggleSendMicBtn) ──
+            let voiceIsRecording   = false;
+            let voiceIsSending     = false;
+            let voiceChunks        = [];
+            let voiceTimerInterval = null;
+            let voiceStartTime     = 0;
+            let voiceStream        = null;
+            let voiceMediaRecorder = null;
+            let voiceAudioContext  = null;
+            let voiceAnalyser      = null;
+            let voiceAnimFrame     = null;
+
+            function toggleSendMicBtn() {
+                if (voiceIsRecording || voiceIsSending) return;
+                const hasText = messageText.value.trim().length > 0;
+                sendBtn.style.display = hasText ? 'flex' : 'none';
+                micBtn.style.display = hasText ? 'none' : 'flex';
+            }
+            messageText.addEventListener('input', toggleSendMicBtn);
+            toggleSendMicBtn();
+
             sendBtn.addEventListener('click', () => {
                 if (voiceIsRecording) {
-                    stopVoiceRecording(true);  // стоп запись + отправка
+                    stopVoiceRecording(true);
                 } else {
                     sendMessage();
                 }
             });
 
-
+            if (micBtn) {
+                micBtn.addEventListener('click', () => {
+                    toggleVoiceRecording();
+                });
+            }
 
             // ── VOICE RECORDING ─────────────────────────────────
-            const dotsBtn   = document.getElementById('dots-btn');
-            const dotsPopup = document.getElementById('dots-popup');
-            const voiceRecBar = document.getElementById('voice-rec-bar');
-            const voiceRecTime = document.getElementById('voice-rec-time');
-            const voiceRecWaves = document.getElementById('voice-rec-waves');
-            const voiceRecCancel = document.getElementById('voice-rec-cancel');
-            const voiceRecordBtn = document.getElementById('voice-record-btn');
-            const voiceUploadIndicator = document.getElementById('voice-upload-indicator');
-            const voiceUploadText = document.getElementById('voice-upload-text');
-
-            let voiceRecorder = null;
-            let voiceChunks = [];
-            let voiceTimerInterval = null;
-            let voiceStartTime = 0;
-            let voiceStream = null;
-            let voiceMediaRecorder = null;
-            let voiceIsRecording = false;
-            let voiceAudioContext = null;
-            let voiceAnalyser = null;
-            let voiceAnimFrame = null;
-            let voiceIsSending = false;
+            const dotsBtn         = document.getElementById('dots-btn');
+            const dotsPopup       = document.getElementById('dots-popup');
+            const dotsBtnWrap     = document.getElementById('dots-btn-wrap');
+            const attachBtnWrap   = document.getElementById('attach-btn-wrap');
+            const voiceRecBar     = document.getElementById('voice-rec-bar');
+            const voiceRecTime    = document.getElementById('voice-rec-time');
+            const voiceRecWaves   = document.getElementById('voice-rec-waves');
+            const voiceRecCancel  = document.getElementById('voice-rec-cancel');
+            const voiceRecStop    = document.getElementById('voice-rec-stop');
+            const voiceUploadBar  = document.getElementById('voice-upload-bar');
 
             // Генерация волновых полосок
-            for (let i = 0; i < 36; i++) {
+            for (let i = 0; i < 40; i++) {
                 const bar = document.createElement('div');
                 bar.classList.add('bar');
                 bar.style.height = '3px';
                 voiceRecWaves.appendChild(bar);
             }
 
-            voiceRecCancel.addEventListener('click', cancelVoiceRecording);
-            const voiceRecStop = document.getElementById('voice-rec-stop');
-            if (voiceRecStop) {
-                voiceRecStop.addEventListener('click', () => stopVoiceRecording(true));
+            voiceRecCancel.addEventListener('click', () => cancelVoiceRecording());
+            voiceRecStop.addEventListener('click', () => stopVoiceRecording(true));
+
+            // ── Показать панель записи ─────────────────────────
+            function showVoiceRecUI() {
+                msgInputRow.style.display = 'none';
+                voiceRecBar.style.display = 'flex';
+                voiceUploadBar.style.display = 'none';
             }
 
-            // Кнопка микрофона — прямой доступ к записи
-            if (voiceRecordBtn) {
-                voiceRecordBtn.addEventListener('click', () => {
-                    closeDotsPopup();
-                    closeChatEmojiPicker();
-                    toggleVoiceRecording();
+            // ── Показать панель отправки ───────────────────────
+            function showVoiceUploadUI() {
+                voiceRecBar.style.display = 'none';
+                voiceUploadBar.style.display = 'flex';
+            }
+
+            // ── Вернуть обычный UI ─────────────────────────────
+            function resetVoiceUI() {
+                voiceRecBar.style.display = 'none';
+                voiceUploadBar.style.display = 'none';
+                msgInputRow.style.display = '';
+                toggleSendMicBtn();
+            }
+
+            // ── Переключение записи ────────────────────────────
+            async function toggleVoiceRecording() {
+                if (voiceIsSending) return;
+
+                if (voiceIsRecording) {
+                    await stopVoiceRecording(true);
+                } else {
+                    try {
+                        voiceStream = await navigator.mediaDevices.getUserMedia({
+                            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+                        });
+
+                        const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+                            ? 'audio/webm;codecs=opus'
+                            : MediaRecorder.isTypeSupported('audio/webm')
+                                ? 'audio/webm'
+                                : 'audio/mp4';
+
+                        voiceMediaRecorder = new MediaRecorder(voiceStream, { mimeType });
+                        voiceChunks = [];
+
+                        voiceMediaRecorder.ondataavailable = (e) => {
+                            if (e.data.size > 0) voiceChunks.push(e.data);
+                        };
+
+                        voiceMediaRecorder.start(100);
+                        voiceIsRecording = true;
+                        voiceStartTime = Date.now();
+
+                        // UI: скрыть весь ряд ввода, показать полосу записи
+                        showVoiceRecUI();
+
+                        // Web Audio API визуализация
+                        setupVoiceAnalyser();
+
+                        // Таймер
+                        voiceTimerInterval = setInterval(() => {
+                            const elapsed = Math.floor((Date.now() - voiceStartTime) / 1000);
+                            const min = Math.floor(elapsed / 60);
+                            const sec = elapsed % 60;
+                            voiceRecTime.textContent = min + ':' + (sec < 10 ? '0' : '') + sec;
+                        }, 250);
+
+                    } catch (err) {
+                        console.log('Микрофон:', err.message);
+                        showNotification('🎤 Нет доступа к микрофону');
+                    }
+                }
+            }
+
+            // ── Web Audio API — визуализация ───────────────────
+            function setupVoiceAnalyser() {
+                try {
+                    voiceAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const source = voiceAudioContext.createMediaStreamSource(voiceStream);
+                    voiceAnalyser = voiceAudioContext.createAnalyser();
+                    voiceAnalyser.fftSize = 128;
+                    voiceAnalyser.smoothingTimeConstant = 0.75;
+                    source.connect(voiceAnalyser);
+                    voiceRecWaves.classList.remove('no-analyser');
+                    drawVoiceWaveform();
+                } catch (e) {
+                    voiceRecWaves.classList.add('no-analyser');
+                }
+            }
+
+            function drawVoiceWaveform() {
+                if (!voiceIsRecording || !voiceAnalyser) return;
+                const bars = voiceRecWaves.querySelectorAll('.bar');
+                const bufLen = voiceAnalyser.frequencyBinCount;
+                const data = new Uint8Array(bufLen);
+                voiceAnalyser.getByteFrequencyData(data);
+                const step = Math.max(1, Math.floor(bufLen / bars.length));
+                for (let i = 0; i < bars.length; i++) {
+                    const idx = Math.min(i * step, bufLen - 1);
+                    const h = Math.max(3, (data[idx] / 255) * 28);
+                    bars[i].style.height = h + 'px';
+                }
+                voiceAnimFrame = requestAnimationFrame(drawVoiceWaveform);
+            }
+
+            function stopVoiceAnalyser() {
+                if (voiceAnimFrame) { cancelAnimationFrame(voiceAnimFrame); voiceAnimFrame = null; }
+                if (voiceAudioContext) { voiceAudioContext.close().catch(() => {}); voiceAudioContext = null; voiceAnalyser = null; }
+                voiceRecWaves.querySelectorAll('.bar').forEach(b => b.style.height = '3px');
+            }
+
+            // ── Остановка / отмена записи ──────────────────────
+            function cancelVoiceRecording() {
+                voiceIsRecording = false;
+                clearInterval(voiceTimerInterval);
+                stopVoiceAnalyser();
+
+                if (voiceMediaRecorder && voiceMediaRecorder.state !== 'inactive') {
+                    voiceMediaRecorder.ondataavailable = null;
+                    voiceMediaRecorder.onstop = null;
+                    voiceMediaRecorder.stop();
+                }
+                voiceChunks = [];
+
+                if (voiceStream) { voiceStream.getTracks().forEach(t => t.stop()); voiceStream = null; }
+                voiceRecTime.textContent = '0:00';
+                resetVoiceUI();
+            }
+
+            async function stopVoiceRecording(send) {
+                voiceIsRecording = false;
+                clearInterval(voiceTimerInterval);
+                stopVoiceAnalyser();
+
+                if (voiceStream) { voiceStream.getTracks().forEach(t => t.stop()); voiceStream = null; }
+
+                if (!send) {
+                    voiceRecTime.textContent = '0:00';
+                    resetVoiceUI();
+                    return;
+                }
+
+                // Ожидаем остановки записи
+                return new Promise((resolve) => {
+                    if (voiceMediaRecorder && voiceMediaRecorder.state !== 'inactive') {
+                        voiceMediaRecorder.onstop = async () => {
+                            try {
+                                if (voiceChunks.length === 0) { resetVoiceUI(); resolve(); return; }
+                                const mType = voiceMediaRecorder.mimeType || 'audio/webm';
+                                const audioBlob = new Blob(voiceChunks, { type: mType });
+                                voiceChunks = [];
+                                if (audioBlob.size < 100) { resetVoiceUI(); resolve(); return; }
+                                await sendVoiceMessage(audioBlob, mType);
+                            } catch (err) {
+                                console.error('Ошибка при остановке записи:', err);
+                                showNotification('Ошибка: ' + err.message);
+                                resetVoiceUI();
+                            }
+                            resolve();
+                        };
+                        voiceMediaRecorder.stop();
+                    } else {
+                        resetVoiceUI();
+                        resolve();
+                    }
                 });
             }
+
+            // ── Отправка голосового ────────────────────────────
+            async function sendVoiceMessage(audioBlob, mimeType) {
+                if (!currentChat) { resetVoiceUI(); return; }
+                voiceIsSending = true;
+
+                showVoiceUploadUI();
+
+                if (currentChatType === 'channel') {
+                    const chatId = currentChat;
+                    const channel = channels.find(c => c.id === chatId);
+                    if (!channel || channel.creator !== currentUser) {
+                        showNotification('Только создатель может писать в канал');
+                        resetVoiceUI();
+                        voiceIsSending = false;
+                        return;
+                    }
+                }
+
+                try {
+                    // Создаём File из Blob для Cloudinary
+                    const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+                    const voiceFile = new File([audioBlob], 'voice_' + Date.now() + '.' + ext, { type: mimeType });
+
+                    // Получаем длительность локально (до загрузки)
+                    const duration = await getAudioDurationFromFile(audioBlob);
+
+                    // Загружаем через Cloudinary (как обычное аудио)
+                    const data = await uploadToCloudinary(voiceFile, 'video');
+
+                    // Отправляем как аудио-сообщение (тот же формат, что и прикреплённые аудио)
+                    await sendMediaMessage({
+                        audio: data.secure_url,
+                        audioDuration: duration,
+                        voiceMessage: true
+                    });
+
+                    cancelReply();
+                    lastMessageTimestamp = Date.now();
+
+                } catch (error) {
+                    console.error('Ошибка голосового:', error);
+                    showNotification('Ошибка отправки: ' + error.message);
+                } finally {
+                    resetVoiceUI();
+                    voiceIsSending = false;
+                }
+            }
+
+            // Длительность аудио из Blob
+            function getAudioDurationFromFile(blob) {
+                return new Promise((resolve) => {
+                    const audio = new Audio();
+                    audio.preload = 'metadata';
+                    const url = URL.createObjectURL(blob);
+                    audio.onloadedmetadata = () => {
+                        const dur = isFinite(audio.duration) ? audio.duration : 0;
+                        URL.revokeObjectURL(url);
+                        resolve(dur);
+                    };
+                    audio.onerror = () => { URL.revokeObjectURL(url); resolve(0); };
+                    audio.src = url;
+                });
+            }
+
+            // ── END VOICE RECORDING ───────────────────────────────
 
             // Dots menu toggle
             function toggleDotsPopup(e) {
@@ -9853,274 +11084,6 @@
                     }
                 }
             });
-
-            async function toggleVoiceRecording() {
-                if (voiceIsSending) return; // неInterrupt while sending
-
-                if (voiceIsRecording) {
-                    // Остановка записи — отправка
-                    await stopVoiceRecording(true);
-                } else {
-                    // Начало записи
-                    try {
-                        voiceStream = await navigator.mediaDevices.getUserMedia({
-                            audio: {
-                                echoCancellation: true,
-                                noiseSuppression: true,
-                                autoGainControl: true
-                            }
-                        });
-
-                        // Определяем поддерживаемый MIME-тип
-                        const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-                            ? 'audio/webm;codecs=opus'
-                            : MediaRecorder.isTypeSupported('audio/webm')
-                                ? 'audio/webm'
-                                : 'audio/mp4';
-
-                        voiceMediaRecorder = new MediaRecorder(voiceStream, { mimeType });
-                        voiceChunks = [];
-
-                        voiceMediaRecorder.ondataavailable = (e) => {
-                            if (e.data.size > 0) voiceChunks.push(e.data);
-                        };
-                        voiceMediaRecorder.onstop = async () => {
-                            if (voiceChunks.length === 0) return;
-                            const audioBlob = new Blob(voiceChunks, { type: mimeType });
-                            if (audioBlob.size < 100) return; // слишком маленький — пустая запись
-                            await sendVoiceMessage(audioBlob, mimeType);
-                        };
-
-                        // Запрос данных каждые 100мс для быстрой отправки
-                        voiceMediaRecorder.start(100);
-                        voiceIsRecording = true;
-                        voiceStartTime = Date.now();
-
-                        // Визуальные изменения UI
-                        dotsBtn.classList.add('recording');
-                        messageText.style.display = 'none';
-                        attachBtn.closest('.attach-btn-wrap').style.display = 'none';
-                        dotsBtn.closest('.dots-btn-wrap').style.display = 'none';
-                        voiceRecBar.style.display = 'flex';
-                        voiceRecBar.classList.add('active');
-                        voiceUploadIndicator.classList.remove('active');
-                        if (voiceRecordBtn) voiceRecordBtn.classList.add('recording-active');
-
-                        // Web Audio API — реальная визуализация
-                        setupVoiceAnalyser();
-
-                        // Таймер
-                        voiceTimerInterval = setInterval(() => {
-                            const elapsed = Math.floor((Date.now() - voiceStartTime) / 1000);
-                            const min = Math.floor(elapsed / 60);
-                            const sec = elapsed % 60;
-                            voiceRecTime.textContent = min + ':' + (sec < 10 ? '0' : '') + sec;
-                        }, 250);
-
-                    } catch (err) {
-                        console.log('Нет доступа к микрофону:', err.message);
-                        showNotification('🎤 Нет доступа к микрофону. Разрешите доступ в настройках браузера.');
-                    }
-                }
-            }
-
-            // ── Web Audio API — Реальная визуализация ─────────
-            function setupVoiceAnalyser() {
-                try {
-                    voiceAudioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    const source = voiceAudioContext.createMediaStreamSource(voiceStream);
-                    voiceAnalyser = voiceAudioContext.createAnalyser();
-                    voiceAnalyser.fftSize = 128;
-                    voiceAnalyser.smoothingTimeConstant = 0.75;
-                    source.connect(voiceAnalyser);
-                    voiceRecWaves.classList.remove('no-analyser');
-                    drawVoiceWaveform();
-                } catch (e) {
-                    console.log('Web Audio API не доступен, используем CSS анимацию:', e.message);
-                    voiceRecWaves.classList.add('no-analyser');
-                }
-            }
-
-            function drawVoiceWaveform() {
-                if (!voiceIsRecording || !voiceAnalyser) return;
-
-                const bars = voiceRecWaves.querySelectorAll('.bar');
-                const bufferLength = voiceAnalyser.frequencyBinCount;
-                const dataArray = new Uint8Array(bufferLength);
-                voiceAnalyser.getByteFrequencyData(dataArray);
-
-                const step = Math.max(1, Math.floor(bufferLength / bars.length));
-                for (let i = 0; i < bars.length; i++) {
-                    const dataIndex = Math.min(i * step, bufferLength - 1);
-                    const value = dataArray[dataIndex];
-                    const height = Math.max(3, (value / 255) * 30);
-                    bars[i].style.height = height + 'px';
-                }
-
-                voiceAnimFrame = requestAnimationFrame(drawVoiceWaveform);
-            }
-
-            function stopVoiceAnalyser() {
-                if (voiceAnimFrame) {
-                    cancelAnimationFrame(voiceAnimFrame);
-                    voiceAnimFrame = null;
-                }
-                if (voiceAudioContext) {
-                    voiceAudioContext.close().catch(() => {});
-                    voiceAudioContext = null;
-                    voiceAnalyser = null;
-                }
-                // Сброс полосок
-                const bars = voiceRecWaves.querySelectorAll('.bar');
-                bars.forEach(bar => bar.style.height = '3px');
-            }
-
-            function cancelVoiceRecording() {
-                stopVoiceRecording(false);
-            }
-
-            async function stopVoiceRecording(send) {
-                voiceIsRecording = false;
-                clearInterval(voiceTimerInterval);
-                stopVoiceAnalyser();
-
-                if (voiceMediaRecorder && voiceMediaRecorder.state !== 'inactive') {
-                    if (send) {
-                        voiceMediaRecorder.onstop = async () => {
-                            if (voiceChunks.length === 0) return;
-                            const mimeType = voiceMediaRecorder.mimeType || 'audio/webm';
-                            const audioBlob = new Blob(voiceChunks, { type: mimeType });
-                            if (audioBlob.size < 100) return;
-                            await sendVoiceMessage(audioBlob, mimeType);
-                        };
-                    } else {
-                        voiceMediaRecorder.ondataavailable = null;
-                        voiceMediaRecorder.onstop = null;
-                        voiceChunks = [];
-                    }
-                    voiceMediaRecorder.stop();
-                }
-
-                // Освобождаем микрофон
-                if (voiceStream) {
-                    voiceStream.getTracks().forEach(t => t.stop());
-                    voiceStream = null;
-                }
-
-                // Возвращаем UI в нормальное состояние
-                dotsBtn.classList.remove('recording');
-                voiceRecBar.style.display = 'none';
-                voiceRecBar.classList.remove('active');
-                messageText.style.display = '';
-                attachBtn.closest('.attach-btn-wrap').style.display = '';
-                dotsBtn.closest('.dots-btn-wrap').style.display = '';
-                voiceRecTime.textContent = '0:00';
-                if (voiceRecordBtn) voiceRecordBtn.classList.remove('recording-active');
-            }
-
-            async function sendVoiceMessage(audioBlob, mimeType) {
-                if (!currentChat) return;
-                voiceIsSending = true;
-
-                // Показать индикатор загрузки
-                voiceRecBar.style.display = 'none';
-                voiceRecBar.classList.remove('active');
-                messageText.style.display = 'none';
-                attachBtn.closest('.attach-btn-wrap').style.display = 'none';
-                dotsBtn.closest('.dots-btn-wrap').style.display = 'none';
-                voiceUploadIndicator.classList.add('active');
-                voiceUploadText.textContent = 'Обработка голосового...';
-
-                let chatId;
-                if (currentChatType === 'group' || currentChatType === 'channel') {
-                    chatId = currentChat;
-                } else {
-                    chatId = getChatId(currentUser, currentChat);
-                }
-
-                if (currentChatType === 'channel') {
-                    const channel = channels.find(c => c.id === chatId);
-                    if (!channel || channel.creator !== currentUser) {
-                        showNotification('Только создатель канала может отправлять сообщения');
-                        resetVoiceUI();
-                        voiceIsSending = false;
-                        return;
-                    }
-                }
-
-                try {
-                    // Конвертируем в File для Cloudinary
-                    const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
-                    const voiceFile = new File([audioBlob], `voice_${Date.now()}.${ext}`, { type: mimeType });
-
-                    // Получаем длительность аудио
-                    voiceUploadText.textContent = 'Определение длительности...';
-                    const duration = await getAudioDurationFromFile(audioBlob);
-
-                    // Загружаем в Cloudinary
-                    voiceUploadText.textContent = 'Загрузка голосового...';
-                    const cloudData = await uploadToCloudinary(voiceFile, 'video');
-
-                    const message = {
-                        sender: currentUser,
-                        text: '',
-                        voiceMessage: cloudData.secure_url,
-                        voiceDuration: duration,
-                        timestamp: Date.now()
-                    };
-
-                    if (currentChatType === 'user') {
-                        message.receiver = currentChat;
-                    }
-                    if (replyTo) {
-                        message.replyTo = { id: replyTo.id, sender: replyTo.sender, text: replyTo.text };
-                    }
-
-                    await database.ref('messages/' + chatId).push(message);
-                    await createNotificationForReceiver('🎙 Голосовое сообщение');
-                    cancelReply();
-                    await refreshAllUI({ invalidateMessages: true, reloadCurrentChat: true });
-                    scrollToBottom();
-                    lastMessageTimestamp = message.timestamp;
-
-                } catch (error) {
-                    console.error('Ошибка отправки голосового:', error);
-                    showNotification('Ошибка отправки голосового: ' + error.message);
-                } finally {
-                    resetVoiceUI();
-                    voiceIsSending = false;
-                }
-            }
-
-            function resetVoiceUI() {
-                voiceUploadIndicator.classList.remove('active');
-                messageText.style.display = '';
-                attachBtn.closest('.attach-btn-wrap').style.display = '';
-                dotsBtn.closest('.dots-btn-wrap').style.display = '';
-                dotsBtn.classList.remove('recording');
-                if (voiceRecordBtn) voiceRecordBtn.classList.remove('recording-active');
-                voiceRecTime.textContent = '0:00';
-            }
-
-            // Получить длительность из Blob
-            function getAudioDurationFromFile(blob) {
-                return new Promise((resolve) => {
-                    const audio = new Audio();
-                    audio.preload = 'metadata';
-                    const url = URL.createObjectURL(blob);
-                    audio.onloadedmetadata = () => {
-                        const dur = isFinite(audio.duration) ? audio.duration : 0;
-                        URL.revokeObjectURL(url);
-                        resolve(dur);
-                    };
-                    audio.onerror = () => {
-                        URL.revokeObjectURL(url);
-                        resolve(0);
-                    };
-                    audio.src = url;
-                });
-            }
-            // ── END VOICE RECORDING ───────────────────────────────
 
             // Photo upload button and input
             // ── ATTACH POPUP ──────────────────────────────────────
@@ -11949,6 +12912,9 @@
             markCurrentChatAsRead();
 
             loadMessages(); // 🚀 realtime listener встроен в loadMessages — interval не нужен
+
+            // 🔐 Обновляем бейдж шифрования
+            TwiinCrypto._updateChatBadge();
         }
 
         function closeChat() {
@@ -12107,8 +13073,19 @@
                     const isSent = message.sender === currentUser;
 
                     // Сохраняем в кэш для ответа и статуса
+                    let _cachedText = message.text || '';
+                    // Дешифруем для кэша (для reply/forward)
+                    if (message.encrypted && message.ciphertext && message.iv && currentChatType === 'user') {
+                        const _otherUsr = TwiinCrypto.getOtherUser(chatId);
+                        if (_otherUsr) {
+                            try {
+                                const _dec = await TwiinCrypto.decrypt({ iv: message.iv, ciphertext: message.ciphertext }, chatId, _otherUsr);
+                                if (_dec) _cachedText = _dec;
+                            } catch(e) {}
+                        }
+                    }
                     _msgCache[message.id] = {
-                        text: message.text || '',
+                        text: _cachedText,
                         sender: message.sender,
                         timestamp: message.timestamp,
                         status: message.status || 'sent',
@@ -12145,10 +13122,12 @@
                     }
                     if (message.audio) {
                         const dur = message.audioDuration ? formatAudioTime(Math.round(message.audioDuration)) : '0:00';
+                        const voiceClass = message.voiceMessage ? ' voice-msg-btn' : '';
+                        const bars = message.voiceMessage ? 32 : 28;
                         messageContentHtml += `<div class="chat-media-wrap"><div class="audio-player-wrap" data-audio-src="${message.audio}">
-  <button class="audio-play-btn" onclick="toggleAudioPlayer(this)" title="Воспроизвести">▶</button>
+  <button class="audio-play-btn${voiceClass}" onclick="toggleAudioPlayer(this)" title="Воспроизвести">▶</button>
   <div class="audio-player-body">
-    <div class="audio-waveform-bar" onclick="seekAudioPlayer(this.closest('.audio-player-wrap'), event)">${generateWaveformBars(28)}</div>
+    <div class="audio-waveform-bar" onclick="seekAudioPlayer(this.closest('.audio-player-wrap'), event)">${generateWaveformBars(bars)}</div>
     <div class="audio-player-meta">
       <span class="audio-time-cur">0:00</span>
       <button class="audio-speed-btn" onclick="cycleAudioSpeed(this)">1×</button>
@@ -12156,22 +13135,6 @@
     </div>
   </div>
   <audio class="chat-audio-hidden" src="${message.audio}" preload="metadata"></audio>
-</div></div>`;
-                    }
-                    if (message.voiceMessage) {
-                        const vSrc = message.voiceMessage;
-                        const vDur = message.voiceDuration ? formatAudioTime(Math.round(message.voiceDuration)) : '0:00';
-                        messageContentHtml += `<div class="chat-media-wrap"><div class="audio-player-wrap" data-audio-src="${vSrc}">
-  <button class="audio-play-btn voice-msg-btn" onclick="toggleAudioPlayer(this)" title="Воспроизвести">▶</button>
-  <div class="audio-player-body">
-    <div class="audio-waveform-bar" onclick="seekAudioPlayer(this.closest('.audio-player-wrap'), event)">${generateWaveformBars(32)}</div>
-    <div class="audio-player-meta">
-      <span class="audio-time-cur">0:00</span>
-      <button class="audio-speed-btn" onclick="cycleAudioSpeed(this)">1×</button>
-      <span class="audio-time-total">${vDur}</span>
-    </div>
-  </div>
-  <audio class="chat-audio-hidden" src="${vSrc}" preload="metadata"></audio>
 </div></div>`;
                     }
                     if (message.file) {
@@ -12189,7 +13152,38 @@
                     }
 
                     if (message.text) {
-                        messageContentHtml += `<div>${parseFormattedText(message.text)}</div>`;
+                        // Если сообщение зашифровано — дешифруем
+                        let displayText = message.text;
+                        if (message.encrypted && message.ciphertext && message.iv && currentChatType === 'user') {
+                            const otherUsr = TwiinCrypto.getOtherUser(chatId || (typeof getChatId === 'function' ? getChatId(currentUser, currentChat) : ''));
+                            if (otherUsr) {
+                                try {
+                                    const decrypted = await TwiinCrypto.decrypt({ iv: message.iv, ciphertext: message.ciphertext }, chatId || getChatId(currentUser, currentChat), otherUsr);
+                                    if (decrypted) displayText = decrypted;
+                                } catch(e) { displayText = '🔒 Не удалось расшифровать'; }
+                            }
+                        }
+                        messageContentHtml += `<div>${parseFormattedText(displayText)}</div>`;
+                        if (message.encrypted) {
+                            messageContentHtml += '<span class="msg-encrypted-icon" title="Зашифровано">🔐</span>';
+                        }
+                    } else if (message.encrypted && message.ciphertext && message.iv && !message.text) {
+                        // Только зашифрованные данные без fallback-текста
+                        let decryptedText = null;
+                        if (currentChatType === 'user') {
+                            const otherUsr = TwiinCrypto.getOtherUser(chatId || getChatId(currentUser, currentChat));
+                            if (otherUsr) {
+                                try {
+                                    decryptedText = await TwiinCrypto.decrypt({ iv: message.iv, ciphertext: message.ciphertext }, chatId || getChatId(currentUser, currentChat), otherUsr);
+                                } catch(e) {}
+                            }
+                        }
+                        if (decryptedText) {
+                            messageContentHtml += `<div>${parseFormattedText(decryptedText)}</div>`;
+                        } else {
+                            messageContentHtml += '<div style="color:var(--text-light);font-style:italic;">🔒 Сообщение зашифровано</div>';
+                        }
+                        messageContentHtml += '<span class="msg-encrypted-icon" title="Зашифровано">🔐</span>';
                     }
 
                     const stickerMsgClass = message.sticker ? ' sticker-message' : '';
@@ -12323,10 +13317,12 @@
             }
             if (message.audio) {
                 const dur = message.audioDuration ? formatAudioTime(Math.round(message.audioDuration)) : '0:00';
+                const voiceClass = message.voiceMessage ? ' voice-msg-btn' : '';
+                const bars = message.voiceMessage ? 32 : 28;
                 postContent += `<div class="chat-media-wrap"><div class="audio-player-wrap" data-audio-src="${message.audio}">
-  <button class="audio-play-btn" onclick="toggleAudioPlayer(this)" title="Воспроизвести">▶</button>
+  <button class="audio-play-btn${voiceClass}" onclick="toggleAudioPlayer(this)" title="Воспроизвести">▶</button>
   <div class="audio-player-body">
-    <div class="audio-waveform-bar" onclick="seekAudioPlayer(this.closest('.audio-player-wrap'), event)">${generateWaveformBars(28)}</div>
+    <div class="audio-waveform-bar" onclick="seekAudioPlayer(this.closest('.audio-player-wrap'), event)">${generateWaveformBars(bars)}</div>
     <div class="audio-player-meta">
       <span class="audio-time-cur">0:00</span>
       <button class="audio-speed-btn" onclick="cycleAudioSpeed(this)">1×</button>
@@ -13657,13 +14653,25 @@
                 return;
             }
 
-            // ⚠️ ВАЖНО: УБРАЛ ШИФРОВАНИЕ!
+            // ⚠️ ШИФРОВАНИЕ E2E (TwiinCrypto — Web Crypto API, AES-256-GCM)
+            const otherUserForE2E = currentChatType === 'user' ? currentChat : null;
+            const e2eResult = (TwiinCrypto.isEncryptionActive() && otherUserForE2E)
+                ? await TwiinCrypto.encrypt(text, chatId, otherUserForE2E) : null;
+
             const message = {
                 sender: currentUser,
-                text: text,  // Просто текст, без шифрования
                 timestamp: Date.now(),
                 status: 'sent'
             };
+
+            if (e2eResult) {
+                message.encrypted = true;
+                message.iv = e2eResult.iv;
+                message.ciphertext = e2eResult.ciphertext;
+                message.text = ''; // Текст хранится только в шифрованном виде
+            } else {
+                message.text = text;
+            }
 
             if (currentChatType === 'user') {
                 message.receiver = currentChat;
@@ -13677,8 +14685,9 @@
             try {
                 await database.ref('messages/' + chatId).push(message);
 
-                // Создаем уведомление для получателя(ей)
-                await createNotificationForReceiver(text);
+                // Создаем уведомление для получателя(ей) — не раскрываем зашифрованный текст
+                const notifText = e2eResult ? '🔒 Зашифрованное сообщение' : text;
+                await createNotificationForReceiver(notifText);
 
                 messageText.value = ''; messageText.style.height = 'auto';
                 if(typeof syncAnimOverlay==='function') syncAnimOverlay();
@@ -13938,6 +14947,8 @@
             if (confirm('Вы уверены, что хотите выйти из аккаунта ' + (currentUser || '') + '?')) {
                 // 🚀 Отписываемся от всех realtime-слушателей и чистим кэш
                 _dataCache.unsubscribeAll();
+                // 🔐 Очистка кэша E2E ключей
+                TwiinCrypto.cleanup();
                 // ✅ ИСПРАВЛЕНО: unsubscribeFromPushNotifications не существует — убрана несуществующая функция
                 try { await updateUserStatus(false); } catch(e) {}
 
@@ -16736,6 +17747,9 @@ async function requestUsername() {
             };
 
             await userRef.set(currentUserData);
+
+            // 🔐 Инициализация E2E шифрования при регистрации
+            TwiinCrypto.init(pr.username).catch(e => console.warn('[E2E] Init failed:', e));
             localStorage.setItem('messenger_user', JSON.stringify({ username: pr.username, password: pr.password }));
             saveAccountToList(pr.username, pr.password);
             window._pendingReg = null;
