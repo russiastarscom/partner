@@ -6982,6 +6982,55 @@
         }
         img.chat-image:hover { opacity: 0.92; }
 
+        /* ── Photo group grid ─────────────────────────────────── */
+        .photo-group-grid {
+            display: grid;
+            gap: 3px;
+            border-radius: 14px;
+            overflow: hidden;
+            max-width: 300px;
+            cursor: pointer;
+        }
+        .photo-group-grid.count-1 { grid-template-columns: 1fr; max-width: 260px; }
+        .photo-group-grid.count-2 { grid-template-columns: 1fr 1fr; }
+        .photo-group-grid.count-3 { grid-template-columns: 1fr 1fr; }
+        .photo-group-grid.count-3 .pgg-item:first-child { grid-column: 1 / -1; }
+        .photo-group-grid.count-4 { grid-template-columns: 1fr 1fr; }
+        .photo-group-grid.count-5 { grid-template-columns: 1fr 1fr 1fr; }
+        .photo-group-grid.count-5 .pgg-item:nth-child(1),
+        .photo-group-grid.count-5 .pgg-item:nth-child(2) { grid-column: span 1; }
+        .photo-group-grid.count-many { grid-template-columns: 1fr 1fr 1fr; }
+        .pgg-item {
+            position: relative;
+            overflow: hidden;
+            background: var(--border-color);
+            aspect-ratio: 1;
+        }
+        .pgg-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: opacity 0.15s;
+        }
+        .pgg-item img:hover { opacity: 0.88; }
+        .pgg-more-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.48);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: 700;
+            pointer-events: none;
+        }
+        @media (max-width: 600px) {
+            .photo-group-grid { max-width: 220px; }
+            .photo-group-grid.count-1 { max-width: 200px; }
+        }
+
         @media (max-width: 768px) {
             .chat-img-wrap { max-width: 210px; }
             img.chat-image { max-width: 210px; max-height: 230px; }
@@ -10797,16 +10846,18 @@ function initLanguage(){
 
             function toggleSendMicIcon() {
                 if (voiceIsRecording || voiceIsSending) return;
-                const hasText = messageText.value.trim().length > 0;
-                sendIcon.style.display = hasText ? '' : 'none';
-                micIcon.style.display  = hasText ? 'none' : '';
-                sendBtn.title = hasText ? 'Отправить (Ctrl+Enter)' : 'Голосовое сообщение';
+                const hasText    = messageText.value.trim().length > 0;
+                const hasPhotos  = window._getStagedPhotosCount && window._getStagedPhotosCount() > 0;
+                const hasContent = hasText || hasPhotos;
+                sendIcon.style.display = hasContent ? '' : 'none';
+                micIcon.style.display  = hasContent ? 'none' : '';
+                sendBtn.title = hasContent ? 'Отправить (Ctrl+Enter)' : 'Голосовое сообщение';
             }
             messageText.addEventListener('input', toggleSendMicIcon);
             toggleSendMicIcon();
 
             sendBtn.addEventListener('click', () => {
-                const hasStaged = typeof _stagedPhotos !== 'undefined' && _stagedPhotos.length > 0;
+                const hasStaged = window._getStagedPhotosCount && window._getStagedPhotosCount() > 0;
                 if (voiceIsRecording) {
                     stopVoiceRecording(true);
                 } else if (messageText.value.trim().length > 0 || hasStaged) {
@@ -11468,52 +11519,102 @@ function initLanguage(){
             }
 
             function generateStickerShareLink(packId) {
-                const packs = getStickerPacks();
-                const pack = packs.find(p => p.id === packId);
-                if (!pack) return null;
+                // Ссылка как у каналов — ?stickers=PACK_ID
+                // Пак должен быть опубликован в Firebase перед получением ссылки
+                const base = window.location.origin + window.location.pathname;
+                return base + '?stickers=' + encodeURIComponent(packId);
+            }
+
+            // Публикует пак в Firebase и возвращает ссылку
+            async function publishStickerPackAndGetLink(pack) {
+                if (!database) {
+                    showNotification('Нет соединения с базой данных');
+                    return null;
+                }
                 try {
-                    const shareData = {
+                    // Публикуем/обновляем пак в Firebase
+                    await database.ref('stickerPacks/' + pack.id).set({
+                        id: pack.id,
                         name: pack.name,
                         icon: pack.icon,
-                        stickers: pack.stickers.map(s => {
-                            if (s.type === 'emoji') return { type: 'emoji', emoji: s.emoji, name: s.name };
-                            if (s.type === 'image' && s.data) {
-                                // Сжимаем изображение до маленького размера для ссылки (макс 64x64, jpeg 0.5)
-                                return { type: 'image', emoji: '', name: s.name || 'Стикер', data: s.data };
-                            }
-                            return { type: 'emoji', emoji: '😀', name: s.name || '' };
-                        })
-                    };
-                    const json = JSON.stringify(shareData);
-                    const encoded = btoa(unescape(encodeURIComponent(json)));
-                    return 'twiin://stickers/' + encoded;
+                        author: currentUser || 'unknown',
+                        publishedAt: Date.now(),
+                        stickers: pack.stickers.map(s => ({
+                            id: s.id,
+                            type: s.type,
+                            emoji: s.emoji || '',
+                            name: s.name || '',
+                            data: s.data || null
+                        }))
+                    });
+                    return generateStickerShareLink(pack.id);
                 } catch(e) {
-                    showNotification('Набор слишком большой для ссылки (попробуйте меньше стикеров)');
+                    showNotification('Ошибка публикации: ' + e.message);
                     return null;
                 }
             }
 
-            function importStickerPackFromLink(link) {
+            async function importStickerPackFromLink(link) {
                 try {
-                    const prefix = 'twiin://stickers/';
-                    if (!link.startsWith(prefix)) {
+                    let packId = null;
+                    // Новый формат: ?stickers=PACK_ID
+                    try {
+                        const url = new URL(link);
+                        packId = url.searchParams.get('stickers');
+                    } catch(e) {}
+                    // Старый формат: twiin://stickers/BASE64
+                    if (!packId && link.startsWith('twiin://stickers/')) {
+                        const encoded = link.substring('twiin://stickers/'.length);
+                        const json = decodeURIComponent(escape(atob(encoded)));
+                        const data = JSON.parse(json);
+                        if (!data.name || !data.stickers || !Array.isArray(data.stickers)) {
+                            showNotification('Некорректные данные стикер-набора');
+                            return null;
+                        }
+                        const pack = {
+                            id: 'imported-' + Date.now(),
+                            name: data.name,
+                            icon: data.icon || '📦',
+                            isDefault: false,
+                            stickers: data.stickers.map((s, i) => ({
+                                id: 'imp-' + i,
+                                type: s.type || 'emoji',
+                                emoji: s.emoji || '',
+                                name: s.name || '',
+                                data: s.data || null
+                            }))
+                        };
+                        addStickerPack(pack);
+                        return pack;
+                    }
+                    if (!packId) {
                         showNotification('Некорректная ссылка стикер-набора');
                         return null;
                     }
-                    const encoded = link.substring(prefix.length);
-                    const json = decodeURIComponent(escape(atob(encoded)));
-                    const data = JSON.parse(json);
-                    if (!data.name || !data.stickers || !Array.isArray(data.stickers)) {
-                        showNotification('Некорректные данные стикер-набора');
+                    // Загружаем из Firebase
+                    if (!database) {
+                        showNotification('Нет соединения с базой данных');
+                        return null;
+                    }
+                    const snap = await database.ref('stickerPacks/' + packId).once('value');
+                    const data = snap.val();
+                    if (!data || !data.name || !data.stickers) {
+                        showNotification('Набор стикеров не найден или был удалён');
+                        return null;
+                    }
+                    // Проверяем, не добавлен ли уже
+                    const existing = getStickerPacks();
+                    if (existing.find(p => p.id === data.id)) {
+                        showNotification('Этот набор уже добавлен');
                         return null;
                     }
                     const pack = {
-                        id: 'imported-' + Date.now(),
+                        id: data.id,
                         name: data.name,
                         icon: data.icon || '📦',
                         isDefault: false,
-                        stickers: data.stickers.map((s, i) => ({
-                            id: 'imp-' + i,
+                        stickers: (data.stickers || []).map((s, i) => ({
+                            id: s.id || ('imp-' + i),
                             type: s.type || 'emoji',
                             emoji: s.emoji || '',
                             name: s.name || '',
@@ -11632,12 +11733,10 @@ function initLanguage(){
                 }
             }
 
-            function copyPackLink(pack) {
-                const link = generateStickerShareLink(pack.id);
-                if (!link) {
-                    showNotification('Не удалось создать ссылку (набор слишком большой)');
-                    return;
-                }
+            async function copyPackLink(pack) {
+                showNotification('Публикация набора...');
+                const link = await publishStickerPackAndGetLink(pack);
+                if (!link) return;
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(link).then(function() {
                         showNotification('Ссылка скопирована! 📋');
@@ -11663,6 +11762,27 @@ function initLanguage(){
                     showNotification('Не удалось скопировать');
                 }
                 document.body.removeChild(ta);
+            }
+
+            // ── Редактирование пака ──────────────────────────────────
+            let _editingPackId = null; // null = создание, string = редактирование
+
+            function openEditStickerPack(pack) {
+                _editingPackId = pack.id;
+                const titleEl = document.getElementById('sticker-create-title');
+                if (titleEl) titleEl.textContent = '✏️ Редактировать набор';
+                stickerPackNameInput.value = pack.name;
+                selectedPackIcon = pack.icon || '😀';
+                stickerPackIconBtn.textContent = selectedPackIcon;
+                // Заполняем слоты из стикеров пака
+                stickerFormSlots = [];
+                (pack.stickers || []).forEach(function(s) {
+                    stickerFormSlots.push({ type: s.type, emoji: s.emoji || '', data: s.data || null });
+                });
+                // Добиваем до 20 пустыми
+                while (stickerFormSlots.length < 20) stickerFormSlots.push({ type: 'empty' });
+                renderStickerSlots();
+                stickerCreateOverlay.classList.add('open');
             }
 
             function openStickerPackContextMenu(pack, x, y) {
@@ -11691,6 +11811,14 @@ function initLanguage(){
             }
 
             // Context menu actions
+            document.getElementById('ctx-edit-pack').addEventListener('click', function() {
+                stickerPackCtxMenu.classList.remove('open');
+                if (ctxMenuPack) {
+                    openEditStickerPack(ctxMenuPack);
+                    ctxMenuPack = null;
+                }
+            });
+
             document.getElementById('ctx-copy-link').addEventListener('click', function() {
                 stickerPackCtxMenu.classList.remove('open');
                 if (ctxMenuPack) {
@@ -11709,19 +11837,37 @@ function initLanguage(){
 
             document.getElementById('ctx-delete-pack').addEventListener('click', function() {
                 stickerPackCtxMenu.classList.remove('open');
-                if (ctxMenuPack) {
-                    if (confirm('Удалить набор "' + ctxMenuPack.name + '"?')) {
-                        removeStickerPack(ctxMenuPack.id);
-                        if (activeStickerPackId === ctxMenuPack.id) {
-                            const packs = getStickerPacks();
-                            activeStickerPackId = packs[0] ? packs[0].id : null;
-                        }
-                        renderStickerPacksSidebar();
-                        renderStickerGrid(activeStickerPackId);
-                        showNotification('Набор удалён');
+                if (!ctxMenuPack) return;
+                const pack = ctxMenuPack;
+                ctxMenuPack = null;
+                // Inline confirm вместо confirm()
+                const confirmOverlay = document.createElement('div');
+                confirmOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:99999;display:flex;align-items:center;justify-content:center;';
+                confirmOverlay.innerHTML = `
+                    <div style="background:var(--modal-bg,#fff);border-radius:18px;padding:28px 24px;max-width:320px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.18);">
+                        <div style="font-size:2rem;margin-bottom:10px;">🗑</div>
+                        <div style="font-weight:700;font-size:1rem;margin-bottom:8px;color:var(--text-color);">Удалить набор?</div>
+                        <div style="font-size:0.88rem;color:var(--text-light);margin-bottom:20px;">«${escapeHtml(pack.name)}» будет удалён только у вас</div>
+                        <div style="display:flex;gap:10px;justify-content:center;">
+                            <button id="_sp-cancel-del" style="flex:1;padding:10px;border:1.5px solid var(--border-color);border-radius:12px;background:var(--bg-color);color:var(--text-color);font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;">Отмена</button>
+                            <button id="_sp-confirm-del" style="flex:1;padding:10px;border:none;border-radius:12px;background:#e74c3c;color:#fff;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;">Удалить</button>
+                        </div>
+                    </div>`;
+                document.body.appendChild(confirmOverlay);
+                confirmOverlay.querySelector('#_sp-cancel-del').addEventListener('click', function() {
+                    confirmOverlay.remove();
+                });
+                confirmOverlay.querySelector('#_sp-confirm-del').addEventListener('click', function() {
+                    confirmOverlay.remove();
+                    removeStickerPack(pack.id);
+                    if (activeStickerPackId === pack.id) {
+                        const packs = getStickerPacks();
+                        activeStickerPackId = packs[0] ? packs[0].id : null;
                     }
-                    ctxMenuPack = null;
-                }
+                    renderStickerPacksSidebar();
+                    renderStickerGrid(activeStickerPackId);
+                    showNotification('Набор удалён');
+                });
             });
 
             // ── Сетка стикеров ──
@@ -12109,7 +12255,9 @@ function initLanguage(){
 
             // Open create panel
             document.getElementById('sticker-create-btn').addEventListener('click', function() {
-                // Не закрываем стикер-пикер, а открываем модалку создания поверх
+                _editingPackId = null;
+                const titleEl = document.getElementById('sticker-create-title');
+                if (titleEl) titleEl.textContent = '✨ Новый набор стикеров';
                 stickerPackNameInput.value = '';
                 selectedPackIcon = '😀';
                 stickerPackIconBtn.textContent = '😀';
@@ -12128,7 +12276,7 @@ function initLanguage(){
                 if (e.target === stickerCreateOverlay) stickerCreateOverlay.classList.remove('open');
             });
 
-            // Save sticker pack
+            // Save / update sticker pack
             document.getElementById('sticker-form-save').addEventListener('click', function() {
                 const name = stickerPackNameInput.value.trim();
                 if (!name) {
@@ -12151,18 +12299,41 @@ function initLanguage(){
                     showNotification('Добавьте хотя бы один стикер');
                     return;
                 }
-                const pack = {
-                    id: 'custom-' + Date.now(),
-                    name: name,
-                    icon: selectedPackIcon,
-                    isDefault: false,
-                    stickers: stickers
-                };
-                if (addStickerPack(pack)) {
-                    showNotification('Набор "' + name + '" сохранён! 🎉');
-                    stickerCreateOverlay.classList.remove('open');
-                    activeStickerPackId = pack.id;
-                    openStickerPicker();
+
+                if (_editingPackId) {
+                    // Режим редактирования — обновляем существующий пак
+                    const packs = getStickerPacks();
+                    const idx = packs.findIndex(p => p.id === _editingPackId);
+                    if (idx !== -1) {
+                        packs[idx].name = name;
+                        packs[idx].icon = selectedPackIcon;
+                        packs[idx].stickers = stickers;
+                        if (saveStickerPacks(packs)) {
+                            showNotification('Набор «' + name + '» обновлён! ✅');
+                            stickerCreateOverlay.classList.remove('open');
+                            activeStickerPackId = _editingPackId;
+                            _editingPackId = null;
+                            openStickerPicker();
+                        }
+                    } else {
+                        showNotification('Ошибка: набор не найден');
+                    }
+                } else {
+                    // Создание нового пака
+                    const pack = {
+                        id: 'custom-' + Date.now(),
+                        name: name,
+                        icon: selectedPackIcon,
+                        isDefault: false,
+                        stickers: stickers
+                    };
+                    if (addStickerPack(pack)) {
+                        showNotification('Набор «' + name + '» сохранён! 🎉');
+                        stickerCreateOverlay.classList.remove('open');
+                        activeStickerPackId = pack.id;
+                        _editingPackId = null;
+                        openStickerPicker();
+                    }
                 }
             });
 
@@ -12170,49 +12341,57 @@ function initLanguage(){
             const stickerLinkOverlay = document.getElementById('sticker-link-overlay');
             const stickerLinkBody = document.getElementById('sticker-link-body');
 
-            function openStickerLinkModal(packId) {
-                const link = generateStickerShareLink(packId);
-                if (!link) {
-                    showNotification('Не удалось создать ссылку');
-                    return;
+            async function openStickerLinkModal(packId) {
+                const packs = getStickerPacks();
+                const pack = packs.find(p => p.id === packId);
+                stickerLinkBody.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-light);">⏳ Публикация набора...</div>';
+                stickerLinkOverlay.classList.add('open');
+
+                let link = null;
+                if (pack) {
+                    link = await publishStickerPackAndGetLink(pack);
                 }
+
                 stickerLinkBody.innerHTML = `
                     <div>
                         <div style="font-size:0.82rem;font-weight:600;color:var(--text-light);margin-bottom:6px;">Ссылка на набор:</div>
                         <div class="sticker-link-row">
-                            <input type="text" class="sticker-link-input" id="sticker-share-link" value="${escapeHtml(link)}" readonly onclick="this.select()">
-                            <button class="sticker-copy-btn" id="sticker-copy-link-btn">📋 Копировать</button>
+                            <input type="text" class="sticker-link-input" id="sticker-share-link" value="${link ? escapeHtml(link) : ''}" readonly onclick="this.select()" placeholder="${link ? '' : 'Ошибка создания ссылки'}">
+                            <button class="sticker-copy-btn" id="sticker-copy-link-btn" ${link ? '' : 'disabled'}>📋 Копировать</button>
                         </div>
+                        ${link ? '<div style="font-size:0.75rem;color:var(--text-light);margin-top:6px;">Набор опубликован — ссылку можно отправить в любом мессенджере</div>' : ''}
                     </div>
-                    <div style="border-top:1px solid var(--border-color);padding-top:12px;">
+                    <div style="border-top:1px solid var(--border-color);padding-top:12px;margin-top:12px;">
                         <div style="font-size:0.82rem;font-weight:600;color:var(--text-light);margin-bottom:6px;">Импорт набора по ссылке:</div>
-                        <input type="text" class="sticker-import-input" id="sticker-import-input" placeholder="Вставьте ссылку twiin://stickers/...">
-                        <button class="sticker-import-btn" id="sticker-do-import-btn" style="margin-top:8px;">📥 Импортировать набор</button>
+                        <input type="text" class="sticker-import-input" id="sticker-import-input" placeholder="https://twiin.ru/?stickers=...">
+                        <button id="sticker-do-import-btn" style="margin-top:8px;width:100%;padding:10px;border:1.5px solid var(--primary-color);border-radius:12px;background:rgba(108,92,231,0.1);color:var(--primary-color);font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">📥 Импортировать набор</button>
                     </div>
                 `;
-                stickerLinkOverlay.classList.add('open');
 
-                document.getElementById('sticker-copy-link-btn').addEventListener('click', function() {
-                    const inp = document.getElementById('sticker-share-link');
-                    inp.select();
-                    navigator.clipboard.writeText(inp.value).then(function() {
-                        showNotification('Ссылка скопирована! 📋');
-                    }).catch(function() {
-                        document.execCommand('copy');
-                        showNotification('Ссылка скопирована! 📋');
+                if (link) {
+                    document.getElementById('sticker-copy-link-btn').addEventListener('click', function() {
+                        const inp = document.getElementById('sticker-share-link');
+                        inp.select();
+                        navigator.clipboard.writeText(inp.value).then(function() {
+                            showNotification('Ссылка скопирована! 📋');
+                        }).catch(function() {
+                            document.execCommand('copy');
+                            showNotification('Ссылка скопирована! 📋');
+                        });
                     });
-                });
+                }
 
-                document.getElementById('sticker-do-import-btn').addEventListener('click', function() {
+                document.getElementById('sticker-do-import-btn').addEventListener('click', async function() {
                     const input = document.getElementById('sticker-import-input');
                     const linkVal = input.value.trim();
-                    if (!linkVal) {
-                        showNotification('Вставьте ссылку');
-                        return;
-                    }
-                    const imported = importStickerPackFromLink(linkVal);
+                    if (!linkVal) { showNotification('Вставьте ссылку'); return; }
+                    this.disabled = true;
+                    this.textContent = '⏳ Загрузка...';
+                    const imported = await importStickerPackFromLink(linkVal);
+                    this.disabled = false;
+                    this.textContent = '📥 Импортировать набор';
                     if (imported) {
-                        showNotification('Набор "' + imported.name + '" импортирован! 🎉');
+                        showNotification('Набор «' + imported.name + '» добавлен! 🎉');
                         stickerLinkOverlay.classList.remove('open');
                         activeStickerPackId = imported.id;
                         openStickerPicker();
@@ -12221,26 +12400,26 @@ function initLanguage(){
             }
 
             document.getElementById('sticker-import-btn').addEventListener('click', function() {
-                // Не закрываем стикер-пикер, а открываем модалку импорта поверх
                 stickerLinkBody.innerHTML = `
                     <div>
                         <div style="font-size:0.82rem;font-weight:600;color:var(--text-light);margin-bottom:6px;">Импорт набора по ссылке:</div>
-                        <input type="text" class="sticker-import-input" id="sticker-import-input" placeholder="Вставьте ссылку twiin://stickers/...">
-                        <button class="sticker-import-btn" id="sticker-do-import-btn" style="margin-top:8px;">📥 Импортировать набор</button>
+                        <input type="text" class="sticker-import-input" id="sticker-import-input" placeholder="https://twiin.ru/?stickers=...">
+                        <button id="sticker-do-import-btn" style="margin-top:8px;width:100%;padding:10px;border:1.5px solid var(--primary-color);border-radius:12px;background:rgba(108,92,231,0.1);color:var(--primary-color);font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;">📥 Импортировать набор</button>
                     </div>
                 `;
                 stickerLinkOverlay.classList.add('open');
 
-                document.getElementById('sticker-do-import-btn').addEventListener('click', function() {
+                document.getElementById('sticker-do-import-btn').addEventListener('click', async function() {
                     const input = document.getElementById('sticker-import-input');
                     const linkVal = input.value.trim();
-                    if (!linkVal) {
-                        showNotification('Вставьте ссылку');
-                        return;
-                    }
-                    const imported = importStickerPackFromLink(linkVal);
+                    if (!linkVal) { showNotification('Вставьте ссылку'); return; }
+                    this.disabled = true;
+                    this.textContent = '⏳ Загрузка...';
+                    const imported = await importStickerPackFromLink(linkVal);
+                    this.disabled = false;
+                    this.textContent = '📥 Импортировать набор';
                     if (imported) {
-                        showNotification('Набор "' + imported.name + '" импортирован! 🎉');
+                        showNotification('Набор «' + imported.name + '» добавлен! 🎉');
                         stickerLinkOverlay.classList.remove('open');
                         activeStickerPackId = imported.id;
                         openStickerPicker();
@@ -12435,6 +12614,14 @@ function initLanguage(){
             const photoStagingBar = document.getElementById('photo-staging-bar');
             const photoStagingAdd = document.getElementById('photo-staging-add');
 
+            // Глобальный геттер, чтобы toggleSendMicIcon (объявленный раньше) мог читать длину массива
+            window._getStagedPhotosCount = function() { return _stagedPhotos.length; };
+
+            // Синхронизировать иконку кнопки отправки с наличием staged-фото
+            function updateSendButtonState() {
+                if (typeof toggleSendMicIcon === 'function') toggleSendMicIcon();
+            }
+
             // Показать панель предпросмотра
             function refreshPhotoStagingBar() {
                 if (!photoStagingBar) return;
@@ -12518,8 +12705,8 @@ function initLanguage(){
                 });
             }
 
-            // Отправить все staged фото (загрузка + отправка)
-            async function sendStagedPhotos() {
+            // Отправить все staged фото (загрузка + отправка, группируем по groupId)
+            window.sendStagedPhotos = async function sendStagedPhotos() {
                 if (_stagedPhotos.length === 0) return;
                 if (!currentChat) return;
                 if (currentChatType === 'user' && blockedUsers.includes(currentChat)) {
@@ -12529,6 +12716,12 @@ function initLanguage(){
 
                 const photosToSend = [..._stagedPhotos];
                 clearStagedPhotos(); // сразу очищаем панель
+
+                // Единый groupId для всей серии (если больше 1 фото)
+                const groupId = photosToSend.length > 1
+                    ? ('pg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6))
+                    : null;
+                const groupTotal = photosToSend.length;
 
                 showUploadProgress();
                 setUploadProgress(5, 'Загрузка фото 0/' + photosToSend.length + '...');
@@ -12541,7 +12734,13 @@ function initLanguage(){
                             'Загрузка фото ' + (i + 1) + '/' + photosToSend.length + '...'
                         );
                         const data = await uploadToCloudinary(photosToSend[i].file, 'image');
-                        await sendMediaMessage({ image: data.secure_url });
+                        const payload = { image: data.secure_url };
+                        if (groupId) {
+                            payload.photoGroupId    = groupId;
+                            payload.photoGroupIndex = i;
+                            payload.photoGroupTotal = groupTotal;
+                        }
+                        await sendMediaMessage(payload);
                         successCount++;
                     } catch (err) {
                         console.error('Ошибка загрузки фото:', err);
@@ -14758,9 +14957,91 @@ function initLanguage(){
             let lastDate = null;
             let messagesHTML = '';
 
+            // ── Группировка фото по photoGroupId ──────────────────────
+            // Строим карту groupId → [сообщения], учитывая порядок по индексу
+            const _photoGroups = {}; // groupId → {msgs: [], rendered: false}
+            for (const message of messagesArray) {
+                if (message.photoGroupId && message.image) {
+                    if (!_photoGroups[message.photoGroupId]) {
+                        _photoGroups[message.photoGroupId] = { msgs: [], rendered: false };
+                    }
+                    _photoGroups[message.photoGroupId].msgs.push(message);
+                }
+            }
+            // Сортируем каждую группу по индексу
+            for (const gid of Object.keys(_photoGroups)) {
+                _photoGroups[gid].msgs.sort((a, b) => (a.photoGroupIndex || 0) - (b.photoGroupIndex || 0));
+            }
+
+            // Вспомогательная функция: рендер сетки группы фото
+            function buildPhotoGroupHtml(groupMsgs, isSent, senderName, timeString, firstMsgId) {
+                const count = groupMsgs.length;
+                const countClass = count <= 4 ? 'count-' + count : 'count-many';
+                const MAX_VISIBLE = 9;
+                let gridItems = '';
+                groupMsgs.slice(0, MAX_VISIBLE).forEach((gm, idx) => {
+                    const imgUrl = normalizeImageUrl(gm.image || '');
+                    const isLast = idx === MAX_VISIBLE - 1 && count > MAX_VISIBLE;
+                    const overlay = isLast ? '<div class="pgg-more-overlay">+' + (count - MAX_VISIBLE + 1) + '</div>' : '';
+                    gridItems += '<div class="pgg-item" onclick="openImageModal(\'' + escapeHtml(imgUrl) + '\')">' +
+                        '<img src="' + escapeHtml(imgUrl) + '" loading="lazy" alt="Фото" referrerpolicy="no-referrer">' +
+                        overlay + '</div>';
+                });
+                return '<div class="message ' + (isSent ? 'sent' : 'received') + '" id="msg-' + firstMsgId + '">' +
+                    senderName +
+                    '<div class="message-content">' +
+                    '<div class="photo-group-grid ' + countClass + '">' + gridItems + '</div>' +
+                    '</div>' +
+                    '<div class="message-time">' + timeString + '</div>' +
+                    '</div>';
+            }
+
             for (const message of messagesArray) {
                 // Пропускаем сообщения удалённые "у себя"
                 if (isMessageDeletedForMe(message.id)) continue;
+
+                // Пропускаем фото принадлежащие группе — рендерим когда встречаем первое
+                if (message.photoGroupId && message.image) {
+                    const grp = _photoGroups[message.photoGroupId];
+                    if (grp) {
+                        if (grp.rendered) continue; // уже нарисовали
+                        // Рисуем сетку когда встречаем первый элемент группы
+                        if (message.photoGroupIndex !== 0 && message.photoGroupIndex !== undefined) continue;
+                        grp.rendered = true;
+
+                        const messageDate = new Date(message.timestamp);
+                        const dateString = messageDate.toLocaleDateString();
+                        if (dateString !== lastDate) {
+                            messagesHTML += '<div style="text-align:center;margin:15px 0;"><span style="background:var(--message-hover);padding:5px 10px;border-radius:10px;font-size:0.8rem;">' + dateString + '</span></div>';
+                            lastDate = dateString;
+                        }
+                        const timeString = messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        const isSent = message.sender === currentUser;
+
+                        let senderName = '';
+                        if (currentChatType === 'group' && !isSent) {
+                            const senderData = _sendersMap[message.sender];
+                            let senderIcon = senderData
+                                ? getUserAvatarHtml(senderData, message.sender)
+                                : '<span style="font-size:1rem;font-weight:700;">' + (message.sender || '?')[0].toUpperCase() + '</span>';
+                            senderName = '<div class="msg-sender-row"><div class="msg-sender-avatar">' + senderIcon + '</div><div style="font-size:0.8rem;color:var(--text-light);">' + escapeHtml(senderData ? (senderData.name || senderData.username) : message.sender) + '</div></div>';
+                        }
+
+                        messagesHTML += buildPhotoGroupHtml(grp.msgs, isSent, senderName, timeString, message.id);
+
+                        // Кэшируем первое сообщение группы
+                        _msgCache[message.id] = {
+                            text: message.text || '',
+                            sender: message.sender,
+                            timestamp: message.timestamp,
+                            status: message.status || 'sent',
+                            readAt: message.readAt || null,
+                            encrypted: message.encrypted || false,
+                            _decryptedText: message._decryptedText || null
+                        };
+                        continue;
+                    }
+                }
 
                 const messageDate = new Date(message.timestamp);
                 const dateString = messageDate.toLocaleDateString();
@@ -16428,7 +16709,7 @@ function initLanguage(){
 
         async function sendMessage() {
             const text = messageText.value.trim();
-            const hasStagedPhotos = typeof _stagedPhotos !== 'undefined' && _stagedPhotos.length > 0;
+            const hasStagedPhotos = window._getStagedPhotosCount && window._getStagedPhotosCount() > 0;
 
             // Нельзя отправить пустое сообщение без фото
             if (!text && !hasStagedPhotos) return;
@@ -16444,8 +16725,8 @@ function initLanguage(){
             }
 
             // ── Сначала отправляем staged фото (если есть) ──
-            if (hasStagedPhotos) {
-                await sendStagedPhotos();
+            if (hasStagedPhotos && window.sendStagedPhotos) {
+                await window.sendStagedPhotos();
             }
 
             // ── Если нет текста — ничего больше делать не нужно ──
@@ -22923,6 +23204,141 @@ document.addEventListener('click', function(e) {
 // ==================== КОНЕЦ СИСТЕМЫ ССЫЛОК НА КАНАЛЫ ====================
 
 
+// ==================== СИСТЕМА ССЫЛОК НА СТИКЕР-ПАКИ ====================
+(function() {
+    'use strict';
+
+    function handleIncomingStickerLink() {
+        const params = new URLSearchParams(window.location.search);
+        const packId = params.get('stickers');
+        if (!packId) return;
+
+        // Убираем параметр из URL сразу
+        const url = new URL(window.location.href);
+        url.searchParams.delete('stickers');
+        window.history.replaceState({}, '', url.toString());
+
+        // Ждём инициализации Firebase и приложения
+        let attempts = 0;
+        const interval = setInterval(async function() {
+            attempts++;
+            if (attempts > 40) { clearInterval(interval); return; }
+            if (typeof database === 'undefined' || !database) return;
+            if (typeof currentUser === 'undefined' || !currentUser) return;
+
+            clearInterval(interval);
+
+            try {
+                const snap = await database.ref('stickerPacks/' + packId).once('value');
+                const data = snap.val();
+                if (!data || !data.name || !data.stickers) {
+                    if (typeof showNotification === 'function') showNotification('❌ Стикер-пак не найден');
+                    return;
+                }
+                showStickerPackImportModal(data);
+            } catch(e) {
+                if (typeof showNotification === 'function') showNotification('Ошибка загрузки стикер-пака');
+            }
+        }, 500);
+    }
+
+    function showStickerPackImportModal(data) {
+        // Проверяем, не добавлен ли уже
+        let existingPacks = [];
+        try { existingPacks = JSON.parse(localStorage.getItem('twiin_sticker_packs') || '[]'); } catch(e) {}
+        const alreadyAdded = existingPacks.find(p => p.id === data.id);
+
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+        const iconHtml = (data.icon && data.icon.length <= 2)
+            ? `<span style="font-size:2.5rem;">${data.icon}</span>`
+            : `<img src="${data.icon}" style="width:48px;height:48px;border-radius:12px;object-fit:cover;" onerror="this.outerHTML='📦'">`;
+
+        // Превью стикеров (первые 8)
+        const previewStickers = (data.stickers || []).slice(0, 8);
+        const previewHtml = previewStickers.map(s => {
+            if (s.type === 'emoji') return `<span style="font-size:1.8rem;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:var(--bg-color,#f8f9fa);border-radius:10px;">${s.emoji}</span>`;
+            if (s.type === 'image' && s.data) return `<img src="${s.data}" style="width:44px;height:44px;border-radius:10px;object-fit:cover;background:var(--bg-color,#f8f9fa);">`;
+            return '';
+        }).join('');
+
+        overlay.innerHTML = `
+            <div style="background:var(--modal-bg,#fff);border-radius:22px;padding:28px 24px;max-width:360px;width:100%;text-align:center;box-shadow:0 12px 50px rgba(0,0,0,0.22);">
+                <div style="margin-bottom:12px;">${iconHtml}</div>
+                <div style="font-weight:800;font-size:1.15rem;color:var(--text-color);margin-bottom:4px;">${escapeHtml(data.name)}</div>
+                <div style="font-size:0.82rem;color:var(--text-light);margin-bottom:16px;">
+                    ${data.stickers ? data.stickers.length : 0} стикеров
+                    ${data.author ? ' · от <b>' + escapeHtml(data.author) + '</b>' : ''}
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:20px;">${previewHtml}</div>
+                ${alreadyAdded
+                    ? '<div style="padding:12px;background:rgba(46,204,113,0.12);border-radius:12px;color:#27ae60;font-size:0.88rem;font-weight:600;margin-bottom:16px;">✅ Этот набор уже у вас добавлен</div>'
+                    : ''}
+                <div style="display:flex;gap:10px;">
+                    <button id="_sp-import-cancel" style="flex:1;padding:12px;border:1.5px solid var(--border-color);border-radius:14px;background:var(--bg-color);color:var(--text-color);font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;">Закрыть</button>
+                    ${!alreadyAdded ? '<button id="_sp-import-add" style="flex:2;padding:12px;border:none;border-radius:14px;background:var(--primary-color,#6c5ce7);color:#fff;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;">+ Добавить набор</button>' : ''}
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        overlay.querySelector('#_sp-import-cancel').addEventListener('click', function() {
+            overlay.remove();
+        });
+
+        if (!alreadyAdded) {
+            overlay.querySelector('#_sp-import-add').addEventListener('click', function() {
+                const pack = {
+                    id: data.id,
+                    name: data.name,
+                    icon: data.icon || '📦',
+                    isDefault: false,
+                    stickers: (data.stickers || []).map((s, i) => ({
+                        id: s.id || ('imp-' + i),
+                        type: s.type || 'emoji',
+                        emoji: s.emoji || '',
+                        name: s.name || '',
+                        data: s.data || null
+                    }))
+                };
+                // Добавляем в localStorage
+                let packs = [];
+                try { packs = JSON.parse(localStorage.getItem('twiin_sticker_packs') || '[]'); } catch(e) {}
+                packs.push(pack);
+                try { localStorage.setItem('twiin_sticker_packs', JSON.stringify(packs)); } catch(e) {}
+
+                overlay.remove();
+                if (typeof showNotification === 'function') showNotification('🎉 Набор «' + data.name + '» добавлен!');
+
+                // Открываем пикер на этом паке если он открыт
+                if (typeof openStickerPicker === 'function') {
+                    window._openStickerPackAfterImport = pack.id;
+                    setTimeout(function() {
+                        if (typeof openStickerPicker === 'function') {
+                            window.activeStickerPackIdOverride = pack.id;
+                            openStickerPicker();
+                        }
+                    }, 300);
+                }
+            });
+        }
+
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) overlay.remove();
+        });
+    }
+
+    // Глобальная функция для совместимости
+    window.escapeHtml = window.escapeHtml || function(str) {
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    };
+
+    setTimeout(handleIncomingStickerLink, 1500);
+})();
+// ==================== КОНЕЦ СИСТЕМЫ ССЫЛОК НА СТИКЕР-ПАКИ ====================
+
+
 // ==================== МУЗЫКА В ПРОФИЛЕ (РАБОЧАЯ ВЕРСИЯ) ====================
 (function() {
     // Состояние
@@ -25842,15 +26258,16 @@ document.addEventListener('click', function(e) {
     </div>
     <!-- Контекстное меню набора (долгое нажатие) -->
     <div class="sticker-pack-ctx-menu" id="sticker-pack-ctx-menu">
+        <button id="ctx-edit-pack">✏️ Редактировать</button>
         <button id="ctx-copy-link">📋 Скопировать ссылку</button>
         <button id="ctx-share-link">🔗 Поделиться</button>
         <button id="ctx-delete-pack" class="ctx-danger">🗑 Удалить набор</button>
     </div>
-    <!-- Модалка создания стикер-набора -->
+    <!-- Модалка создания/редактирования стикер-набора -->
     <div class="sticker-create-overlay" id="sticker-create-overlay">
         <div class="sticker-create-panel">
             <div class="sticker-create-header">
-                <span class="sticker-create-title">✨ Новый набор стикеров</span>
+                <span class="sticker-create-title" id="sticker-create-title">✨ Новый набор стикеров</span>
                 <button class="sticker-create-close" id="sticker-create-close">✕</button>
             </div>
             <div class="sticker-create-form" id="sticker-create-form">
