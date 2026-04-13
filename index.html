@@ -20885,12 +20885,14 @@ document.addEventListener('click', function(e) {
             });
         }
 
-        // Открывает окно оплаты для подарка
+        // Открывает окно оплаты для подарка (или сразу отправляет бесплатный)
         async function openGiftPaymentWindow(giftType) {
             const gift = gifts[giftType];
             if (!gift) { showNotification('Подарок не найден'); return; }
 
-            // Получаем свободную единицу с ссылкой оплаты
+            const isFree = gift.free || gift.rub === 0 || gift.price === 0;
+
+            // Получаем свободную единицу
             let unitId = null;
             let payUrl = null;
             try {
@@ -20898,22 +20900,69 @@ document.addEventListener('click', function(e) {
                 const units = snap.val();
                 if (units) {
                     for (const [uid, u] of Object.entries(units)) {
-                        if (!u.used) { unitId = uid; payUrl = u.payUrl; break; }
+                        if (!u.used) { unitId = uid; payUrl = u.payUrl || ''; break; }
                     }
                 }
             } catch(e) {}
 
-            if (!unitId || !payUrl) {
+            if (!unitId) {
+                showNotification('Этот подарок временно недоступен');
+                return;
+            }
+
+            // Закрываем маркетплейс
+            const mktModal = document.getElementById('gift-marketplace-modal');
+            if (mktModal) mktModal.remove();
+
+            // === БЕСПЛАТНЫЙ ПОДАРОК — отправляем сразу без оплаты ===
+            if (isFree) {
+                try {
+                    // Помечаем единицу как использованную
+                    await database.ref('giftInventory/' + giftType + '/units/' + unitId).update({used: true, usedAt: Date.now(), usedBy: currentUser});
+
+                    // Отправляем подарок получателю напрямую
+                    const giftInfo = {name: gift.name, emoji: gift.emoji || null, image: gift.image || null, cssClass: gift.cssClass || null, rub: 0};
+                    await database.ref('users/' + encodeURIComponent(currentChat) + '/receivedGifts').push({
+                        from: currentUser, to: currentChat, type: giftType,
+                        giftInfo: giftInfo,
+                        timestamp: Date.now(), hidden: false, free: true
+                    });
+
+                    // Уведомление получателю
+                    await database.ref('users/' + encodeURIComponent(currentChat) + '/notifications').push({
+                        type: 'gift_received', from: currentUser,
+                        giftType: giftType, giftName: gift.name,
+                        giftEmoji: gift.emoji || null, giftImage: gift.image || null,
+                        timestamp: Date.now(), read: false, free: true
+                    });
+
+                    // Уведомление в чат
+                    const chatId = getChatId(currentUser, currentChat);
+                    await database.ref('messages/' + chatId).push({
+                        from: currentUser, to: currentChat,
+                        text: '', type: 'gift', giftType: giftType,
+                        giftInfo: giftInfo,
+                        free: true, timestamp: Date.now()
+                    });
+
+                    // Обновляем локальный ассортимент
+                    await loadGiftsFromFirebase();
+
+                    showNotification('🎁 Бесплатный подарок «' + gift.name + '» отправлен!');
+                } catch(e) {
+                    showNotification('Ошибка отправки подарка: ' + e.message);
+                }
+                return;
+            }
+
+            // === ПЛАТНЫЙ ПОДАРОК — окно оплаты ===
+            if (!payUrl) {
                 showNotification('Этот подарок временно недоступен');
                 return;
             }
 
             // Генерируем уникальный ID заявки
             const orderId = 'order_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-
-            // Закрываем маркетплейс
-            const mktModal = document.getElementById('gift-marketplace-modal');
-            if (mktModal) mktModal.remove();
 
             // Показываем окно оплаты
             const modal = document.createElement('div');
@@ -21007,12 +21056,16 @@ document.addEventListener('click', function(e) {
                     giftVisual = `<div style="font-size: 2.5rem; margin-bottom: 8px; text-align: center;">🎁</div>`;
                 }
 
+                const isFree = gift.free || gift.rub === 0 || gift.price === 0;
+                const priceLabel = isFree
+                    ? '<div class="gift-card-price" style="background:linear-gradient(135deg,#2ecc71,#27ae60);">Бесплатно</div>'
+                    : `<div class="gift-card-price">${gift.rub || '?'} ₽</div>`;
                 giftHTML += `
                     <div class="gift-card" data-gift-type="${type}" style="cursor: pointer; user-select: none;">
                         ${giftVisual}
                         <div class="gift-card-name">${gift.name}</div>
                         <div style="font-size: 0.75rem; color: rgba(255,255,255,0.8); margin-bottom: 4px;">${avail} шт.</div>
-                        <div class="gift-card-price">${gift.rub || '?'} ₽</div>
+                        ${priceLabel}
                     </div>
                 `;
             }
