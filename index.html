@@ -27919,10 +27919,14 @@ document.addEventListener('click', function(e) {
         } catch(e) { if (window._appShowNotification) window._appShowNotification('Error: '+e.message); }
     };
 
+    // Сохраняем оригинальную функцию openUserProfile (показывает модалку профиля)
+    // до того как она будет переопределена E2EE-патчем
+    var _origOpenUserProfileFn = window.openUserProfile;
     window.openUserProfile = function(username) {
         var curUser = window._appCurrentUser ? window._appCurrentUser() : null;
         if (!username || username === curUser) { if(typeof openProfileSettings==='function')openProfileSettings(); return; }
-        if(typeof openChat==='function') openChat(username);
+        // Вызываем оригинальную функцию профиля, а не openChat
+        if(typeof _origOpenUserProfileFn==='function') _origOpenUserProfileFn(username);
     };
 
     window.openImageModal = function(src) {
