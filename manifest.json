@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Twiin",
   "short_name": "Twiin",
-  "description": "Мессенджер",
+  "description": "Twiin — бесплатный веб-мессенджер с AI-ассистентом, группами, каналами и подарками",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

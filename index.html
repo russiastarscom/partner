@@ -111,7 +111,12 @@
     <!-- Viewport -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, height=device-height">
 
-    <!-- Иконки и manifest отключены для file:// -->
+    <!-- PWA: manifest и иконки -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="48x48" href="/icon-48x48.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512x512.png">
 
     <!-- <link rel="stylesheet" href="gift_animations.css"> -->
     
@@ -29354,14 +29359,11 @@ window.deleteContentItem = async function(type, id) {
     /* ==================== КОНЕЦ TWIN STORIES SYSTEM v2 ==================== */
     </script>
 
-    <!-- ========== PWA — Service Worker отключён для file:// ========== -->
+    <!-- ========== PWA — Service Worker ========== -->
     <script>
-        // Service Worker не работает при открытии файла через file://
-        // Раскомментируйте при размещении на HTTP/HTTPS сервере
-        /*
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
-                navigator.serviceWorker.register('/service-worker.js', { scope: '' })
+                navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
                     .then(function (reg) {
                         console.log('[SW] Зарегистрирован, scope:', reg.scope);
 
@@ -29385,7 +29387,6 @@ window.deleteContentItem = async function(type, id) {
                     });
             });
         }
-        */
     </script>
     <!-- ========== конец PWA ========== -->
 
