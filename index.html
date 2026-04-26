@@ -120,9 +120,6 @@
 
     <!-- <link rel="stylesheet" href="gift_animations.css"> -->
 
-    <!-- ========== Mail.ru Ads SDK (async, не блокирует рендер) ========== -->
-    <script async src="https://ad.mail.ru/static/ads-async.js"></script>
-
     <!-- ========== EmailJS — уведомления о новых сообщениях ========== -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
@@ -6220,158 +6217,7 @@
             }
         }
 
-        /* ===== ПОЛНОЭКРАННАЯ РЕКЛАМА (INTERSTITIAL) ===== */
-        .fullscreen-ad-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 99999;
-            background: rgba(0,0,0,0.92);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.4s ease, visibility 0.4s ease;
-        }
-        .fullscreen-ad-overlay.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-        .fullscreen-ad-content {
-            position: relative;
-            width: 100%;
-            max-width: 480px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .fullscreen-ad-label {
-            font-size: 0.72rem;
-            color: rgba(255,255,255,0.45);
-            text-align: center;
-            margin-bottom: 12px;
-            letter-spacing: 0.04em;
-        }
-        .fullscreen-ad-ins {
-            width: 100%;
-            min-height: 400px;
-            border-radius: 16px;
-            overflow: hidden;
-            background: #1a1a1a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .fullscreen-ad-skip {
-            margin-top: 16px;
-            padding: 10px 32px;
-            border-radius: 50px;
-            border: 1.5px solid rgba(255,255,255,0.2);
-            background: rgba(255,255,255,0.08);
-            color: rgba(255,255,255,0.5);
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: not-allowed;
-            font-family: inherit;
-            transition: all 0.3s ease;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        .fullscreen-ad-skip.ready {
-            border-color: var(--primary-color);
-            background: var(--primary-color);
-            color: #fff;
-            cursor: pointer;
-        }
-        .fullscreen-ad-skip.ready:hover {
-            background: var(--primary-dark);
-            transform: scale(1.04);
-        }
-        .fullscreen-ad-skip.ready:active {
-            transform: scale(0.97);
-        }
-        .fullscreen-ad-info {
-            font-size: 0.65rem;
-            color: rgba(255,255,255,0.3);
-            text-align: center;
-            margin-top: 10px;
-            line-height: 1.5;
-        }
-        .fullscreen-ad-timer {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.1);
-            font-size: 0.78rem;
-            font-weight: 700;
-            margin-right: 6px;
-        }
-        /* ===== БЛОКИРОВЩИК РЕКЛАМЫ ОБНАРУЖЕН ===== */
-        .adblock-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 999999;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
-        }
-        .adblock-overlay.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-        .adblock-icon {
-            font-size: 4rem;
-            margin-bottom: 16px;
-            animation: adblockShake 1.5s ease-in-out infinite;
-        }
-        @keyframes adblockShake {
-            0%, 100% { transform: rotate(0deg); }
-            25% { transform: rotate(-8deg); }
-            75% { transform: rotate(8deg); }
-        }
-        .adblock-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #e74c3c;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-        .adblock-text {
-            font-size: 0.88rem;
-            color: rgba(255,255,255,0.7);
-            text-align: center;
-            max-width: 340px;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-        .adblock-btn {
-            padding: 12px 36px;
-            border-radius: 50px;
-            border: none;
-            background: linear-gradient(135deg, var(--primary-color), #a29bfe);
-            color: #fff;
-            font-size: 0.92rem;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: inherit;
-            transition: all 0.3s ease;
-        }
-        .adblock-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 24px rgba(108,92,231,0.5);
-        }
-        /* ===== КОНЕЦ БЛОКИРОВЩИК РЕКЛАМЫ ===== */
 
-        /* ===== КОНЕЦ ПОЛНОЭКРАННОЙ РЕКЛАМЫ ===== */
 
         .settings {
             padding: 10px 14px;
@@ -10219,34 +10065,7 @@
 </head>
 
 <body>
-    <!-- ===== ПОЛНОЭКРАННАЯ РЕКЛАМА (INTERSTITIAL) ===== -->
-    <div class="fullscreen-ad-overlay" id="fullscreen-ad-overlay">
-        <div class="fullscreen-ad-content">
-            <div class="fullscreen-ad-label">Реклама</div>
-            <div class="fullscreen-ad-ins" id="fullscreen-ad-ins"></div>
-            <button class="fullscreen-ad-skip" id="fullscreen-ad-skip" disabled>
-                <span class="fullscreen-ad-timer" id="fullscreen-ad-timer">5</span>
-                Пропустить рекламу
-            </button>
-            <p class="fullscreen-ad-info">
-                Реклама помогает нам предоставлять отправку файлов, Shorts и другие функции бесплатно
-            </p>
-        </div>
-    </div>
-    <!-- ===== КОНЕЦ ПОЛНОЭКРАННОЙ РЕКЛАМЫ ===== -->
 
-    <!-- ===== БЛОКИРОВЩИК РЕКЛАМЫ ОБНАРУЖЕН ===== -->
-    <div class="adblock-overlay" id="adblock-overlay">
-        <div class="adblock-icon">🛡️</div>
-        <div class="adblock-title">Обнаружен блокировщик рекламы</div>
-        <p class="adblock-text">
-            Мы обнаружили, что вы используете блокировщик рекламы.
-            Пожалуйста, отключите его, чтобы пользоваться Twiin.
-            Реклама позволяет нам предоставлять отправку файлов, Shorts и другие функции бесплатно.
-        </p>
-        <button class="adblock-btn" id="adblock-retry-btn">Я отключил блокировщик</button>
-    </div>
-    <!-- ===== КОНЕЦ БЛОКИРОВЩИК РЕКЛАМЫ ===== -->
 
     <div class="container">
         <div class="mobile-header">
@@ -22493,20 +22312,6 @@ async function requestUsername() {
             <div id="login-password-nonlatin" class="auth-nonlatin-warn">
                 ⚠️ Пароль содержит <b>не латинские</b> символы. Проверьте раскладку клавиатуры!
             </div>
-            <!-- Капча для входа (2FA) -->
-            <div class="auth-captcha-box" id="login-captcha-box">
-                <div class="auth-canvas-wrap">
-                    <canvas id="login-captcha-canvas" width="140" height="48"></canvas>
-                </div>
-                <button class="auth-captcha-refresh" id="login-captcha-refresh" title="Обновить капчу">🔄</button>
-                <div class="auth-captcha-input-wrap">
-                    <label>Введите код с картинки *</label>
-                    <input type="text" id="login-captcha-input" class="auth-input" placeholder="Капча" maxlength="6" autocomplete="off" style="margin-bottom:0;">
-                </div>
-            </div>
-            <div id="login-captcha-warn" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid rgba(231,76,60,0.35);">
-                ⚠️ Неверная капча
-            </div>
             <button id="submit-login" class="auth-btn-primary">Войти</button>
         </div>
         
@@ -22526,8 +22331,7 @@ async function requestUsername() {
                        style="margin-bottom:6px;" placeholder="Повторите пароль" autocomplete="off">
                 <div id="reg-password-match-msg" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;"></div>
                 <input type="email" id="reg-email" class="auth-input" style="margin-bottom:0;"
-                       placeholder="Email (необязательно)" disabled>
-                <div class="auth-email-optional-note">📧 Почта нужна для уведомлений, но в данный момент <b>недоступна</b> — ожидайте до <b>23–25 апреля</b>.</div>
+                       placeholder="Email (обязательно)" autocomplete="email">
                 <div id="reg-email-warn" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid rgba(231,76,60,0.35);">
                     ⚠️ Введите корректный email
                 </div>
@@ -22554,20 +22358,6 @@ async function requestUsername() {
                 </div>
                 <div id="privacy-agree-warn" style="display:none; font-size:0.8rem; color:#e74c3c; margin: 4px 0 8px 2px;">
                     ⚠️ Необходимо согласиться с Политикой конфиденциальности
-                </div>
-                <!-- Капча -->
-                <div class="auth-captcha-box" id="reg-captcha-box">
-                    <div class="auth-canvas-wrap">
-                        <canvas id="reg-captcha-canvas" width="140" height="48"></canvas>
-                    </div>
-                    <button class="auth-captcha-refresh" id="reg-captcha-refresh" title="Обновить капчу">🔄</button>
-                    <div class="auth-captcha-input-wrap">
-                        <label>Введите код с картинки *</label>
-                        <input type="text" id="reg-captcha-input" class="auth-input" placeholder="Капча" maxlength="6" autocomplete="off" style="margin-bottom:0;">
-                    </div>
-                </div>
-                <div id="reg-captcha-warn" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid rgba(231,76,60,0.35);">
-                    ⚠️ Неверная капча
                 </div>
                 <button id="submit-register" class="auth-btn-primary auth-btn-register">
                     ✅ Зарегистрироваться
@@ -22700,18 +22490,6 @@ async function requestUsername() {
         return _captchaAnswer;
     }
 
-    // Инициализируем капчу для регистрации
-    generateCaptcha('reg-captcha-canvas');
-
-    // Кнопка обновления капчи
-    document.getElementById('reg-captcha-refresh').addEventListener('click', () => {
-        generateCaptcha('reg-captcha-canvas');
-        const inp = document.getElementById('reg-captcha-input');
-        if (inp) { inp.value = ''; inp.style.borderColor = ''; }
-        const warn = document.getElementById('reg-captcha-warn');
-        if (warn) warn.style.display = 'none';
-    });
-
     // Функция проверки нелатинских символов
     function hasNonLatin(str) {
         return /[^\u0000-\u007F]/.test(str) || /[а-яёА-ЯЁ]/.test(str);
@@ -22775,15 +22553,13 @@ async function requestUsername() {
         });
     });
 
-    // Отправка регистрации (с капчей)
+    // Отправка регистрации
     submitRegister.addEventListener('click', async () => {
         const name = regName.value.trim();
         const username = regUsername.value.trim().toLowerCase();
         const password = regPassword.value.trim();
         const passwordConfirm = regPasswordConfirm.value.trim();
         const regEmailVal = document.getElementById('reg-email').value.trim();
-        const captchaInput = document.getElementById('reg-captcha-input');
-        const captchaWarn = document.getElementById('reg-captcha-warn');
 
         if (!name || !username || !password) {
             showNotification('Пожалуйста, заполните все поля');
@@ -22823,25 +22599,20 @@ async function requestUsername() {
         }
         if (privacyWarn) privacyWarn.style.display = 'none';
 
-        // Проверка email (ТОЛЬКО если заполнен — валидация формата)
+        // Проверка email (ОБЯЗАТЕЛЬНЫЙ)
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         const emailWarn = document.getElementById('reg-email-warn');
-        if (regEmailVal && !emailRegex.test(regEmailVal)) {
-            if (emailWarn) emailWarn.style.display = 'block';
+        if (!regEmailVal) {
+            if (emailWarn) { emailWarn.style.display = 'block'; emailWarn.textContent = '⚠️ Email обязателен для регистрации'; }
+            document.getElementById('reg-email').focus();
+            return;
+        }
+        if (!emailRegex.test(regEmailVal)) {
+            if (emailWarn) { emailWarn.style.display = 'block'; emailWarn.textContent = '⚠️ Введите корректный email'; }
             document.getElementById('reg-email').focus();
             return;
         }
         if (emailWarn) emailWarn.style.display = 'none';
-
-        // ✅ Проверка капчи (ОБЯЗАТЕЛЬНА)
-        if (!captchaInput || captchaInput.value.trim().toLowerCase() !== _captchaAnswer) {
-            if (captchaWarn) captchaWarn.style.display = 'block';
-            if (captchaInput) { captchaInput.style.borderColor = '#e74c3c'; captchaInput.focus(); }
-            generateCaptcha('reg-captcha-canvas');
-            if (captchaInput) captchaInput.value = '';
-            return;
-        }
-        if (captchaWarn) captchaWarn.style.display = 'none';
 
         try {
             // Проверяем занятость юзернейма
@@ -22849,8 +22620,6 @@ async function requestUsername() {
             const snapshot = await userRef.once('value');
             if (snapshot.exists()) {
                 showNotification('Этот юзернейм уже занят');
-                generateCaptcha('reg-captcha-canvas');
-                if (captchaInput) captchaInput.value = '';
                 return;
             }
 
@@ -23058,16 +22827,6 @@ async function requestUsername() {
     const loginPassword = document.getElementById('login-password');
     const submitLogin = document.getElementById('submit-login');
 
-    // Инициализируем капчу для входа
-    let _loginCaptchaAnswer = generateCaptcha('login-captcha-canvas');
-    document.getElementById('login-captcha-refresh').addEventListener('click', () => {
-        _loginCaptchaAnswer = generateCaptcha('login-captcha-canvas');
-        const inp = document.getElementById('login-captcha-input');
-        if (inp) { inp.value = ''; inp.style.borderColor = ''; }
-        const warn = document.getElementById('login-captcha-warn');
-        if (warn) warn.style.display = 'none';
-    });
-
     submitLogin.addEventListener('click', async () => {
         const username = loginUsername.value.trim().toLowerCase();
         const password = loginPassword.value.trim();
@@ -23076,18 +22835,6 @@ async function requestUsername() {
             showNotification('Пожалуйста, введите юзернейм и пароль');
             return;
         }
-
-        // ✅ Проверка капчи при входе (2FA)
-        const loginCaptchaInput = document.getElementById('login-captcha-input');
-        const loginCaptchaWarn = document.getElementById('login-captcha-warn');
-        if (!loginCaptchaInput || loginCaptchaInput.value.trim().toLowerCase() !== _loginCaptchaAnswer) {
-            if (loginCaptchaWarn) loginCaptchaWarn.style.display = 'block';
-            if (loginCaptchaInput) { loginCaptchaInput.style.borderColor = '#e74c3c'; loginCaptchaInput.focus(); }
-            _loginCaptchaAnswer = generateCaptcha('login-captcha-canvas');
-            if (loginCaptchaInput) loginCaptchaInput.value = '';
-            return;
-        }
-        if (loginCaptchaWarn) loginCaptchaWarn.style.display = 'none';
 
         const previousUser = currentUser;
 
@@ -29544,134 +29291,7 @@ window.deleteContentItem = async function(type, id) {
     /* ==================== КОНЕЦ TWIN STORIES SYSTEM v2 ==================== */
     </script>
 
-    <!-- ========== Реклама Mail.ru — полноэкранная + антиблокировщик ========== -->
-    <script>
-    (function(){
-        var SKIP_DELAY = 5;
-        var adShownKey = 'twiin_fs_ad_shown';
 
-        /* ========== Детект блокировщика рекламы (только bait) ========== */
-        function detectAdblock(callback) {
-            var bait = document.createElement('div');
-            bait.id = 'twiin-ad-bait';
-            bait.innerHTML = '&nbsp;&nbsp;&nbsp;';
-            // Классы-приманки — блокировщики скрывают элементы с такими классами
-            bait.className = 'adsbox ad-placement carbon-ads';
-            // Размер достаточный чтобы не быть скрытым браузером как «нулевой» элемент
-            bait.style.cssText = 'position:absolute!important;left:-9999px!important;top:-9999px!important;width:10px!important;height:10px!important;display:block!important;visibility:visible!important;pointer-events:none!important;';
-            document.body.appendChild(bait);
-
-            // Даём блокировщику время сработать (1.5 сек)
-            setTimeout(function() {
-                var hidden = false;
-                // Проверяем: блокировщик либо скрывает элемент, либо удаляет его
-                if (bait.parentNode === null) {
-                    hidden = true;
-                } else {
-                    var style = window.getComputedStyle(bait);
-                    hidden = (bait.offsetHeight === 0) ||
-                             (bait.offsetWidth === 0) ||
-                             (style.display === 'none') ||
-                             (style.visibility === 'hidden') ||
-                             (style.opacity === '0');
-                }
-                if (bait.parentNode) bait.parentNode.removeChild(bait);
-                callback(hidden);
-            }, 1500);
-        }
-
-        function showAdblockWarning() {
-            var overlay = document.getElementById('adblock-overlay');
-            if (overlay) overlay.classList.add('visible');
-            document.body.style.overflow = 'hidden';
-
-            var retryBtn = document.getElementById('adblock-retry-btn');
-            if (retryBtn) {
-                retryBtn.addEventListener('click', function() {
-                    detectAdblock(function(blocked) {
-                        if (!blocked) {
-                            overlay.classList.remove('visible');
-                            document.body.style.overflow = '';
-                            showFullscreenAd();
-                        } else {
-                            retryBtn.style.animation = 'none';
-                            retryBtn.offsetHeight;
-                            retryBtn.style.animation = 'shake 0.4s ease';
-                        }
-                    });
-                });
-            }
-        }
-
-        /* ========== Полноэкранная реклама (1 раз за сессию) ========== */
-        function showFullscreenAd() {
-            if (sessionStorage.getItem(adShownKey)) return;
-
-            var overlay = document.getElementById('fullscreen-ad-overlay');
-            var insContainer = document.getElementById('fullscreen-ad-ins');
-            var skipBtn = document.getElementById('fullscreen-ad-skip');
-            var timerEl = document.getElementById('fullscreen-ad-timer');
-            if (!overlay || !insContainer) return;
-
-            var ins = document.createElement('ins');
-            ins.className = 'mrg-tag';
-            ins.setAttribute('data-ad-client', 'ad-2002191');
-            ins.setAttribute('data-ad-slot', '2002191');
-            insContainer.appendChild(ins);
-            (window.MRGtag = window.MRGtag || []).push({});
-
-            overlay.classList.add('visible');
-            sessionStorage.setItem(adShownKey, '1');
-
-            var remaining = SKIP_DELAY;
-            skipBtn.disabled = true;
-            skipBtn.classList.remove('ready');
-            timerEl.textContent = remaining;
-
-            var countdown = setInterval(function() {
-                remaining--;
-                if (remaining > 0) {
-                    timerEl.textContent = remaining;
-                } else {
-                    clearInterval(countdown);
-                    timerEl.textContent = '';
-                    skipBtn.disabled = false;
-                    skipBtn.classList.add('ready');
-                    skipBtn.innerHTML = 'Пропустить рекламу';
-                }
-            }, 1000);
-
-            skipBtn.addEventListener('click', function handler() {
-                if (skipBtn.disabled) return;
-                clearInterval(countdown);
-                overlay.classList.remove('visible');
-                skipBtn.removeEventListener('click', handler);
-                setTimeout(function() {
-                    overlay.remove();
-                }, 400);
-            });
-        }
-
-        /* ========== Запуск ========== */
-        window.addEventListener('load', function() {
-            // Сначала показываем рекламу (без ожидания детекта)
-            showFullscreenAd();
-
-            // Через 4 сек проверяем блокировщик
-            setTimeout(function() {
-                detectAdblock(function(blocked) {
-                    if (blocked) {
-                        // Закрываем рекламный оверлей если открыт
-                        var adOverlay = document.getElementById('fullscreen-ad-overlay');
-                        if (adOverlay) adOverlay.classList.remove('visible');
-                        showAdblockWarning();
-                    }
-                    // Если не заблокировано — реклама уже показана, ничего не делаем
-                });
-            }, 4000);
-        });
-    })();
-    </script>
 
     <!-- ========== PWA — Service Worker ========== -->
     <script>
