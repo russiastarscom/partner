@@ -1,5 +1,5 @@
 {
-  "id": "/",
+  "id": "russia_stars_app_twiin",
   "name": "Twiin",
   "short_name": "Twiin",
   "description": "Twiin — бесплатный веб-мессенджер с AI-ассистентом, группами, каналами и подарками",
@@ -11,6 +11,7 @@
   "background_color": "#ffffff",
   "theme_color": "#6c5ce7",
   "lang": "ru",
+  "version": "2",
   "categories": ["social", "utilities"],
   "icons": [
     {
