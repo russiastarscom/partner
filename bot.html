@@ -1,325 +1,177 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Twin Bot</title>
-<style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:system-ui,sans-serif;background:#0c0c14;color:#e8e6f4;height:100vh;overflow:hidden;display:flex;flex-direction:column}
-  #topbar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#11111c;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
-  #tb-ava{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#7c6ef7,#a855f7);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-  #tb-info{flex:1;min-width:0}
-  #tb-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #tb-sub{font-size:11px;color:#52506a}
-  .tbtn{background:none;border:none;color:#9896aa;font-size:13px;padding:6px 10px;border-radius:8px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;font-family:inherit;font-weight:500}
-  .tbtn:hover{background:rgba(255,255,255,.07);color:#e8e6f4}
-  .tbtn.hl{background:rgba(124,110,247,.15);color:#a99cf8}
-  .tbtn.hl:hover{background:rgba(124,110,247,.28)}
-  #owner-dot{width:7px;height:7px;border-radius:50%;background:#7c6ef7;flex-shrink:0;display:none}
-  #owner-dot.show{display:block}
-  /* iframe */
-  #bot-frame{flex:1;width:100%;border:none;background:#fff;display:none}
-  #bot-frame.show{display:block}
-  /* loader */
-  #loader{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
-  #loader.hide{display:none}
-  .ld-ico{font-size:44px;animation:li 1.4s ease-in-out infinite}
-  @keyframes li{0%,100%{transform:scale(1)}50%{transform:scale(1.13)}}
-  .ld-bar{width:88px;height:2px;background:#1a1a28;border-radius:1px;overflow:hidden}
-  .ld-fill{height:100%;background:#7c6ef7;animation:lf 1.6s ease-in-out infinite}
-  @keyframes lf{0%{width:0;margin-left:0}50%{width:100%;margin-left:0}100%{width:0;margin-left:100%}}
-  .ld-txt{font-size:11px;color:#52506a;letter-spacing:.1em;text-transform:uppercase}
-  /* not found */
-  #nf{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:24px}
-  #nf.show{display:flex}
-  #nf .i{font-size:48px}
-  #nf h2{font-size:19px;font-weight:600}
-  #nf p{font-size:13px;color:#9896aa;line-height:1.6}
-  #nf a{color:#a99cf8;text-decoration:none;font-size:13px;margin-top:6px}
-  /* EDITOR */
-  #ed{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:none;flex-direction:column;backdrop-filter:blur(4px)}
-  #ed.show{display:flex}
-  #ed-bar{display:flex;align-items:center;gap:7px;padding:10px 12px;background:#0e0e1a;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
-  #ed-bar::-webkit-scrollbar{display:none}
-  #ed-title{font-size:14px;font-weight:600;color:#e8e6f4;white-space:nowrap;flex-shrink:0;margin-right:2px}
-  .eb{padding:7px 13px;border-radius:8px;border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;flex-shrink:0;transition:all .15s}
-  .eb:active{transform:scale(.95)}
-  .eb-sv{background:#7c6ef7;color:#fff}
-  .eb-pv{background:rgba(61,214,140,.13);color:#3dd68c;border:1px solid rgba(61,214,140,.2)}
-  .eb-tl{background:rgba(255,255,255,.07);color:#9896aa}
-  .eb-cl{background:rgba(244,100,95,.12);color:#f4645f;margin-left:auto}
-  #ed-st{font-size:11px;font-family:'Courier New',monospace;color:#52506a;white-space:nowrap;flex-shrink:0}
-  #ed-st.ok{color:#3dd68c}#ed-st.er{color:#f4645f}
-  #ed-body{flex:1;display:flex;overflow:hidden;min-height:0}
-  #lnums{flex-shrink:0;min-width:42px;background:#07070d;border-right:1px solid rgba(255,255,255,.05);font-family:'Courier New',monospace;font-size:12.5px;line-height:1.72;color:#2a284a;text-align:right;user-select:none;overflow:hidden;padding:14px 0}
-  #lnums span{display:block;padding:0 7px}
-  #code-ta{flex:1;padding:14px;background:#07070d;border:none;outline:none;color:#d4d2ee;font-family:'Courier New',Courier,monospace;font-size:13px;line-height:1.72;resize:none;overflow:auto;tab-size:2;white-space:pre;overflow-wrap:normal;caret-color:#a29bfe;-webkit-text-size-adjust:none}
-  #code-ta::selection{background:rgba(124,110,247,.3)}
-  #code-ta::-webkit-scrollbar{width:4px;height:4px}
-  #code-ta::-webkit-scrollbar-thumb{background:#1c1c38;border-radius:4px}
-  /* toast */
-  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(10px);background:#1a1a28;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:9px 18px;font-size:13px;color:#e8e6f4;white-space:nowrap;opacity:0;transition:all .25s;pointer-events:none;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,.6)}
-  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Загрузка бота...</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background: #0b0b14; }
+        #bot-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+        #bot-loading {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #0b0b14;
+            color: #a29bfe;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            z-index: 10;
+            transition: opacity 0.3s;
+        }
+        #bot-loading.hidden { opacity: 0; pointer-events: none; }
+        .loader {
+            width: 48px; height: 48px;
+            border: 4px solid rgba(108,92,231,0.2);
+            border-top-color: #6c5ce7;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-text { font-size: 0.95rem; opacity: 0.8; }
+        #bot-error {
+            display: none;
+            position: fixed;
+            inset: 0;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #0b0b14;
+            color: #e74c3c;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            z-index: 20;
+        }
+        #bot-error.visible { display: flex; }
+        .error-icon { font-size: 3rem; margin-bottom: 12px; }
+        .error-title { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
+        .error-text { font-size: 0.9rem; opacity: 0.8; color: #a0a0b8; text-align: center; max-width: 300px; line-height: 1.5; }
+        .error-back {
+            margin-top: 20px;
+            padding: 10px 24px;
+            border: 1px solid rgba(108,92,231,0.3);
+            background: rgba(108,92,231,0.1);
+            color: #a29bfe;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background 0.15s;
+        }
+        .error-back:hover { background: rgba(108,92,231,0.2); }
+    </style>
 </head>
 <body>
 
-<div id="topbar">
-  <div id="tb-ava">🤖</div>
-  <div id="tb-info">
-    <div id="tb-name">Загрузка...</div>
-    <div id="tb-sub">Twin Bot</div>
-  </div>
-  <div id="owner-dot" title="Мой бот"></div>
-  <button class="tbtn" onclick="doShare()" title="Скопировать ссылку">🔗</button>
-  <button class="tbtn hl" id="edit-btn" style="display:none" onclick="openEd()">✏️ Код</button>
-  <button class="tbtn" onclick="reload()" title="Перезагрузить">⟳</button>
-  <a class="tbtn" href="index.html">← Twin</a>
+<div id="bot-loading">
+    <div class="loader"></div>
+    <div class="loader-text">Загрузка бота...</div>
 </div>
 
-<div id="loader">
-  <div class="ld-ico" id="ld-ava">🤖</div>
-  <div class="ld-bar"><div class="ld-fill"></div></div>
-  <div class="ld-txt">Загрузка...</div>
+<div id="bot-error">
+    <div class="error-icon">⚠️</div>
+    <div class="error-title">Бот не найден</div>
+    <div class="error-text" id="error-detail">Возможно, бот был удалён или ссылка недействительна.</div>
+    <button class="error-back" onclick="history.back()">← Назад</button>
 </div>
 
-<div id="nf">
-  <div class="i">🤷</div>
-  <h2>Бот не найден</h2>
-  <p>Возможно, бот удалён или ссылка неверна.</p>
-  <a href="index.html">← Вернуться в Twin</a>
-</div>
-
-<iframe id="bot-frame"
-  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
-  allow=""></iframe>
-
-<!-- EDITOR -->
-<div id="ed">
-  <div id="ed-bar">
-    <span id="ed-title">✏️ Редактор</span>
-    <button class="eb eb-sv" onclick="saveCode()">💾 Сохранить</button>
-    <button class="eb eb-pv" onclick="preview()">👁 Превью</button>
-    <button class="eb eb-tl" onclick="loadTpl()">📋 Шаблон</button>
-    <span id="ed-st">—</span>
-    <button class="eb eb-cl" onclick="closeEd()">✕ Закрыть</button>
-  </div>
-  <div id="ed-body">
-    <div id="lnums"></div>
-    <textarea id="code-ta" spellcheck="false" autocomplete="off"
-      autocorrect="off" autocapitalize="off"
-      oninput="onCI()" onscroll="onCS()" onkeydown="onCK(event)"></textarea>
-  </div>
-</div>
-
-<div id="toast"></div>
+<iframe id="bot-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals" style="display:none"></iframe>
 
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 <script>
-/* ─── FIREBASE ─── */
-try {
-  firebase.initializeApp({
-    apiKey:"AIzaSyAhO3JsDI61pkpGla045EfEXq6h7EuGHoQ",
-    authDomain:"ukraine-52ad4.firebaseapp.com",
-    databaseURL:"https://ukraine-52ad4-default-rtdb.firebaseio.com",
-    projectId:"ukraine-52ad4",
-    storageBucket:"ukraine-52ad4.firebasestorage.app",
-    messagingSenderId:"63107581219",
-    appId:"1:63107581219:web:074b8e692a8a8b04737896"
-  });
-} catch(e){}
-const db = (() => { try{ return firebase.database(); }catch(e){ return null; } })();
+(function() {
+    // Firebase config
+    var firebaseConfig = {
+        apiKey: "AIzaSyA8s8DkKq7rXN6MqgEsra9uGfF1lm0FuVM",
+        authDomain: "twiin-3e745.firebaseapp.com",
+        databaseURL: "https://twiin-3e745-default-rtdb.firebaseio.com",
+        projectId: "twiin-3e745",
+        storageBucket: "twiin-3e745.firebasestorage.app",
+        messagingSenderId: "651448638115",
+        appId: "1:651448638115:web:206ec02b69ce35d5303d16"
+    };
 
-/* ─── STATE ─── */
-let BOT = null, BOT_ID = null, IS_OWNER = false, CU = null;
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.database();
 
-/* ─── DEFAULT HTML TEMPLATE ─── */
-const TPL = `<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Мой бот</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: system-ui, sans-serif;
-    background: #0f0f18;
-    color: #e8e6f4;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .card {
-    background: #1a1a28;
-    border: 1px solid rgba(255,255,255,.1);
-    border-radius: 20px;
-    padding: 36px 28px;
-    width: 90%;
-    max-width: 420px;
-    text-align: center;
-  }
-  .ava { font-size: 60px; margin-bottom: 18px; }
-  h1   { font-size: 26px; font-weight: 700; margin-bottom: 10px; }
-  p    { font-size: 14px; color: #9896aa; line-height: 1.65; margin-bottom: 26px; }
-  a    {
-    display: inline-block;
-    padding: 12px 28px;
-    background: #7c6ef7;
-    color: #fff;
-    border-radius: 12px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: background .2s;
-  }
-  a:hover { background: #6558e0; }
-</style>
-</head>
-<body>
-  <div class="card">
-    <div class="ava">🤖</div>
-    <h1>Привет!</h1>
-    <p>
-      Это страница бота Twin.<br>
-      Нажми <strong>✏️ Код</strong> вверху чтобы редактировать.<br>
-      Сделай что угодно — чат, игру, утилиту или мини-сайт.
-    </p>
-    <a href="index.html">← Вернуться в Twin</a>
-  </div>
-</body>
-</html>`;
+    // Получаем ID бота из URL
+    var params = new URLSearchParams(window.location.search);
+    var botId = params.get('id');
 
-/* ─── STARTUP ─── */
-window.onload = async function() {
-  const p = new URLSearchParams(location.search);
-  BOT_ID = p.get('id') || p.get('bot');
+    if (!botId) {
+        showError('Не указан ID бота в ссылке.');
+        return;
+    }
 
-  try { CU = JSON.parse(localStorage.getItem('messenger_user')||'{}').username||null; } catch(e){}
+    // Загружаем бота из Firebase
+    var botRef = db.ref('bots/' + botId);
+    botRef.once('value').then(function(snap) {
+        if (!snap.exists()) {
+            showError('Бот с таким ID не найден. Возможно, он был удалён.');
+            return;
+        }
 
-  if (!BOT_ID) { showNF(); return; }
-  if (!db)     { showNF(); return; }
+        var bot = snap.val();
 
-  try {
-    const snap = await db.ref('bots/'+BOT_ID).once('value');
-    if (!snap.exists()) { showNF(); return; }
-    BOT = Object.assign({ id: BOT_ID }, snap.val());
-    db.ref('bots/'+BOT_ID+'/views').transaction(v => (v||0)+1);
-  } catch(e) { showNF(); return; }
+        // Увеличиваем счётчик просмотров
+        botRef.update({ views: (bot.views || 0) + 1 }).catch(function(){});
 
-  IS_OWNER = !!(CU && BOT.ownerName === CU);
-  initUI();
-  renderBot();
-};
+        // Устанавливаем заголовок
+        document.title = (bot.name || 'Бот') + ' — Twiin Bot';
 
-function showNF() {
-  $('loader').classList.add('hide');
-  $('nf').classList.add('show');
-}
+        // Получаем HTML-код бота
+        var htmlCode = bot.htmlCode || '';
 
-function initUI() {
-  $('tb-ava').textContent  = BOT.emoji || '🤖';
-  $('ld-ava').textContent  = BOT.emoji || '🤖';
-  $('tb-name').textContent = BOT.name  || 'Bot';
-  $('tb-sub').textContent  = '@'+(BOT.username||BOT_ID)+' · Twin Bot';
-  document.title = (BOT.name||'Bot')+' — Twin Bot';
-  if (IS_OWNER) {
-    $('edit-btn').style.display = '';
-    $('owner-dot').classList.add('show');
-  }
-}
+        if (!htmlCode.trim()) {
+            showError('У бота нет кода для отображения.');
+            return;
+        }
 
-function renderBot() {
-  const frame = $('bot-frame');
-  frame.srcdoc = BOT.htmlCode || TPL;
-  frame.onload = () => { $('loader').classList.add('hide'); frame.classList.add('show'); };
-}
+        // Рендерим в iframe через srcdoc
+        var frame = document.getElementById('bot-frame');
+        var loading = document.getElementById('bot-loading');
 
-function reload() {
-  $('loader').classList.remove('hide');
-  $('bot-frame').classList.remove('show');
-  $('bot-frame').srcdoc = BOT.htmlCode || TPL;
-}
+        frame.srcdoc = htmlCode;
+        frame.style.display = 'block';
 
-/* ─── EDITOR ─── */
-function openEd() {
-  $('code-ta').value = BOT.htmlCode || TPL;
-  updateLN(); setSt('—','');
-  $('ed').classList.add('show');
-  setTimeout(() => $('code-ta').focus(), 200);
-}
-function closeEd() { $('ed').classList.remove('show'); }
+        // Скрываем загрузку когда iframe загрузится
+        frame.onload = function() {
+            loading.classList.add('hidden');
+            setTimeout(function() { loading.style.display = 'none'; }, 350);
+        };
 
-function onCI() { updateLN(); setSt('Не сохранено',''); }
-function onCS() { const t=$('code-ta'),l=$('lnums'); if(l) l.scrollTop=t.scrollTop; }
-function onCK(e) {
-  if(e.key!=='Tab') return; e.preventDefault();
-  const t=e.target,s=t.selectionStart,n=t.selectionEnd;
-  t.value=t.value.slice(0,s)+'  '+t.value.slice(n);
-  t.selectionStart=t.selectionEnd=s+2; updateLN();
-}
-function updateLN() {
-  const t=$('code-ta'),l=$('lnums'); if(!t||!l) return;
-  l.innerHTML=(t.value||'').split('\n').map((_,i)=>`<span>${i+1}</span>`).join('');
-}
-function setSt(txt,cls) {
-  const e=$('ed-st'); e.textContent=txt; e.className=cls||'';
-}
+        // Fallback — если iframe не вызвал onload
+        setTimeout(function() {
+            if (!loading.classList.contains('hidden')) {
+                loading.classList.add('hidden');
+                setTimeout(function() { loading.style.display = 'none'; }, 350);
+            }
+        }, 4000);
 
-async function saveCode() {
-  if(!IS_OWNER){ toast('Только владелец может сохранять'); return; }
-  const code = $('code-ta').value;
-  setSt('Сохраняем...','');
-  try {
-    await db.ref('bots/'+BOT_ID).update({ htmlCode:code, updatedAt:Date.now() });
-    BOT.htmlCode = code;
-    setSt('✓ Сохранено','ok');
-    toast('💾 Код сохранён!');
-    closeEd();
-    reload();
-  } catch(e) { setSt('✗ Ошибка','er'); toast('Ошибка: '+e.message); }
-}
+    }).catch(function(err) {
+        showError('Ошибка загрузки: ' + (err.message || 'проверьте соединение'));
+    });
 
-function preview() {
-  const code = $('code-ta').value;
-  if(!code.trim()){ toast('Код пустой'); return; }
-  const blob = new Blob([code],{type:'text/html'});
-  const url  = URL.createObjectURL(blob);
-  const w = window.open(url,'_blank');
-  if(!w){ toast('Разрешите всплывающие окна'); return; }
-  setTimeout(()=>URL.revokeObjectURL(url), 60000);
-}
+    function showError(msg) {
+        var loading = document.getElementById('bot-loading');
+        var error = document.getElementById('bot-error');
+        var detail = document.getElementById('error-detail');
 
-function loadTpl() {
-  if($('code-ta').value.trim() && !confirm('Заменить код шаблоном?')) return;
-  $('code-ta').value = TPL; updateLN(); setSt('Шаблон','');
-}
-
-/* ─── SHARE ─── */
-function doShare() {
-  const url = location.origin + location.pathname + '?id=' + BOT_ID;
-  if(navigator.share) {
-    navigator.share({ title: BOT.name||'Bot', url }).catch(()=>copyURL(url));
-  } else copyURL(url);
-}
-function copyURL(url) {
-  if(navigator.clipboard){ navigator.clipboard.writeText(url).then(()=>toast('🔗 Ссылка скопирована!')); return; }
-  const t=document.createElement('textarea'); t.value=url;
-  t.style.cssText='position:fixed;opacity:0'; document.body.appendChild(t);
-  t.focus(); t.select();
-  try{ document.execCommand('copy'); toast('🔗 Ссылка скопирована!'); }catch(e){}
-  document.body.removeChild(t);
-}
-
-/* ─── UTILS ─── */
-function $(id){ return document.getElementById(id); }
-let _tt;
-function toast(msg){
-  const e=$('toast'); e.textContent=msg; e.classList.add('show');
-  clearTimeout(_tt); _tt=setTimeout(()=>e.classList.remove('show'),2400);
-}
+        loading.style.display = 'none';
+        if (detail) detail.textContent = msg;
+        error.classList.add('visible');
+    }
+})();
 </script>
 </body>
 </html>

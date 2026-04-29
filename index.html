@@ -12,6 +12,17 @@
     <!-- Основная кодировка (обязательно должна быть первой) -->
     <meta charset="UTF-8">
 
+    <!-- ===== APK BUILD CONFIG: package name & version ===== -->
+    <!-- Имя пакета приложения (используется при сборке TWA/Capacitor/Cordova) -->
+    <meta name="application-id"      content="russia_stars_app_twiin">
+    <meta name="package-name"        content="russia_stars_app_twiin">
+    <meta name="app-id"              content="russia_stars_app_twiin">
+    <!-- Версия приложения — принудительно 2 -->
+    <meta name="app-version"         content="2">
+    <meta name="app-version-code"    content="2">
+    <meta name="app-version-name"    content="2.0">
+    <!-- ===== КОНЕЦ APK BUILD CONFIG ===== -->
+
     <!-- ─── Канонический URL (избегает дублирования страниц) ─── -->
     <link rel="canonical" href="https://twiin.ru/">
 
@@ -121,6 +132,31 @@
     <!-- <link rel="stylesheet" href="gift_animations.css"> -->
 
     <!-- ========== EmailJS — уведомления о новых сообщениях ========== -->
+    <!-- ===== ГЛОБАЛЬНАЯ КОНФИГУРАЦИЯ APK (package name / version) ===== -->
+    <script>
+        /**
+         * Конфигурация приложения — читается инструментами сборки APK
+         * (TWA Builder, Capacitor, Cordova, BubbleWrap и др.)
+         * ВАЖНО: не менять ключи, только значения при необходимости.
+         */
+        window.APP_CONFIG = {
+            packageName:  'russia_stars_app_twiin',  // ID пакета Android
+            appId:        'russia_stars_app_twiin',
+            versionCode:  2,                          // Integer — используется Android
+            versionName:  '2.0',                     // Строка — отображается пользователю
+            appName:      'Twiin'
+        };
+
+        // Принудительная установка — перезапись даже если что-то переопределило
+        Object.defineProperty(window, 'APP_PACKAGE_NAME', { value: 'russia_stars_app_twiin', writable: false });
+        Object.defineProperty(window, 'APP_VERSION_CODE', { value: 2,                        writable: false });
+        Object.defineProperty(window, 'APP_VERSION_NAME', { value: '2.0',                    writable: false });
+
+        console.info('[APP] package:', window.APP_CONFIG.packageName,
+                     '| version:', window.APP_CONFIG.versionCode,
+                     '(' + window.APP_CONFIG.versionName + ')');
+    </script>
+    <!-- ===== КОНЕЦ ГЛОБАЛЬНОЙ КОНФИГУРАЦИИ ===== -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
         (function(){
@@ -9029,7 +9065,7 @@
         }
         /* ===== КОНЕЦ ПУБЛИЧНЫХ ПОСТОВ ===== */
         /* list */
-        .bi{display:flex;align-items:center;gap:12px;padding:11px 16px;cursor:pointer;transition:background .14s;border-bottom:1px solid var(--border-color)}
+        .bi{display:flex;align-items:center;gap:12px;cursor:pointer;transition:background .14s;border-bottom:1px solid var(--border-color);position:relative;overflow:hidden}
         .bi:hover{background:var(--message-hover)}
         .bi-ava{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;box-shadow:0 2px 8px rgba(108,92,231,.2);position:relative}
         .bi-mine{position:absolute;bottom:-2px;right:-2px;font-size:.68rem;background:var(--primary-color);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border:2px solid var(--sidebar-bg);color:#fff;font-weight:700}
@@ -9037,8 +9073,13 @@
         .bi-name{font-weight:700;font-size:.94rem;color:var(--text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
         .bi-un{font-size:.77rem;color:var(--primary-color);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
         .bi-ds{font-size:.74rem;color:var(--text-light);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .bi-open{padding:5px 13px;border-radius:20px;font-size:.75rem;font-weight:600;background:rgba(108,92,231,.12);color:var(--primary-color);border:1px solid rgba(108,92,231,.25);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s;font-family:inherit}
+        .bi-open{padding:5px 13px;border-radius:20px;font-size:.75rem;font-weight:600;background:rgba(108,92,231,.12);color:var(--primary-color);border:1px solid rgba(108,92,231,.25);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s;font-family:inherit;min-height:34px;display:inline-flex;align-items:center}
         .bi-open:hover{background:var(--primary-color);color:#fff}
+        .bi-open:active{transform:scale(.95)}
+        /* swipe delete on mobile */
+        .bi-delete-swipe{position:absolute;right:0;top:0;bottom:0;width:70px;background:#e74c3c;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;cursor:pointer;transition:transform .2s;transform:translateX(70px);z-index:2}
+        .bi-delete-swipe.visible{transform:translateX(0)}
+        .bi-swipe-content{transition:transform .2s;position:relative;z-index:1;width:100%;display:flex;align-items:center;gap:12px;padding:11px 16px;cursor:pointer}
         .bots-empty-msg{text-align:center;padding:44px 20px;color:var(--text-light)}
         .bots-empty-msg .bee{font-size:3rem;margin-bottom:12px}
         .bots-empty-msg p{font-size:.87rem;line-height:1.5}
@@ -9057,13 +9098,16 @@
         .cb-field label{font-size:.72rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em}
         .cb-inp{padding:8px 12px;background:var(--bg-color);border:1.5px solid var(--border-color);border-radius:9px;color:var(--text-color);font-family:inherit;font-size:.9rem;outline:none;transition:border-color .15s;width:100%}
         .cb-inp:focus{border-color:var(--primary-color)}
-        .cb-editor-wrap{flex:1;display:flex;overflow:hidden;min-height:0}
-        .cb-lnums{flex-shrink:0;min-width:38px;background:#0b0b14;border-right:1px solid rgba(255,255,255,.06);font-family:monospace;font-size:12.5px;line-height:1.7;color:#3a3858;text-align:right;user-select:none;overflow:hidden;padding:14px 0}
+        .cb-editor-wrap{flex:1;display:flex;overflow:hidden;min-height:0;position:relative}
+        .cb-lnums{flex-shrink:0;min-width:38px;background:#0b0b14;border-right:1px solid rgba(255,255,255,.06);font-family:'Courier New',Courier,monospace;font-size:13px;line-height:1.7;color:#3a3858;text-align:right;user-select:none;overflow:hidden;padding:14px 0}
         .cb-lnums span{display:block;padding:0 7px}
-        #cb-code{flex:1;padding:14px;background:#0b0b14;border:none;outline:none;color:#d4d2ee;font-family:'Courier New',Courier,monospace;font-size:13px;line-height:1.7;resize:none;overflow:auto;tab-size:2;white-space:pre;overflow-wrap:normal;caret-color:#a29bfe;-webkit-text-size-adjust:none}
+        .cb-highlight-layer{position:absolute;top:0;left:38px;right:0;bottom:0;pointer-events:none;overflow:hidden;font-family:'Courier New',Courier,monospace;font-size:13px;line-height:1.7;padding:14px;white-space:pre;overflow-wrap:normal;tab-size:2;color:transparent;z-index:1;-webkit-text-size-adjust:none}
+        #cb-code{flex:1;padding:14px;background:transparent;border:none;outline:none;color:#d4d2ee;font-family:'Courier New',Courier,monospace;font-size:13px;line-height:1.7;resize:none;overflow:auto;tab-size:2;white-space:pre;overflow-wrap:normal;caret-color:#a29bfe;-webkit-text-size-adjust:none;position:relative;z-index:2;background:#0b0b14}
         #cb-code::selection{background:rgba(108,92,231,.3)}
         #cb-code::-webkit-scrollbar{width:4px;height:4px}
         #cb-code::-webkit-scrollbar-thumb{background:#2a2a40;border-radius:4px}
+        /* Syntax highlight colors */
+        .hl-tag{color:#e06c75} .hl-attr{color:#d19a66} .hl-str{color:#98c379} .hl-comment{color:#5c6370;font-style:italic} .hl-keyword{color:#c678dd} .hl-number{color:#d19a66} .hl-css-prop{color:#56b6c2} .hl-css-val{color:#d19a66}
         .cb-toolbar{display:flex;align-items:center;gap:7px;padding:8px 12px;background:var(--bg-color);border-top:1px solid var(--border-color);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
         .cb-toolbar::-webkit-scrollbar{display:none}
         .cb-btn{padding:7px 14px;border-radius:8px;border:none;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
@@ -9074,6 +9118,30 @@
         .cb-preview{background:rgba(46,204,113,.1);color:#27ae60;border:1px solid rgba(46,204,113,.2);margin-left:auto}
         body.dark-theme .cb-preview{color:#2ecc71}
         .cb-st{font-size:.72rem;font-family:monospace;color:var(--text-light);font-style:italic;margin-left:4px}
+        .cb-file-label{padding:7px 14px;border-radius:8px;border:none;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s;display:inline-flex;align-items:center;gap:5px;background:rgba(52,152,219,.1);color:#2980b9;border:1px solid rgba(52,152,219,.2)}
+        .cb-file-label:hover{background:rgba(52,152,219,.2)}
+        .cb-file-label:active{transform:scale(.96)}
+        .cb-file-input{display:none}
+        /* Responsive bot editor toolbar */
+        @media(max-width:600px){
+            .cb-meta{flex-direction:column;gap:8px;padding:10px 12px}
+            .cb-field{min-width:0}
+            .cb-toolbar{flex-wrap:wrap;gap:5px;padding:6px 8px}
+            .cb-btn{padding:8px 12px;font-size:.8rem;min-height:40px}
+            .cb-file-label{padding:8px 12px;font-size:.8rem;min-height:40px}
+            .cb-hdr{padding:10px 14px}
+            .cb-hdr h2{font-size:.95rem}
+            #cb-code{font-size:12px;padding:10px}
+            .cb-lnums{font-size:12px;min-width:30px}
+            .cb-highlight-layer{font-size:12px;padding:10px;left:30px}
+            .cb-x{min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center}
+        }
+        @media(max-width:380px){
+            .cb-meta{padding:8px 10px}
+            .cb-btn{padding:6px 8px;font-size:.74rem;min-height:38px}
+            .cb-file-label{padding:6px 8px;font-size:.74rem;min-height:38px}
+            .cb-toolbar{gap:4px;padding:5px 6px}
+        }
         /* bot view modal */
         #bot-view-modal .modal-content{max-width:400px}
         .bv-hdr{text-align:center;padding:22px 16px 14px}
@@ -9087,9 +9155,86 @@
         .bv-mi .l{font-size:.7rem;color:var(--text-light)}
         .bv-link{display:flex;gap:8px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border-color)}
         .bv-link input{flex:1;padding:8px 12px;background:var(--bg-color);border:1px solid var(--border-color);border-radius:8px;color:var(--text-color);font-family:monospace;font-size:.75rem;outline:none;cursor:pointer}
-        .bv-link-copy{padding:7px 14px;border-radius:8px;border:none;background:rgba(108,92,231,.12);color:var(--primary-color);font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
+        .bv-link-copy{padding:7px 14px;border-radius:8px;border:none;background:rgba(108,92,231,.12);color:var(--primary-color);font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s;min-height:40px;display:inline-flex;align-items:center}
+        .bv-act{display:flex;flex-direction:column;gap:8px;padding:14px 16px}
+        .bv-delete-btn{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(231,76,60,.3);background:rgba(231,76,60,.08);color:#e74c3c;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;min-height:44px}
+        .bv-delete-btn:hover{background:rgba(231,76,60,.15);border-color:rgba(231,76,60,.5)}
+        .bv-delete-btn:active{transform:scale(.97)}
+        /* Delete confirmation overlay */
+        .bv-delete-confirm{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);align-items:center;justify-content:center}
+        .bv-delete-confirm.active{display:flex}
+        .bv-delete-box{background:var(--modal-bg);border-radius:18px;padding:24px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.2);animation:scaleIn .25s ease}
+        .bv-delete-box h3{font-size:1.05rem;font-weight:700;color:var(--text-color);margin:0 0 8px}
+        .bv-delete-box p{font-size:.88rem;color:var(--text-light);margin:0 0 18px;line-height:1.5}
+        .bv-delete-box .bv-del-actions{display:flex;gap:10px;justify-content:center}
+        .bv-del-actions button{min-height:44px;padding:10px 20px;border-radius:10px;border:none;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
         .bv-link-copy:hover{background:var(--primary-color);color:#fff}
-        .bv-act{padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+        /* Responsive bot view & panels */
+        @media(max-width:600px){
+            #bot-view-modal .modal-content{max-width:100%;border-radius:16px 16px 0 0;position:fixed;bottom:0;left:0;right:0;top:auto;max-height:85vh;overflow-y:auto}
+            .bv-hdr{padding:16px 14px 10px}
+            .bv-ava{width:56px;height:56px;font-size:2rem}
+            .bv-nm{font-size:1rem}
+            .bv-meta{gap:12px;padding:10px 0}
+            .bv-act{padding:10px 14px}
+            .bv-link-copy{min-height:44px;padding:10px 14px}
+            .bv-delete-btn{min-height:48px}
+            .bi-ava{width:40px;height:40px;font-size:1.2rem}
+            .bi-name{font-size:.88rem}
+            .bi-un{font-size:.72rem}
+            .bi-ds{font-size:.7rem}
+            .bi-open{padding:6px 12px;font-size:.76rem;min-height:36px}
+            #bots-search{font-size:.86rem;padding:9px 14px 9px 34px}
+        }
+        @media(max-width:380px){
+            .bi{padding:9px 12px;gap:10px}
+            .bi-ava{width:36px;height:36px;font-size:1.1rem}
+            .bi-open{padding:5px 10px;font-size:.72rem;min-height:34px}
+            .bv-act{padding:8px 12px}
+        }
+        /* Tablet — bots panel wider */
+        @media(min-width:601px) and (max-width:1024px){
+            .bi{padding:12px 18px}
+            #bot-view-modal .modal-content{max-width:420px}
+        }
+        /* ===== DEV CONSOLE DASHBOARD ===== */
+        .dev-console{max-width:480px}
+        .dev-console-header{text-align:center;padding:20px 16px 14px;border-bottom:1px solid var(--border-color)}
+        .dev-console-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#e67e22,#f39c12);display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 10px;box-shadow:0 4px 16px rgba(230,126,34,.25)}
+        .dev-console-name{font-size:1.1rem;font-weight:700;color:var(--text-color)}
+        .dev-console-email{font-size:.78rem;color:var(--text-light);margin-top:2px}
+        .dev-console-stats{display:flex;justify-content:center;gap:24px;padding:14px 16px;border-bottom:1px solid var(--border-color)}
+        .dev-console-stat{text-align:center}
+        .dev-console-stat .num{font-size:1.3rem;font-weight:800;color:var(--primary-color)}
+        .dev-console-stat .lbl{font-size:.7rem;color:var(--text-light);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+        .dev-console-bots-title{font-size:.8rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;padding:12px 16px 6px}
+        .dev-console-bot-item{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border-color);cursor:pointer;transition:background .14s}
+        .dev-console-bot-item:hover{background:var(--message-hover)}
+        .dev-console-bot-ava{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+        .dev-console-bot-info{flex:1;min-width:0}
+        .dev-console-bot-name{font-weight:700;font-size:.9rem;color:var(--text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .dev-console-bot-un{font-size:.73rem;color:var(--primary-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .dev-console-bot-actions{display:flex;gap:6px;flex-shrink:0}
+        .dev-console-bot-btn{width:36px;height:36px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:all .14s;min-height:36px;min-width:36px}
+        .dev-console-bot-btn.edit{background:rgba(108,92,231,.1);color:var(--primary-color)}
+        .dev-console-bot-btn.edit:hover{background:var(--primary-color);color:#fff}
+        .dev-console-bot-btn.del{background:rgba(231,76,60,.08);color:#e74c3c}
+        .dev-console-bot-btn.del:hover{background:#e74c3c;color:#fff}
+        .dev-console-bot-btn.open{background:rgba(46,204,113,.1);color:#27ae60}
+        .dev-console-bot-btn.open:hover{background:#27ae60;color:#fff}
+        .dev-console-footer{padding:14px 16px;border-top:1px solid var(--border-color)}
+        .dev-console-create-btn{width:100%;padding:12px;border-radius:12px;border:2px dashed var(--primary-color);background:linear-gradient(135deg,rgba(108,92,231,.06),rgba(162,155,254,.1));color:var(--primary-color);font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;min-height:48px}
+        .dev-console-create-btn:hover{background:linear-gradient(135deg,rgba(108,92,231,.12),rgba(162,155,254,.18));box-shadow:0 3px 12px rgba(108,92,231,.15)}
+        .dev-console-empty{text-align:center;padding:30px 20px;color:var(--text-light)}
+        .dev-console-empty .dce-icon{font-size:2.5rem;margin-bottom:10px}
+        .dev-console-empty p{font-size:.85rem;line-height:1.5}
+        @media(max-width:600px){
+            .dev-console{max-width:100%;border-radius:16px 16px 0 0;position:fixed;bottom:0;left:0;right:0;top:auto;max-height:90vh;overflow-y:auto}
+            .dev-console-header{padding:16px 14px 10px}
+            .dev-console-stats{gap:16px;padding:10px 14px}
+            .dev-console-bot-btn{width:38px;height:38px;min-width:38px;min-height:38px}
+            .dev-console-create-btn{min-height:48px}
+        }
         /* ==================== КОНЕЦ БОТОВ ==================== */
 
         /* ============================================================
@@ -10150,7 +10295,7 @@
                             style="width:100%;padding:10px 16px 10px 38px;border:1.5px solid var(--border-color);border-radius:22px;background:var(--input-bg);color:var(--text-color);font-size:.92rem;font-family:inherit;outline:none;box-sizing:border-box;">
                     </div>
                     <div style="font-size:.74rem;color:var(--text-light);padding:2px 18px 7px;line-height:1.4;">
-                        Введите <b style="color:var(--primary-color);">create_bot</b> чтобы создать своего бота
+                        Введите <b style="color:var(--primary-color);">create_bot</b> чтобы создать своего бота · Долгое нажатие для удаления
                     </div>
                     <div id="bots-list" style="flex:1;overflow-y:auto;padding:4px 0 10px;">
                         <div style="text-align:center;padding:40px 20px;color:var(--text-light);">
@@ -10551,6 +10696,14 @@
                     <div class="sm-content">
                         <div class="sm-title" data-i18n="settings.create_channel">Создать канал</div>
                         <div class="sm-subtitle" data-i18n="settings.create_channel_desc">Публикация контента</div>
+                    </div>
+                    <span class="sm-arrow">›</span>
+                </div>
+                <div class="settings-menu-item" id="dev-console-menu-btn" style="cursor:pointer">
+                    <div class="sm-icon" style="background:linear-gradient(135deg,#e67e22,#f39c12)">🤖</div>
+                    <div class="sm-content">
+                        <div class="sm-title">Консоль разработчика</div>
+                        <div class="sm-subtitle">Управление ботами</div>
                     </div>
                     <span class="sm-arrow">›</span>
                 </div>
@@ -14983,6 +15136,17 @@ function initLanguage(){
             createChannelBtn.addEventListener('click', openCreateChannel);
             cancelChannelBtn.addEventListener('click', closeCreateChannel);
             createChannelConfirmBtn.addEventListener('click', createChannel);
+
+            /* Dev Console button — opens dev console dashboard */
+            var devConsoleBtn = document.getElementById('dev-console-menu-btn');
+            if(devConsoleBtn) devConsoleBtn.addEventListener('click', function(){
+                if(typeof toggleSettingsMenu === 'function') toggleSettingsMenu();
+                if(typeof openDevConsole === 'function') openDevConsole();
+                else {
+                    if(typeof switchTab === 'function') switchTab('bots');
+                    if(typeof window.initBotsSystem === 'function' && typeof currentUser !== 'undefined') window.initBotsSystem(currentUser);
+                }
+            });
 
             groupSettingsBtn.addEventListener('click', openGroupSettings);
             cancelGroupSettingsBtn.addEventListener('click', closeGroupSettings);
@@ -27414,7 +27578,11 @@ window.deleteContentItem = async function(type, id) {
         </div>
         <div class="cb-toolbar">
           <button class="cb-btn cb-ok" id="cb-save-btn">🚀 Создать и открыть</button>
-          <button class="cb-btn cb-tpl" onclick="cbLoadTpl()">📋 Шаблон бота</button>
+          <button class="cb-btn cb-tpl" onclick="cbLoadTpl()">📋 Шаблон</button>
+          <label class="cb-file-label" title="Загрузить код из файла (.html, .js, .css, .txt)">
+            📂 Из файла
+            <input type="file" class="cb-file-input" id="cb-file-input" accept=".html,.htm,.js,.css,.txt,.svg" onchange="cbLoadFromFile(this)">
+          </label>
           <button class="cb-btn cb-preview" onclick="cbPreview()">👁 Превью</button>
           <span class="cb-st" id="cb-st"></span>
           <button class="cb-btn cb-cancel" onclick="document.getElementById('create-bot-modal').classList.remove('active')" style="margin-left:auto">Отмена</button>
@@ -27443,7 +27611,45 @@ window.deleteContentItem = async function(type, id) {
         <div class="bv-act">
           <button class="modal-btn modal-btn-primary" id="bv-open-btn" style="width:100%">🌐 Открыть бота</button>
           <button class="modal-btn" id="bv-edit-btn" style="width:100%;display:none;background:rgba(108,92,231,.1);color:var(--primary-color)">✏️ Редактировать код</button>
+          <button class="bv-delete-btn" id="bv-delete-btn" style="display:none">🗑 Удалить бота</button>
           <button class="modal-btn modal-btn-secondary" onclick="document.getElementById('bot-view-modal').classList.remove('active')" style="width:100%">Закрыть</button>
+        </div>
+      </div>
+    </div>
+    <!-- Delete Bot Confirmation -->
+    <div class="bv-delete-confirm" id="bv-delete-confirm">
+      <div class="bv-delete-box">
+        <div style="font-size:2.5rem;margin-bottom:10px">🗑</div>
+        <h3>Удалить бота?</h3>
+        <p>Это действие нельзя отменить. Бот будет удалён навсегда.</p>
+        <div class="bv-del-actions">
+          <button class="modal-btn modal-btn-secondary bv-del-confirm-no" style="flex:1">Отмена</button>
+          <button class="modal-btn bv-del-confirm-yes" style="flex:1;background:#e74c3c;color:#fff;border:none;border-radius:10px;font-weight:600;cursor:pointer;font-family:inherit;padding:10px 20px">🗑 Удалить</button>
+        </div>
+      </div>
+    </div>
+    <!-- Dev Console Dashboard -->
+    <div class="modal" id="dev-console-modal">
+      <div class="modal-content dev-console">
+        <div class="dev-console-header">
+          <div class="dev-console-avatar">🤖</div>
+          <div class="dev-console-name" id="dc-name">—</div>
+          <div class="dev-console-email" id="dc-email"></div>
+        </div>
+        <div class="dev-console-stats">
+          <div class="dev-console-stat"><div class="num" id="dc-bots-count">0</div><div class="lbl">Ботов</div></div>
+          <div class="dev-console-stat"><div class="num" id="dc-views-total">0</div><div class="lbl">Просмотров</div></div>
+          <div class="dev-console-stat"><div class="num" id="dc-since">—</div><div class="lbl">С разработкой</div></div>
+        </div>
+        <div class="dev-console-bots-title">Мои боты</div>
+        <div id="dc-bots-list" style="max-height:260px;overflow-y:auto">
+          <div class="dev-console-empty"><div class="dce-icon">🤖</div><p>У вас пока нет ботов.<br>Создайте первого!</p></div>
+        </div>
+        <div class="dev-console-footer">
+          <button class="dev-console-create-btn" id="dc-create-btn">➕ Создать нового бота</button>
+        </div>
+        <div style="padding:0 16px 14px">
+          <button class="modal-btn modal-btn-secondary" onclick="document.getElementById('dev-console-modal').classList.remove('active')" style="width:100%">Закрыть</button>
         </div>
       </div>
     </div>
@@ -27608,6 +27814,8 @@ window.deleteContentItem = async function(type, id) {
             list.forEach(function(b){
                 var mine = _botUser && b.ownerName === _botUser;
                 h += '<div class="bi" data-bid="'+esc(b.id)+'">';
+                if(mine) h += '<div class="bi-delete-swipe" data-bid="'+esc(b.id)+'" title="Удалить">🗑</div>';
+                h += '<div class="bi-swipe-content">';
                 h += '<div class="bi-ava">'+(b.emoji||'🤖');
                 if(mine) h += '<div class="bi-mine">★</div>';
                 h += '</div>';
@@ -27618,12 +27826,14 @@ window.deleteContentItem = async function(type, id) {
                 h += '</div>';
                 h += '<button class="bi-open" data-bid="'+esc(b.id)+'">Открыть ↗</button>';
                 h += '</div>';
+                h += '</div>';
             });
             el.innerHTML = h;
 
             el.querySelectorAll('.bi').forEach(function(item){
                 item.addEventListener('click', function(e){
                     if(e.target.classList.contains('bi-open')) return;
+                    if(e.target.classList.contains('bi-delete-swipe')) return;
                     openBotView(item.dataset.bid);
                 });
             });
@@ -27632,6 +27842,35 @@ window.deleteContentItem = async function(type, id) {
                     e.stopPropagation();
                     window.open(getBotUrl(btn.dataset.bid), '_blank');
                 });
+            });
+            /* Delete buttons for own bots */
+            el.querySelectorAll('.bi-delete-swipe').forEach(function(btn){
+                btn.addEventListener('click', function(e){
+                    e.stopPropagation();
+                    var botId = btn.dataset.bid;
+                    var b = null; for(var i=0;i<_bots.length;i++) if(_bots[i].id===botId){b=_bots[i];break;}
+                    if(b) {
+                        _deleteBotId = botId;
+                        var confirmEl = $('bv-delete-confirm');
+                        if(confirmEl) confirmEl.classList.add('active');
+                    }
+                });
+            });
+            /* Long press on mobile for own bots */
+            var _longPressTimer = null;
+            el.querySelectorAll('.bi').forEach(function(item){
+                var mine = _botUser && _bots.find(function(b){ return b.id === item.dataset.bid && b.ownerName === _botUser; });
+                if(!mine) return;
+                item.addEventListener('touchstart', function(e){
+                    _longPressTimer = setTimeout(function(){
+                        var botId = item.dataset.bid;
+                        _deleteBotId = botId;
+                        var confirmEl = $('bv-delete-confirm');
+                        if(confirmEl) confirmEl.classList.add('active');
+                    }, 600);
+                }, {passive: true});
+                item.addEventListener('touchend', function(){ clearTimeout(_longPressTimer); }, {passive: true});
+                item.addEventListener('touchmove', function(){ clearTimeout(_longPressTimer); }, {passive: true});
             });
         }
 
@@ -27642,7 +27881,16 @@ window.deleteContentItem = async function(type, id) {
             var db = getDB();
             if(!db || !_botUser){ openCreateModal(); return; }
             db.ref('devProfiles/'+encodeURIComponent(_botUser)).once('value')
-                .then(function(s){ openM(s.exists() ? 'create-bot-modal' : 'dev-reg-modal'); })
+                .then(function(s){
+                    if(s.exists()) {
+                        openM('create-bot-modal');
+                    } else {
+                        /* Авто-регистрация: предзаполняем имя из профиля Twiin */
+                        var nameInput = $('dev-reg-name');
+                        if(nameInput && !nameInput.value) nameInput.value = _botUser;
+                        openM('dev-reg-modal');
+                    }
+                })
                 .catch(function(){ openCreateModal(); });
         }
 
@@ -27684,27 +27932,58 @@ window.deleteContentItem = async function(type, id) {
             var desc     = val('cb-desc');
             var code     = $('cb-code') ? $('cb-code').value : HTML_TPL;
 
+            /* ─── Валидация ─── */
             if(!name)     { toast('Введите имя бота'); return; }
+            if(name.length < 2) { toast('Имя бота минимум 2 символа'); return; }
+            if(name.length > 40) { toast('Имя бота максимум 40 символов'); return; }
             if(!username) { toast('Введите юзернейм (латиница/цифры/_)'); return; }
-            var db = getDB(); if(!db){ toast('Firebase недоступен'); return; }
+            if(username.length < 3) { toast('Юзернейм минимум 3 символа'); return; }
+            if(username.length > 30) { toast('Юзернейм максимум 30 символов'); return; }
+            if(!code || !code.trim()) { toast('Код бота не может быть пустым'); return; }
+            if(code.length > 500000) { toast('Код слишком большой (макс. 500 КБ)'); return; }
+            /* Проверяем что код содержит хотя бы базовый HTML */
+            var codeTrimmed = code.trim().toLowerCase();
+            if(codeTrimmed.indexOf('<html') === -1 && codeTrimmed.indexOf('<!doctype') === -1 && codeTrimmed.indexOf('<body') === -1 && codeTrimmed.indexOf('<div') === -1) {
+                toast('Код должен содержать HTML-разметку'); return;
+            }
+            var db = getDB(); if(!db){ toast('Firebase недоступен. Проверьте подключение к интернету.'); return; }
+
+            /* Блокируем кнопку на время сохранения */
+            var saveBtn = $('cb-save-btn');
+            var origText = saveBtn ? saveBtn.textContent : '';
+            if(saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '⏳ Сохранение...'; }
+            setCbSt('Сохранение...','');
+
+            function unlockBtn() {
+                if(saveBtn) { saveBtn.disabled = false; saveBtn.textContent = origText; }
+            }
 
             /* UPDATE existing bot */
             if(_editBotId) {
-                db.ref('bots/'+_editBotId).update({name:name,username:username,emoji:emoji,description:desc,htmlCode:code,updatedAt:Date.now()})
-                    .then(function(){
-                        var idx = findBot(_editBotId);
-                        if(idx!==-1) Object.assign(_bots[idx],{name:name,username:username,emoji:emoji,description:desc,htmlCode:code});
-                        renderList('');
-                        closeM('create-bot-modal');
-                        toast('💾 Бот обновлён!');
-                        window.open(getBotUrl(_editBotId),'_blank');
-                    }).catch(function(e){ toast('Ошибка: '+e.message); });
+                /* При обновлении проверяем что юзернейм не занят другим ботом */
+                db.ref('bots').orderByChild('username').equalTo(username).once('value').then(function(snap){
+                    var taken = false;
+                    snap.forEach(function(c){
+                        if(c.key !== _editBotId) taken = true;
+                    });
+                    if(taken){ toast('Юзернейм уже занят другим ботом'); unlockBtn(); return; }
+                    return db.ref('bots/'+_editBotId).update({name:name,username:username,emoji:emoji,description:desc,htmlCode:code,updatedAt:Date.now()});
+                }).then(function(){
+                    if(arguments.length === 0) return; // username был занят
+                    var idx = findBot(_editBotId);
+                    if(idx!==-1) Object.assign(_bots[idx],{name:name,username:username,emoji:emoji,description:desc,htmlCode:code,updatedAt:Date.now()});
+                    renderList('');
+                    closeM('create-bot-modal');
+                    toast('💾 Бот обновлён!');
+                    setCbSt('Сохранено','ok');
+                    window.open(getBotUrl(_editBotId),'_blank');
+                }).catch(function(e){ toast('Ошибка сохранения: '+e.message); setCbSt('Ошибка','er'); unlockBtn(); });
                 return;
             }
 
             /* CREATE new bot */
             db.ref('bots').orderByChild('username').equalTo(username).once('value').then(function(snap){
-                if(snap.exists()){ toast('Юзернейм уже занят'); return; }
+                if(snap.exists()){ toast('Юзернейм @'+username+' уже занят. Выберите другой.'); unlockBtn(); return; }
                 var data = {
                     name:name, username:username, emoji:emoji, description:desc,
                     htmlCode:code, ownerName:_botUser||'Dev',
@@ -27712,16 +27991,17 @@ window.deleteContentItem = async function(type, id) {
                     lang:'html'   /* маркер: это HTML-бот */
                 };
                 var ref = db.ref('bots').push();
-                ref.set(data).then(function(){
+                return ref.set(data).then(function(){
                     var newBot = Object.assign({id:ref.key}, data);
                     _bots.unshift(newBot);
                     renderList('');
                     closeM('create-bot-modal');
                     toast('🤖 Бот создан!');
+                    setCbSt('Сохранено','ok');
                     /* Открываем сразу в новой вкладке */
                     window.open(getBotUrl(ref.key), '_blank');
-                }).catch(function(e){ toast('Ошибка: '+e.message); });
-            });
+                });
+            }).catch(function(e){ toast('Ошибка создания: '+e.message); setCbSt('Ошибка','er'); unlockBtn(); });
         }
 
         /* ─────────────────────────────────────────
@@ -27767,7 +28047,7 @@ window.deleteContentItem = async function(type, id) {
         };
 
         /* ─────────────────────────────────────────
-           CB EDITOR helpers
+           CB EDITOR helpers — УЛУЧШЕННЫЙ
         ───────────────────────────────────────── */
         window.cbCodeInput = function() { cbUpdateLN(); setCbSt('Не сохранено',''); };
         window.cbSyncScroll = function() {
@@ -27778,13 +28058,50 @@ window.deleteContentItem = async function(type, id) {
             if(e.key!=='Tab') return;
             e.preventDefault();
             var ta=e.target, s=ta.selectionStart, end=ta.selectionEnd;
-            ta.value=ta.value.slice(0,s)+'  '+ta.value.slice(end);
-            ta.selectionStart=ta.selectionEnd=s+2;
+            /* Поддержка выделения — отступ для всех выделенных строк */
+            var val = ta.value;
+            var beforeSel = val.substring(0, s);
+            var sel = val.substring(s, end);
+            var afterSel = val.substring(end);
+            /* Если есть выделение нескольких строк — добавляем отступ ко всем */
+            if(s !== end && sel.indexOf('\n') !== -1) {
+                var lines = sel.split('\n');
+                var indented = lines.map(function(l){ return '  ' + l; }).join('\n');
+                ta.value = beforeSel + indented + afterSel;
+                ta.selectionStart = s;
+                ta.selectionEnd = s + indented.length;
+            } else {
+                ta.value = val.slice(0,s)+'  '+val.slice(end);
+                ta.selectionStart=ta.selectionEnd=s+2;
+            }
             cbUpdateLN();
+        };
+        /* Ctrl+S — сохранить */
+        window.cbKeyDown = function(e) {
+            if((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                createBot();
+            }
+            /* Ctrl+D — дублировать строку */
+            if((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                e.preventDefault();
+                var ta = e.target;
+                var val = ta.value;
+                var s = ta.selectionStart;
+                var lineStart = val.lastIndexOf('\n', s-1) + 1;
+                var lineEnd = val.indexOf('\n', s);
+                if(lineEnd === -1) lineEnd = val.length;
+                var line = val.substring(lineStart, lineEnd);
+                ta.value = val.substring(0, lineEnd) + '\n' + line + val.substring(lineEnd);
+                ta.selectionStart = ta.selectionEnd = s + line.length + 1;
+                cbUpdateLN();
+                setCbSt('Не сохранено','');
+            }
         };
         function cbUpdateLN() {
             var ta=$('cb-code'), ln=$('cb-lnums'); if(!ta||!ln) return;
-            ln.innerHTML=(ta.value||'').split('\n').map(function(_,i){return '<span>'+(i+1)+'</span>';}).join('');
+            var lines = (ta.value||'').split('\n');
+            ln.innerHTML = lines.map(function(_,i){return '<span>'+(i+1)+'</span>';}).join('');
         }
         function setCbSt(t,c) {
             var e=$('cb-st'); if(!e)return;
@@ -27795,6 +28112,114 @@ window.deleteContentItem = async function(type, id) {
             $('cb-code').value = HTML_TPL;
             cbUpdateLN(); setCbSt('Шаблон загружен','');
         };
+
+        /* ─────────────────────────────────────────
+           ЗАГРУЗКА КОДА ИЗ ФАЙЛА
+        ───────────────────────────────────────── */
+        window.cbLoadFromFile = function(input) {
+            if(!input || !input.files || !input.files.length) return;
+            var file = input.files[0];
+            var maxSize = 500000; // 500KB
+            if(file.size > maxSize) {
+                toast('Файл слишком большой (макс. 500 КБ)');
+                input.value = '';
+                return;
+            }
+            var allowedTypes = ['.html','.htm','.js','.css','.txt','.svg'];
+            var ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+            if(allowedTypes.indexOf(ext) === -1) {
+                toast('Неподдерживаемый формат. Используйте .html, .js, .css, .txt, .svg');
+                input.value = '';
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var content = e.target.result;
+                var ta = $('cb-code');
+                if(ta) {
+                    /* Если файл .js или .css — вставляем в HTML-обёртку */
+                    if(ext === '.js') {
+                        /* Ищем где вставить скрипт в текущий код */
+                        if(ta.value.trim() && !confirm('Заменить текущий код содержимым файла?')) {
+                            /* Вставляем скрипт в конец body */
+                            var insert = '\n<script>\n' + content + '\n<\/script>\n';
+                            var bodyClose = ta.value.lastIndexOf('</body>');
+                            if(bodyClose !== -1) {
+                                ta.value = ta.value.substring(0, bodyClose) + insert + ta.value.substring(bodyClose);
+                            } else {
+                                ta.value += insert;
+                            }
+                            toast('📄 Скрипт из ' + file.name + ' вставлен');
+                        } else {
+                            ta.value = HTML_TPL.replace('<scr'+'ipt><\/scr'+'ipt>', '<scr'+'ipt>\n' + content + '\n<\/scr'+'ipt>');
+                            toast('📄 Файл ' + file.name + ' загружен');
+                        }
+                    } else if(ext === '.css') {
+                        if(ta.value.trim() && !confirm('Заменить текущий код содержимым файла?')) {
+                            var cssInsert = '\n<style>\n' + content + '\n<\/style>\n';
+                            var headClose = ta.value.lastIndexOf('</head>');
+                            if(headClose !== -1) {
+                                ta.value = ta.value.substring(0, headClose) + cssInsert + ta.value.substring(headClose);
+                            } else {
+                                ta.value = cssInsert + ta.value;
+                            }
+                            toast('📄 Стили из ' + file.name + ' вставлены');
+                        } else {
+                            ta.value = HTML_TPL.replace('</style>', '\n' + content + '\n</style>');
+                            toast('📄 Файл ' + file.name + ' загружен');
+                        }
+                    } else {
+                        if(ta.value.trim() && !confirm('Заменить текущий код содержимым файла?')) {
+                            ta.value += '\n\n<!-- --- Файл: ' + file.name + ' --- -->\n' + content;
+                            toast('📄 Файл ' + file.name + ' добавлен');
+                        } else {
+                            ta.value = content;
+                            toast('📄 Файл ' + file.name + ' загружен');
+                        }
+                    }
+                    cbUpdateLN();
+                    setCbSt('Файл загружен — не сохранено','');
+                }
+            };
+            reader.onerror = function() { toast('Ошибка чтения файла'); };
+            reader.readAsText(file);
+            input.value = ''; // сбрасываем чтобы можно было загрузить тот же файл
+        };
+
+        /* ─────────────────────────────────────────
+           УДАЛЕНИЕ БОТА
+        ───────────────────────────────────────── */
+        var _deleteBotId = null;
+        function deleteBot(botId) {
+            _deleteBotId = botId;
+            var confirmEl = $('bv-delete-confirm');
+            if(confirmEl) confirmEl.classList.add('active');
+        }
+        function confirmDeleteBot() {
+            if(!_deleteBotId) return;
+            var db = getDB();
+            if(!db){ toast('Firebase недоступен'); closeDeleteConfirm(); return; }
+            var botId = _deleteBotId;
+            db.ref('bots/' + botId).remove().then(function(){
+                /* Удаляем из локального массива */
+                var idx = findBot(botId);
+                if(idx !== -1) _bots.splice(idx, 1);
+                renderList('');
+                closeM('bot-view-modal');
+                toast('🗑 Бот удалён');
+            }).catch(function(e){
+                toast('Ошибка удаления: ' + e.message);
+            });
+            closeDeleteConfirm();
+        }
+        function cancelDeleteBot() {
+            closeDeleteConfirm();
+        }
+        function closeDeleteConfirm() {
+            _deleteBotId = null;
+            var confirmEl = $('bv-delete-confirm');
+            if(confirmEl) confirmEl.classList.remove('active');
+        }
 
         /* ─────────────────────────────────────────
            BOT VIEW MODAL
@@ -27820,10 +28245,15 @@ window.deleteContentItem = async function(type, id) {
             var editBtn = $('bv-edit-btn');
             if(editBtn) editBtn.style.display = isOwner ? '' : 'none';
 
+            var deleteBtn = $('bv-delete-btn');
+            if(deleteBtn) deleteBtn.style.display = isOwner ? '' : 'none';
+
             var openBtn = $('bv-open-btn');
             if(openBtn){ openBtn.onclick = function(){ window.open(link,'_blank'); }; }
 
             if(editBtn){ editBtn.onclick = function(){ openEditModal(botId); }; }
+
+            if(deleteBtn){ deleteBtn.onclick = function(){ deleteBot(botId); }; }
 
             openM('bot-view-modal');
         }
@@ -27838,16 +28268,141 @@ window.deleteContentItem = async function(type, id) {
         };
 
         /* ─────────────────────────────────────────
+           АВТО-ВХОД В КОНСОЛЬ РАЗРАБОТЧИКА
+           Автоматически регистрирует профиль разработчика
+           на основе username и пароля аккаунта Twiin
+        ───────────────────────────────────────── */
+        function autoRegisterDev() {
+            if(!_botUser) return;
+            var db = getDB(); if(!db) return;
+            var devRef = db.ref('devProfiles/' + encodeURIComponent(_botUser));
+            devRef.once('value').then(function(snap){
+                if(snap.exists()) return; // уже зарегистрирован
+                /* Получаем данные из профиля Twiin */
+                var devName = _botUser;
+                var devEmail = '';
+                var userRef = db.ref('users/' + encodeURIComponent(_botUser));
+                userRef.once('value').then(function(userSnap){
+                    if(userSnap.exists()) {
+                        var ud = userSnap.val();
+                        devName = ud.displayName || ud.name || _botUser;
+                        devEmail = ud.email || '';
+                    }
+                    devRef.set({
+                        name: devName,
+                        email: devEmail,
+                        ownerName: _botUser,
+                        registeredAt: Date.now(),
+                        autoRegistered: true
+                    });
+                });
+            }).catch(function(){ /* тихо */ });
+        }
+
+        /* ─────────────────────────────────────────
+           КОНСОЛЬ РАЗРАБОТЧИКА — DASHBOARD
+        ───────────────────────────────────────── */
+        function openDevConsole() {
+            if(!_botUser) { toast('Войдите в аккаунт'); return; }
+            var db = getDB();
+            if(!db) { toast('Firebase недоступен'); return; }
+
+            /* Загружаем профиль разработчика */
+            db.ref('devProfiles/'+encodeURIComponent(_botUser)).once('value').then(function(snap){
+                if(!snap.exists()) {
+                    /* Авто-регистрируем и открываем */
+                    autoRegisterDev();
+                    setTimeout(openDevConsole, 500);
+                    return;
+                }
+                var dev = snap.val();
+                txt('dc-name', dev.name || _botUser);
+                txt('dc-email', dev.email || '');
+
+                /* Дата регистрации */
+                if(dev.registeredAt) {
+                    var days = Math.floor((Date.now() - dev.registeredAt) / (1000*60*60*24));
+                    txt('dc-since', days + ' дн.');
+                } else {
+                    txt('dc-since', '—');
+                }
+
+                /* Мои боты */
+                var myBots = _bots.filter(function(b){ return b.ownerName === _botUser; });
+                txt('dc-bots-count', myBots.length);
+
+                var totalViews = 0;
+                myBots.forEach(function(b){ totalViews += (b.views || 0); });
+                txt('dc-views-total', totalViews);
+
+                var listEl = $('dc-bots-list');
+                if(!listEl) { openM('dev-console-modal'); return; }
+
+                if(!myBots.length) {
+                    listEl.innerHTML = '<div class="dev-console-empty"><div class="dce-icon">🤖</div><p>У вас пока нет ботов.<br>Создайте первого!</p></div>';
+                } else {
+                    var h = '';
+                    myBots.forEach(function(b){
+                        h += '<div class="dev-console-bot-item" data-bid="'+esc(b.id)+'">';
+                        h += '<div class="dev-console-bot-ava">'+(b.emoji||'🤖')+'</div>';
+                        h += '<div class="dev-console-bot-info">';
+                        h += '<div class="dev-console-bot-name">'+esc(b.name||'Bot')+'</div>';
+                        h += '<div class="dev-console-bot-un">@'+esc(b.username||'?')+' · '+(b.views||0)+' просм.</div>';
+                        h += '</div>';
+                        h += '<div class="dev-console-bot-actions">';
+                        h += '<button class="dev-console-bot-btn open" data-action="open" data-bid="'+esc(b.id)+'" title="Открыть">↗</button>';
+                        h += '<button class="dev-console-bot-btn edit" data-action="edit" data-bid="'+esc(b.id)+'" title="Редактировать">✏</button>';
+                        h += '<button class="dev-console-bot-btn del" data-action="delete" data-bid="'+esc(b.id)+'" title="Удалить">🗑</button>';
+                        h += '</div>';
+                        h += '</div>';
+                    });
+                    listEl.innerHTML = h;
+
+                    /* Привязываем кнопки */
+                    listEl.querySelectorAll('.dev-console-bot-btn').forEach(function(btn){
+                        btn.addEventListener('click', function(e){
+                            e.stopPropagation();
+                            var action = btn.dataset.action;
+                            var botId = btn.dataset.bid;
+                            if(action === 'open') { window.open(getBotUrl(botId), '_blank'); }
+                            else if(action === 'edit') { closeM('dev-console-modal'); openEditModal(botId); }
+                            else if(action === 'delete') {
+                                _deleteBotId = botId;
+                                var confirmEl = $('bv-delete-confirm');
+                                if(confirmEl) confirmEl.classList.add('active');
+                            }
+                        });
+                    });
+
+                    /* Клик на строку — открываем просмотр */
+                    listEl.querySelectorAll('.dev-console-bot-item').forEach(function(item){
+                        item.addEventListener('click', function(e){
+                            if(e.target.closest('.dev-console-bot-btn')) return;
+                            closeM('dev-console-modal');
+                            openBotView(item.dataset.bid);
+                        });
+                    });
+                }
+
+                openM('dev-console-modal');
+            }).catch(function(e){ toast('Ошибка: '+e.message); });
+        }
+
+        /* ─────────────────────────────────────────
            BIND EVENTS
         ───────────────────────────────────────── */
         var _bound = false;
         function bindAll() {
-            if (_bound) return; // не привязываем повторно
+            if (_bound) return;
             _bound = true;
             var on = function(id,ev,fn){ var e=$(id); if(e) e.addEventListener(ev,fn); };
 
             on('dev-reg-ok-btn','click', regDev);
             on('cb-save-btn','click', createBot);
+
+            /* Ctrl+S / Ctrl+D в редакторе кода */
+            var codeTa = $('cb-code');
+            if(codeTa) codeTa.addEventListener('keydown', cbKeyDown);
 
             /* bots search */
             var si = $('bots-search'); if(si){
@@ -27879,6 +28434,26 @@ window.deleteContentItem = async function(type, id) {
                 });
                 obs.observe(cbModal, {attributes:true, attributeFilter:['class']});
             }
+
+            /* Delete confirmation buttons */
+            var delConfirmBtn = document.querySelector('.bv-del-confirm-yes');
+            var delCancelBtn = document.querySelector('.bv-del-confirm-no');
+            if(delConfirmBtn) delConfirmBtn.addEventListener('click', function(){ confirmDeleteBot(); });
+            if(delCancelBtn) delCancelBtn.addEventListener('click', function(){ cancelDeleteBot(); });
+            /* Close delete confirm on backdrop click */
+            var delConfirmOverlay = $('bv-delete-confirm');
+            if(delConfirmOverlay) delConfirmOverlay.addEventListener('click', function(e){ if(e.target === delConfirmOverlay) cancelDeleteBot(); });
+
+            /* Dev console create bot button */
+            var dcCreateBtn = $('dc-create-btn');
+            if(dcCreateBtn) dcCreateBtn.addEventListener('click', function(){
+                closeM('dev-console-modal');
+                checkDevThenCreate();
+            });
+
+            /* Backdrop close for dev-console-modal */
+            var dcModal = $('dev-console-modal');
+            if(dcModal) dcModal.addEventListener('click', function(e){ if(e.target === dcModal) closeM('dev-console-modal'); });
         }
 
         /* ─────────────────────────────────────────
@@ -27888,6 +28463,9 @@ window.deleteContentItem = async function(type, id) {
         window.initBotsSystem = function(username) {
             if (username) _botUser = username;
             else if (typeof currentUser !== 'undefined' && currentUser) _botUser = currentUser;
+
+            /* Авто-регистрация профиля разработчика */
+            if(_botUser) autoRegisterDev();
 
             // Привязываем обработчики ровно один раз
             if (!_botsInitDone) {
@@ -27901,6 +28479,8 @@ window.deleteContentItem = async function(type, id) {
 
         // Экспортируем loadBots глобально для refreshAllUI
         window.loadBots = loadBots;
+        // Экспортируем openDevConsole для кнопки в настройках
+        window.openDevConsole = openDevConsole;
 
     })();
     /* ==================== КОНЕЦ TWIN BOTS SYSTEM ==================== */
