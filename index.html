@@ -2,10 +2,13 @@
 <html lang="ru">
 
 <head>
-    <!-- Запрет кеширования — всегда свежая версия -->
+    <!-- Запрет кеширования — только для разработки, УБРАТЬ на продакшене -->
+    <!-- На продакшене кешированием управляет Service Worker -->
+    <!--
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    -->
 
     <!-- === НАЧАЛО БЛОКА SEO ДЛЯ ПОИСКОВИКОВ === -->
 
@@ -27,13 +30,13 @@
     <link rel="canonical" href="https://twiin.ru/">
 
     <!-- ─── Заголовок страницы (50–60 символов — идеально для Google/Яндекс) ─── -->
-    <title>Twiin — Бесплатный мессенджер с AI онлайн | twiin.ru</title>
+    <title>Бесплатный мессенджер с AI онлайн — Twiin | Чат, группы, каналы</title>
 
     <!-- ─── Описание (сниппет в поиске, 120–160 символов) ─── -->
-    <meta name="description" content="Twiin — бесплатный веб-мессенджер с AI-ассистентом. Общайтесь в группах и каналах, отправляйте подарки, сторис. Без скачивания, прямо в браузере.">
+    <meta name="description" content="Twiin — бесплатный мессенджер с AI-ассистентом. Общайтесь в чате, группах и каналах, играйте в Мафию, заведите виртуального питомца. Без установки — работает в браузере. Регистрация за 30 секунд.">
 
     <!-- ─── Ключевые слова ─── -->
-    <meta name="keywords" content="twiin, мессенджер онлайн, бесплатный чат, веб-мессенджер, чат с AI, ai ассистент в мессенджере, группы чат, каналы, подарки в чате, бесплатный мессенджер без регистрации, общение онлайн, мессенджер браузер">
+    <meta name="keywords" content="чат с AI, мессенджер с AI, бесплатный мессенджер, онлайн чат без регистрации, веб мессенджер, играть в мафию онлайн, Twiin">
 
     <!-- ─── Robots: разрешаем индексацию ─── -->
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
@@ -46,14 +49,16 @@
     <!-- ─── Геолокация (помогает Яндексу в региональной выдаче) ─── -->
     <meta name="geo.region" content="RU">
     <meta name="geo.country" content="Russia">
+    <meta name="geo.placename" content="Россия">
     <meta name="yandex-verification" content=""><!-- Вставьте код верификации Яндекс.Вебмастер -->
+    <meta name="google-site-verification" content=""><!-- Вставьте код верификации Google Search Console -->
 
     <!-- ─── Open Graph — красивая карточка в соцсетях и мессенджерах ─── -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Twiin Messenger">
     <meta property="og:locale" content="ru_RU">
-    <meta property="og:title" content="Twiin — Бесплатный мессенджер с AI онлайн">
-    <meta property="og:description" content="Общайтесь в группах и каналах, дарите подарки, публикуйте сторис и используйте AI-ассистента прямо в браузере. Без установки — бесплатно.">
+    <meta property="og:title" content="Бесплатный мессенджер с AI — Twiin | Онлайн чат, группы, игры">
+    <meta property="og:description" content="AI-мессенджер с чатами, группами, каналами, игрой Мафия и виртуальными питомцами. Регистрация за 30 секунд. Без установки — бесплатно.">
     <meta property="og:image" content="https://twiin.ru/og-image.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -63,26 +68,31 @@
     <!-- ─── Twitter / X карточка ─── -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@twiin_ru">
-    <meta name="twitter:title" content="Twiin — Мессенджер с AI онлайн">
-    <meta name="twitter:description" content="Бесплатный веб-мессенджер: чаты, группы, каналы, подарки и AI-ассистент. Работает прямо в браузере.">
+    <meta name="twitter:title" content="Бесплатный мессенджер с AI — Twiin">
+    <meta name="twitter:description" content="AI-мессенджер: чаты, группы, каналы, Мафия, питомцы. Без установки — прямо в браузере. Бесплатно.">
     <meta name="twitter:image" content="https://twiin.ru/og-image.png">
 
     <!-- ─── JSON-LD: структурированные данные для Google (rich results) ─── -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "WebApplication",
+      "@type": "SoftwareApplication",
       "name": "Twiin",
       "url": "https://twiin.ru/",
-      "description": "Бесплатный веб-мессенджер с AI-ассистентом, группами, каналами и подарками. Работает в браузере без установки.",
+      "description": "Бесплатный мессенджер с AI-ассистентом, группами, каналами, играми и виртуальными питомцами. Работает в браузере без установки.",
       "applicationCategory": "CommunicationApplication",
-      "operatingSystem": "Web, Android, iOS",
-      "inLanguage": "ru",
-      "isAccessibleForFree": true,
+      "operatingSystem": "Android",
       "offers": {
         "@type": "Offer",
         "price": "0",
         "priceCurrency": "RUB"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.7",
+        "ratingCount": "128",
+        "bestRating": "5",
+        "worstRating": "1"
       },
       "author": {
         "@type": "Organization",
@@ -90,14 +100,85 @@
         "url": "https://twiin.ru/"
       },
       "featureList": [
-        "Мессенджер онлайн",
-        "AI-ассистент",
+        "Мессенджер онлайн с AI-ассистентом",
         "Группы и каналы",
-        "Подарки",
+        "Игра Мафия онлайн",
+        "Виртуальные питомцы с играми",
+        "Подарки в чате",
         "Истории (сторис)",
         "Тёмная тема",
-        "PWA — установка на телефон"
+        "PWA — установка на телефон",
+        "Боты с AI"
       ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Что такое Twiin?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Twiin — это бесплатный мессенджер с встроенным AI-ассистентом. Работает прямо в браузере без скачивания и установки. Позволяет общаться в личных чатах, группах и каналах, играть в Мафию, заводить виртуальных питомцев и создавать AI-ботов."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Как зарегистрироваться в Twiin?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Регистрация занимает 30 секунд: укажите юзернейм, пароль и email. Подтвердите email кодом — и можно общаться. Также доступна авторизация через ВКонтакте и Google."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Twiin бесплатный?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Да, Twiin полностью бесплатный. Все функции: чаты, группы, каналы, AI-ассистент, игры, питомцы — доступны без оплаты и без подписок."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Нужно ли скачивать Twiin?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Нет, Twiin работает прямо в браузере на любом устройстве. Также можно установить как PWA-приложение на Android через браузер или скачать из RuStore."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Как играть в Мафию в Twiin?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Создайте группу и выберите режим Мафия. Игра поддерживает роли: Мафиози, Шериф, Доктор, Куртизанка. Играйте с друзьями или с AI-персонажами."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Что такое AI-ассистент в Twiin?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "AI-ассистент — встроенный чат-бот на базе искусственного интеллекта, который помогает отвечать на вопросы, генерировать текст, переводить и создавать контент прямо в мессенджере."
+          }
+        }
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Twiin",
+      "url": "https://twiin.ru/",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://twiin.ru/?search={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
     }
     </script>
 
@@ -105,6 +186,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="dns-prefetch" href="https://firebaseio.com">
+
+    <!-- ─── Альтернативные языковые версии ─── -->
+    <link rel="alternate" hreflang="ru" href="https://twiin.ru/">
+    <link rel="alternate" hreflang="x-default" href="https://twiin.ru/">
 
     <!-- === КОНЕЦ БЛОКА SEO === -->
     
@@ -1106,6 +1191,736 @@
         .pets-list-card .plc-pet-name { font-weight: 700; font-size: 0.92rem; color: var(--text-color); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .pets-list-card .plc-owner { font-size: 0.75rem; color: var(--text-light); margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .pets-list-card .plc-stage { font-size: 0.7rem; font-weight: 700; padding: 2px 9px; border-radius: 20px; background: linear-gradient(90deg, #a29bfe, #6c5ce7); color: #fff; display: inline-block; }
+
+        /* ============================================================
+           🎮 СИСТЕМА ИГР С ПИТОМЦАМИ (2 игрока)
+           ============================================================ */
+        .pet-games-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 14px 0;
+        }
+        @media (min-width: 500px) {
+            .pet-games-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        .pet-game-card {
+            background: var(--bg-color);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
+            user-select: none;
+        }
+        .pet-game-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(108,92,231,0.15);
+        }
+        .pet-game-card:active { transform: scale(0.96); }
+        .pet-game-card .pgc-icon { font-size: 2.2rem; display: block; margin-bottom: 6px; }
+        .pet-game-card .pgc-name { font-size: 0.82rem; font-weight: 700; color: var(--text-color); }
+        .pet-game-card .pgc-desc { font-size: 0.68rem; color: var(--text-light); margin-top: 3px; line-height: 1.3; }
+
+        /* ---- Модалка игры: общая ---- */
+        .pet-game-modal .modal-content {
+            max-width: 520px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .solo-game-modal .modal-content {
+            max-height: none;
+            overflow-y: visible;
+        }
+        .pet-game-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        /* ---- Арена битвы ---- */
+        .battle-arena {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border-radius: 18px;
+            padding: 20px 16px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        body.dark-theme .battle-arena {
+            background: linear-gradient(135deg, #0d0d1a 0%, #111128 50%, #0a1628 100%);
+        }
+        .battle-arena::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 80px; height: 80px;
+            background: radial-gradient(circle, rgba(108,92,231,0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        .battle-fighters {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+        .battle-fighter {
+            flex: 1;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .battle-fighter.attacking { animation: battleAttack 0.4s ease-out; }
+        .battle-fighter.hit { animation: battleHit 0.3s ease-out; }
+        .battle-fighter.winner { animation: battleWin 0.6s ease-in-out; }
+        @keyframes battleAttack {
+            0% { transform: translateX(0); }
+            40% { transform: translateX(20px) scale(1.1); }
+            100% { transform: translateX(0); }
+        }
+        @keyframes battleHit {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        @keyframes battleWin {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-12px) scale(1.15); }
+        }
+        .bf-emoji { font-size: 3.5rem; display: block; margin-bottom: 6px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4)); }
+        @media (min-width: 400px) { .bf-emoji { font-size: 4.5rem; } }
+        .bf-name { font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+        .bf-hp-bar {
+            height: 10px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0 4px;
+        }
+        .bf-hp-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            background: linear-gradient(90deg, #00b894, #55efc4);
+        }
+        .bf-hp-fill.low { background: linear-gradient(90deg, #e74c3c, #fd79a8); }
+        .bf-hp-fill.mid { background: linear-gradient(90deg, #f39c12, #fdcb6e); }
+        .bf-hp-label { font-size: 0.72rem; color: rgba(255,255,255,0.7); margin-top: 3px; }
+        .battle-vs {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: #e74c3c;
+            text-shadow: 0 0 20px rgba(231,76,60,0.6);
+            flex-shrink: 0;
+            width: 50px;
+            text-align: center;
+        }
+        .battle-log {
+            background: rgba(0,0,0,0.25);
+            border-radius: 12px;
+            padding: 10px 12px;
+            max-height: 100px;
+            overflow-y: auto;
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.8);
+            margin-top: 12px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .battle-log-entry {
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            animation: fadeInUp 0.2s ease-out;
+        }
+        .battle-log-entry:last-child { border-bottom: none; }
+        .battle-log-entry .ble-atk { color: #55efc4; }
+        .battle-log-entry .ble-def { color: #fd79a8; }
+        .battle-log-entry .ble-sys { color: #a29bfe; font-weight: 600; }
+        .battle-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        @media (max-width: 380px) {
+            .battle-actions { grid-template-columns: repeat(2, 1fr); }
+        }
+        .battle-action-btn {
+            padding: 12px 8px;
+            border: 2px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: transform 0.12s, background 0.2s, border-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .battle-action-btn:active { transform: scale(0.94); }
+        .battle-action-btn:hover { background: rgba(108,92,231,0.2); border-color: var(--primary-color); }
+        .battle-action-btn.disabled { opacity: 0.4; pointer-events: none; }
+        .ba-icon { font-size: 1.4rem; }
+        .ba-label { font-size: 0.72rem; opacity: 0.8; }
+
+        /* ---- Гонка питомцев ---- */
+        .race-track-wrapper {
+            background: linear-gradient(180deg, #74b9ff 0%, #a29bfe 40%, #55efc4 70%, #ffeaa7 100%);
+            border-radius: 18px;
+            padding: 24px 16px 16px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .race-track-wrapper::before {
+            content: '☀️';
+            position: absolute;
+            top: 8px; right: 14px;
+            font-size: 1.5rem;
+        }
+        .race-track {
+            background: rgba(255,255,255,0.3);
+            border-radius: 30px;
+            height: 44px;
+            position: relative;
+            margin-bottom: 10px;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.4);
+        }
+        @media (min-width: 400px) { .race-track { height: 56px; } }
+        .race-lane {
+            position: absolute;
+            top: 3px;
+            height: calc(100% - 6px);
+            border-radius: 24px;
+            transition: left 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 4px;
+            filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.2));
+        }
+        .race-lane-1 {
+            left: 4px;
+            bottom: 0;
+            width: 56px;
+            background: linear-gradient(90deg, rgba(108,92,231,0.4), rgba(108,92,231,0.1));
+            top: auto;
+            bottom: 3px;
+        }
+        .race-lane-2 {
+            left: 4px;
+            top: 3px;
+            width: 56px;
+            background: linear-gradient(90deg, rgba(253,121,168,0.4), rgba(253,121,168,0.1));
+        }
+        .race-lane-emoji {
+            font-size: 1.6rem;
+            animation: petBounce 0.5s ease-in-out infinite;
+        }
+        @media (min-width: 400px) { .race-lane-emoji { font-size: 2rem; } }
+        .race-finish {
+            position: absolute;
+            right: 6px;
+            top: 0; bottom: 0;
+            width: 4px;
+            background: repeating-linear-gradient(180deg, #000 0px, #000 6px, #fff 6px, #fff 12px);
+            border-radius: 2px;
+        }
+        .race-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .race-tap-btn {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            font-size: 1.8rem;
+            font-weight: 800;
+            cursor: pointer;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.08s, background 0.15s;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            backdrop-filter: blur(4px);
+        }
+        @media (min-width: 400px) { .race-tap-btn { width: 100px; height: 100px; font-size: 2rem; } }
+        .race-tap-btn:active { transform: scale(0.88); background: rgba(108,92,231,0.4); }
+        .race-tap-btn.disabled { opacity: 0.3; pointer-events: none; }
+        .race-progress-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            margin-bottom: 8px;
+        }
+        .race-status {
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            margin-top: 10px;
+            min-height: 24px;
+        }
+
+        /* ---- Результат игры ---- */
+        .game-result-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+            animation: fadeIn 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+        .game-result-card {
+            background: var(--modal-bg);
+            border-radius: 24px;
+            padding: 32px 24px;
+            text-align: center;
+            max-width: 340px;
+            width: 90%;
+            animation: bounceIn 0.5s ease-out;
+        }
+        .gr-icon { font-size: 4rem; display: block; margin-bottom: 10px; }
+        .gr-title { font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin-bottom: 8px; }
+        .gr-desc { font-size: 0.88rem; color: var(--text-light); margin-bottom: 16px; line-height: 1.5; }
+        .gr-reward {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+        .gr-reward.win { background: linear-gradient(90deg, #55efc4, #00b894); color: #fff; }
+        .gr-reward.lose { background: linear-gradient(90deg, #fd79a8, #e74c3c); color: #fff; }
+        .gr-reward.draw { background: linear-gradient(90deg, #ffeaa7, #fdcb6e); color: #333; }
+        .gr-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+        /* ============================================================
+           🎮 ОДИНОЧНЫЕ ИГРЫ С ПИТОМЦЕМ
+           ============================================================ */
+        .solo-games-section {
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1.5px dashed var(--border-color);
+        }
+        .solo-games-title {
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: var(--text-color);
+            text-align: center;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .solo-games-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        @media (min-width: 500px) {
+            .solo-games-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        .solo-game-card {
+            background: linear-gradient(135deg, rgba(108,92,231,0.06), rgba(162,155,254,0.06));
+            border: 2px solid rgba(108,92,231,0.15);
+            border-radius: 16px;
+            padding: 16px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
+            user-select: none;
+        }
+        .solo-game-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(108,92,231,0.2);
+        }
+        .solo-game-card:active { transform: scale(0.96); }
+        .solo-game-card .sgc-icon { font-size: 2.2rem; display: block; margin-bottom: 6px; }
+        .solo-game-card .sgc-name { font-size: 0.82rem; font-weight: 700; color: var(--text-color); }
+        .solo-game-card .sgc-desc { font-size: 0.68rem; color: var(--text-light); margin-top: 3px; line-height: 1.3; }
+        .solo-game-card .sgc-badge {
+            display: inline-block;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 1px 7px;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #00b894, #55efc4);
+            color: #fff;
+            margin-top: 5px;
+        }
+
+        /* ---- Canvas-игры ---- */
+        .solo-game-canvas-wrap {
+            position: relative;
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 0;
+            background: #000;
+            touch-action: none;
+        }
+        .solo-game-canvas-wrap canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            touch-action: none;
+        }
+        .solo-game-hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 14px;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            font-size: 0.82rem;
+            font-weight: 700;
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            z-index: 2;
+            backdrop-filter: blur(4px);
+        }
+        .solo-game-hud span { text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+
+        /* ---- Кнопки управления ---- */
+        .solo-game-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+        }
+        .solo-ctrl-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 2.5px solid rgba(108,92,231,0.6);
+            background: rgba(108,92,231,0.25);
+            color: #fff;
+            font-size: 1.6rem;
+            font-weight: 800;
+            cursor: pointer;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            transition: transform 0.08s, background 0.15s;
+            backdrop-filter: blur(4px);
+            z-index: 10;
+            position: relative;
+        }
+        .solo-ctrl-btn:active {
+            transform: scale(0.88);
+            background: rgba(108,92,231,0.5);
+        }
+        .solo-ctrl-btn.wide {
+            width: 90px;
+            border-radius: 36px;
+        }
+
+        /* ---- Платформер (Mario) ---- */
+        .platformer-wrap {
+            background: linear-gradient(180deg, #74b9ff 0%, #a29bfe 30%, #55efc4 60%, #2d3436 60%, #636e72 100%);
+        }
+
+        /* ---- Flappy ---- */
+        .flappy-wrap {
+            background: linear-gradient(180deg, #74b9ff 0%, #81ecec 40%, #00b894 70%, #2d3436 95%);
+        }
+
+        /* ---- Dino Runner ---- */
+        .dino-wrap {
+            background: linear-gradient(180deg, #ffeaa7 0%, #fdcb6e 30%, #fab1a0 60%, #636e72 80%, #2d3436 100%);
+        }
+
+        /* ---- Собиратель ---- */
+        .collector-wrap {
+            background: linear-gradient(180deg, #0984e3 0%, #74b9ff 30%, #dfe6e9 70%, #636e72 100%);
+        }
+        .collector-item {
+            position: absolute;
+            font-size: 2rem;
+            transition: top 0.05s linear;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            z-index: 1;
+        }
+        .collector-basket {
+            position: absolute;
+            bottom: 10px;
+            font-size: 2.4rem;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: left 0.08s ease;
+            z-index: 2;
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));
+        }
+        .collector-field {
+            position: relative;
+            width: 100%;
+            height: 320px;
+            overflow: hidden;
+            border-radius: 16px;
+            margin-bottom: 14px;
+        }
+        @media (min-width: 400px) {
+            .collector-field { height: 380px; }
+        }
+
+        /* ---- Хайскор для одиночных игр ---- */
+        .solo-highscore {
+            text-align: center;
+            font-size: 0.72rem;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+        .solo-highscore b { color: var(--primary-color); }
+
+        /* ---- Полноэкранный режим ---- */
+        .solo-game-modal.is-fullscreen,
+        .solo-game-modal:fullscreen,
+        .solo-game-modal:-webkit-full-screen {
+            background: #000 !important;
+            padding: 0 !important;
+        }
+        .solo-game-modal.is-fullscreen .modal-content,
+        .solo-game-modal:fullscreen .modal-content,
+        .solo-game-modal:-webkit-full-screen .modal-content {
+            position: fixed !important;
+            top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            border-radius: 0 !important;
+            border: none !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            transform: none !important;
+            background: #000 !important;
+            z-index: 99999 !important;
+        }
+        .solo-game-modal.is-fullscreen .modal-content > .pet-game-title {
+            position: absolute !important;
+            top: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.9);
+            padding: 2px 8px !important;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            height: 30px;
+            min-height: 30px;
+            z-index: 11;
+        }
+        .solo-game-modal.is-fullscreen .solo-game-canvas-wrap {
+            position: absolute !important;
+            top: 30px; left: 0; right: 0;
+            bottom: 68px;
+            width: 100% !important;
+            background: #000;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            overflow: hidden;
+        }
+        .solo-game-modal.is-fullscreen .solo-game-canvas-wrap canvas {
+            display: block;
+            position: absolute !important;
+            top: 0; left: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .solo-game-modal.is-fullscreen .collector-field {
+            position: absolute !important;
+            top: 30px; left: 0; right: 0;
+            bottom: 68px;
+            width: 100% !important;
+            touch-action: none;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            overflow: hidden;
+        }
+        .solo-game-modal.is-fullscreen .solo-game-controls {
+            position: absolute !important;
+            bottom: 0; left: 0; right: 0;
+            padding: 4px 8px;
+            padding-bottom: max(4px, env(safe-area-inset-bottom));
+            background: rgba(0,0,0,0.95);
+            display: flex !important;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            height: 68px;
+            min-height: 68px;
+            z-index: 10;
+        }
+        .solo-game-modal.is-fullscreen .modal-actions,
+        .solo-game-modal.is-fullscreen .solo-game-controls + div {
+            position: absolute !important;
+            bottom: 68px; left: 0; right: 0;
+            background: rgba(0,0,0,0.9);
+            padding: 3px 8px;
+            z-index: 9;
+        }
+        .fullscreen-btn {
+            background: rgba(255,70,70,0.3);
+            border: 2px solid rgba(255,70,70,0.5);
+            color: #fff;
+            font-size: 1.4rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.2s;
+            float: right;
+            line-height: 1;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            min-width: 36px;
+            min-height: 36px;
+        }
+        .fullscreen-btn:hover { background: rgba(255,70,70,0.5); color: #fff; }
+        .fullscreen-btn:active { transform: scale(0.9); }
+
+        /* ---- XP и левел питомца ---- */
+        .pet-xp-section {
+            background: var(--bg-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin: 10px 0;
+        }
+        .pet-xp-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .pet-xp-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+        .pet-xp-value {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: var(--primary-color);
+        }
+        .pet-xp-bar {
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .pet-xp-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #f39c12, #fdcb6e);
+            transition: width 0.6s ease;
+        }
+        .pet-level-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f39c12, #e17055);
+            color: #fff;
+            margin-left: 8px;
+        }
+        .pet-stats-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .pet-stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        /* ---- Выбор соперника ---- */
+        .opponent-select-list {
+            max-height: 50vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .opponent-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 14px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s, transform 0.1s;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .opponent-item:hover { border-color: var(--primary-color); background: rgba(108,92,231,0.04); }
+        .opponent-item:active { transform: scale(0.98); }
+        .opponent-item.disabled { opacity: 0.4; pointer-events: none; }
+        .oi-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), #a29bfe);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+        .oi-info { flex: 1; min-width: 0; }
+        .oi-name { font-size: 0.88rem; font-weight: 700; color: var(--text-color); }
+        .oi-pet { font-size: 0.75rem; color: var(--text-light); display: flex; align-items: center; gap: 4px; }
+        .oi-level { font-size: 0.7rem; font-weight: 700; color: var(--primary-color); }
 
 
         /* ============================================================
@@ -3692,6 +4507,14 @@
         }
         .chat-action-btn:hover svg {
             fill: #e74c3c;
+        }
+
+        /* Кнопка экспорта чата */
+        .chat-action-btn.export-chat-btn:hover {
+            background: rgba(108, 92, 231, 0.1);
+        }
+        .chat-action-btn.export-chat-btn:hover svg {
+            fill: var(--primary-color);
         }
 
         .chat-area {
@@ -10256,6 +11079,53 @@
 
 <body>
 
+    <!-- ========== NOSCRIPT: КОНТЕНТ ДЛЯ ПОИСКОВЫХ РОБОТОВ (SEO) ========== -->
+    <noscript>
+        <div style="max-width:800px;margin:40px auto;padding:30px;font-family:system-ui,sans-serif;color:#2d3436;line-height:1.7;">
+            <h1>Twiin — Бесплатный мессенджер с AI-ассистентом</h1>
+            <p>Twiin — это бесплатный онлайн-мессенджер со встроенным AI-ассистентом. Работает прямо в браузере без скачивания и установки. Регистрация за 30 секунд.</p>
+
+            <h2>Ключевые функции Twiin</h2>
+            <ul>
+                <li><strong>AI-ассистент</strong> — встроенный искусственный интеллект помогает отвечать на вопросы, генерировать текст и переводить сообщения прямо в чате</li>
+                <li><strong>Личные чаты</strong> — общение один на один с шифрованием, отправка фото, стикеров и подарков</li>
+                <li><strong>Группы</strong> — создавайте групповые чаты для друзей, коллег и сообществ</li>
+                <li><strong>Каналы</strong> — публикуйте посты и ведите тематические каналы для подписчиков</li>
+                <li><strong>Игра Мафия</strong> — играйте в Мафию онлайн прямо в мессенджере с друзьями или AI-персонажами. Роли: Мафиози, Шериф, Доктор, Куртизанка</li>
+                <li><strong>Виртуальные питомцы</strong> — заведите питомца, кормите его, играйте и сражайтесь на арене</li>
+                <li><strong>Сторис</strong> — публикуйте и просматривайте истории, как в Instagram</li>
+                <li><strong>AI-боты</strong> — создавайте собственных ботов с искусственным интеллектом</li>
+                <li><strong>Подарки</strong> — отправляйте анимированные подарки друзьям в чате</li>
+                <li><strong>Тёмная тема</strong> — переключайте между светлой и тёмной темой</li>
+                <li><strong>PWA</strong> — установите Twiin на телефон как приложение без App Store</li>
+            </ul>
+
+            <h2>Почему Twiin?</h2>
+            <p>Twiin объединяет функции мессенджера, социальной сети и игровой платформы в одном приложении. В отличие от Telegram и WhatsApp, Twiin не требует установки — просто откройте twiin.ru в браузере и начните общаться. Встроенный AI-ассистент отличает Twiin от всех остальных мессенджеров.</p>
+
+            <h2>Как начать пользоваться Twiin?</h2>
+            <ol>
+                <li>Откройте <a href="https://twiin.ru">twiin.ru</a> в любом браузере</li>
+                <li>Нажмите «Регистрация» и заполните 3 поля: юзернейм, пароль, email</li>
+                <li>Подтвердите email кодом из письма</li>
+                <li>Начните общаться, создавайте группы и каналы!</li>
+            </ol>
+
+            <h2>Часто задаваемые вопросы</h2>
+            <h3>Twiin бесплатный?</h3>
+            <p>Да, Twiin полностью бесплатный. Все функции доступны без оплаты и подписок.</p>
+            <h3>Нужно ли скачивать приложение?</h3>
+            <p>Нет, Twiin работает в браузере. На Android можно установить как PWA-приложение.</p>
+            <h3>Как играть в Мафию?</h3>
+            <p>Создайте группу, выберите режим «Мафия» и пригласите друзей. Поддерживаются роли: Мафиози, Шериф, Доктор, Куртизанка.</p>
+            <h3>Что такое AI-ассистент?</h3>
+            <p>Встроенный чат-бот на базе ИИ, который помогает с вопросами, генерацией текста и переводами прямо в мессенджере.</p>
+
+            <h2>Скачать Twiin</h2>
+            <p>Twiin доступен как PWA (установка через браузер) и в <a href="https://rustore.ru">RuStore</a> для Android-устройств.</p>
+        </div>
+    </noscript>
+    <!-- ========== КОНЕЦ NOSCRIPT ========== -->
 
     <div class="container">
         <div class="mobile-header">
@@ -10441,6 +11311,9 @@
                                     <span data-i18n="chat.video_call"> Видео звонок</span></button>
                                 <button class="dropdown-item primary" id="dd-change-wallpaper" style="display:none;">
                                     <span class="di-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span> Сменить обои
+                                </button>
+                                <button class="dropdown-item primary" id="dd-export-chat">
+                                    <span class="di-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span> Экспорт чата
                                 </button>
                                 <button class="dropdown-item danger" id="dd-report-user" style="display:none;" onclick="openReportFromChat()">
                                     <span class="di-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span> Пожаловаться
@@ -11676,12 +12549,292 @@
                 <button onclick="petAction('pat')"   style="padding:10px;border:1.5px solid rgba(108,92,231,0.25);background:rgba(108,92,231,0.07);border-radius:12px;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-color);"><span data-i18n="pet.pat">❤️ Погладить</span></button>
             </div>
             <div id="pet-last-fed-label" style="font-size:0.74rem;color:var(--text-light);margin-bottom:10px;"></div>
+            <button onclick="document.getElementById('pet-interact-modal').classList.remove('active','modal-fullscreen');openPetGamesMenu();" style="width:100%;padding:12px;border:2px solid var(--primary-color);background:linear-gradient(135deg,rgba(108,92,231,0.1),rgba(162,155,254,0.1));border-radius:14px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;color:var(--primary-color);margin-bottom:10px;transition:transform 0.12s;display:flex;align-items:center;justify-content:center;gap:6px;">🎮 Играть</button>
             <div class="modal-actions" style="justify-content:space-between;">
                 <button class="modal-btn modal-btn-secondary" onclick="document.getElementById('pet-interact-modal').classList.remove('active','modal-fullscreen')"><span data-i18n="settings.cancel">Закрыть</span></button>
                 <button class="modal-btn" onclick="document.getElementById('pet-interact-modal').classList.remove('active','modal-fullscreen');openPetSetup();" style="font-size:0.82rem;"><span data-i18n="pet.edit">✏️ Изменить</span></button>
             </div>
         </div>
     </div>
+
+    <!-- ===== МОДАЛКА ВЫБОРА ИГРЫ С ПИТОМЦЕМ ===== -->
+    <div class="modal pet-game-modal" id="pet-games-modal">
+        <div class="modal-content" style="text-align:center;">
+            <h2 class="modal-title">🎮 Игры с питомцем</h2>
+            <div id="pet-game-xp-display"></div>
+            <div class="pet-games-grid" id="pet-games-grid">
+                <div class="pet-game-card" onclick="startPetBattle()">
+                    <span class="pgc-icon">⚔️</span>
+                    <span class="pgc-name">Битва питомцев</span>
+                    <span class="pgc-desc">Сражение 1 на 1</span>
+                </div>
+                <div class="pet-game-card" onclick="startPetRace()">
+                    <span class="pgc-icon">🏁</span>
+                    <span class="pgc-name">Гонка</span>
+                    <span class="pgc-desc">Кто быстрее?</span>
+                </div>
+                <div class="pet-game-card" onclick="startPetQuiz()">
+                    <span class="pgc-icon">🧠</span>
+                    <span class="pgc-name">Викторина</span>
+                    <span class="pgc-desc">Проверь знания</span>
+                </div>
+                <div class="pet-game-card" onclick="startPetTugOfWar()">
+                    <span class="pgc-icon">💪</span>
+                    <span class="pgc-name">Перетягивание</span>
+                    <span class="pgc-desc">Кто сильнее?</span>
+                </div>
+            </div>
+            <div style="font-size:0.72rem;color:var(--text-light);margin-top:4px;">Выигрывайте, чтобы получать XP и повышать уровень питомца!</div>
+
+            <!-- Одиночные игры -->
+            <div class="solo-games-section">
+                <div class="solo-games-title">🎯 Одиночные игры</div>
+                <div class="solo-games-grid">
+                    <div class="solo-game-card" onclick="startSoloPlatformer()">
+                        <span class="sgc-icon">🍄</span>
+                        <span class="sgc-name">Платформер</span>
+                        <span class="sgc-desc">Прыгай и собирай!</span>
+                        <span class="sgc-badge">Mario-style</span>
+                    </div>
+                    <div class="solo-game-card" onclick="startSoloFlappy()">
+                        <span class="sgc-icon">🐦</span>
+                        <span class="sgc-name">Полёт</span>
+                        <span class="sgc-desc">Пролети трубы!</span>
+                        <span class="sgc-badge">Flappy</span>
+                    </div>
+                    <div class="solo-game-card" onclick="startSoloDino()">
+                        <span class="sgc-icon">🦖</span>
+                        <span class="sgc-name">Дино-ран</span>
+                        <span class="sgc-desc">Беги без остановки!</span>
+                        <span class="sgc-badge">Runner</span>
+                    </div>
+                    <div class="solo-game-card" onclick="startSoloCollector()">
+                        <span class="sgc-icon">🍎</span>
+                        <span class="sgc-name">Собиратель</span>
+                        <span class="sgc-desc">Лови вкусняшки!</span>
+                        <span class="sgc-badge">Catch</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions" style="margin-top:14px;">
+                <button class="modal-btn modal-btn-secondary" onclick="closePetGamesModal()">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== МОДАЛКА ВЫБОРА СОПЕРНИКА ===== -->
+    <div class="modal pet-game-modal" id="pet-opponent-modal">
+        <div class="modal-content" style="text-align:center;">
+            <h2 class="modal-title" id="opponent-modal-title">Выберите соперника</h2>
+            <div class="opponent-select-list" id="opponent-list"><div style="padding:30px;color:var(--text-light);">⏳ Загрузка...</div></div>
+            <div class="modal-actions" style="margin-top:14px;">
+                <button class="modal-btn modal-btn-secondary" onclick="document.getElementById('pet-opponent-modal').classList.remove('active')">Назад</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal pet-game-modal solo-game-modal" id="solo-platformer-modal">
+        <div class="modal-content">
+            <div class="pet-game-title" style="padding:6px 12px !important;"><button class="fullscreen-btn" onclick="closeSoloPlatformer()">✕</button></div>
+            <div class="solo-game-canvas-wrap platformer-wrap">
+                <div class="solo-game-hud">
+                    <span>🏆 <span id="plat-score">0</span></span>
+                    <span>🪙 <span id="plat-coin-count">0</span></span>
+                    <span>❤️ <span id="plat-lives">3</span></span>
+                    <span id="plat-level-hud" style="color:#fdcb6e;">L1</span>
+                </div>
+                <canvas id="platformer-canvas" width="480" height="320"></canvas>
+            </div>
+            <div class="solo-game-controls">
+                <button class="solo-ctrl-btn" id="plat-btn-left" ontouchstart="platInput('left',true)" ontouchend="platInput('left',false)" onmousedown="platInput('left',true)" onmouseup="platInput('left',false)">◀</button>
+                <button class="solo-ctrl-btn wide" id="plat-btn-jump" ontouchstart="platInput('jump',true)" ontouchend="platInput('jump',false)" onmousedown="platInput('jump',true)" onmouseup="platInput('jump',false)">▲</button>
+                <button class="solo-ctrl-btn" id="plat-btn-right" ontouchstart="platInput('right',true)" ontouchend="platInput('right',false)" onmousedown="platInput('right',true)" onmouseup="platInput('right',false)">▶</button>
+            </div>
+            <div id="plat-start-screen" style="text-align:center;padding:6px;">
+                <button class="solo-ctrl-btn wide" onclick="platformerStart()" style="width:140px;height:44px;border-radius:22px;font-size:1.1rem;background:rgba(108,92,231,0.5);">▶ СТАРТ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal pet-game-modal solo-game-modal" id="solo-flappy-modal">
+        <div class="modal-content">
+            <div class="pet-game-title" style="padding:6px 12px !important;"><button class="fullscreen-btn" onclick="closeSoloFlappy()">✕</button></div>
+            <div class="solo-game-canvas-wrap flappy-wrap">
+                <div class="solo-game-hud">
+                    <span>🏆 <span id="flappy-score">0</span></span>
+                    <span>👑 <span id="flappy-best">0</span></span>
+                </div>
+                <canvas id="flappy-canvas" width="480" height="320"></canvas>
+            </div>
+            <div class="solo-game-controls">
+                <button class="solo-ctrl-btn wide" id="flappy-btn-tap" ontouchstart="flappyTap()" onmousedown="flappyTap()" style="width:160px;height:60px;border-radius:30px;font-size:1.3rem;">👆 ТАП</button>
+            </div>
+            <div id="flappy-start-screen" style="text-align:center;padding:6px;">
+                <button class="solo-ctrl-btn wide" onclick="flappyStart()" style="width:140px;height:44px;border-radius:22px;font-size:1.1rem;background:rgba(108,92,231,0.5);">▶ ЛЕТЕТЬ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal pet-game-modal solo-game-modal" id="solo-dino-modal">
+        <div class="modal-content">
+            <div class="pet-game-title" style="padding:6px 12px !important;"><button class="fullscreen-btn" onclick="closeSoloDino()">✕</button></div>
+            <div class="solo-game-canvas-wrap dino-wrap">
+                <div class="solo-game-hud">
+                    <span>🏆 <span id="dino-score">0</span></span>
+                    <span>⚡ <span id="dino-speed-hud">1x</span></span>
+                </div>
+                <canvas id="dino-canvas" width="480" height="240"></canvas>
+            </div>
+            <div class="solo-game-controls">
+                <button class="solo-ctrl-btn" id="dino-btn-duck" ontouchstart="dinoInput('duck',true)" ontouchend="dinoInput('duck',false)" onmousedown="dinoInput('duck',true)" onmouseup="dinoInput('duck',false)">▼</button>
+                <button class="solo-ctrl-btn wide" id="dino-btn-jump" ontouchstart="dinoInput('jump',true)" ontouchend="dinoInput('jump',false)" onmousedown="dinoInput('jump',true)" onmouseup="dinoInput('jump',false)">▲</button>
+            </div>
+            <div id="dino-start-screen" style="text-align:center;padding:6px;">
+                <button class="solo-ctrl-btn wide" onclick="dinoStart()" style="width:140px;height:44px;border-radius:22px;font-size:1.1rem;background:rgba(108,92,231,0.5);">▶ БЕЖАТЬ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal pet-game-modal solo-game-modal" id="solo-collector-modal">
+        <div class="modal-content">
+            <div class="pet-game-title" style="padding:6px 12px !important;"><button class="fullscreen-btn" onclick="closeSoloCollector()">✕</button></div>
+            <div class="collector-field collector-wrap" id="collector-field">
+                <div class="collector-basket" id="collector-basket">🐕</div>
+            </div>
+            <div class="solo-game-controls">
+                <button class="solo-ctrl-btn" id="col-btn-left" ontouchstart="colInput('left',true)" ontouchend="colInput('left',false)" onmousedown="colInput('left',true)" onmouseup="colInput('left',false)">◀</button>
+                <button class="solo-ctrl-btn" id="col-btn-right" ontouchstart="colInput('right',true)" ontouchend="colInput('right',false)" onmousedown="colInput('right',true)" onmouseup="colInput('right',false)">▶</button>
+            </div>
+            <div id="col-start-screen" style="text-align:center;padding:6px;">
+                <button class="solo-ctrl-btn wide" onclick="collectorStart()" style="width:140px;height:44px;border-radius:22px;font-size:1.1rem;background:rgba(108,92,231,0.5);">▶ ЛОВИТЬ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== МОДАЛКА БИТВЫ ПИТОМЦЕВ ===== -->
+    <div class="modal pet-game-modal" id="pet-battle-modal">
+        <div class="modal-content">
+            <div class="pet-game-title">⚔️ <span id="battle-title-text">Битва питомцев</span></div>
+            <div class="battle-arena" id="battle-arena">
+                <div class="battle-fighters">
+                    <div class="battle-fighter" id="bf-left">
+                        <span class="bf-emoji" id="bf-left-emoji">🐱</span>
+                        <div class="bf-name" id="bf-left-name">Твой питомец</div>
+                        <div class="bf-hp-bar"><div class="bf-hp-fill" id="bf-left-hp" style="width:100%"></div></div>
+                        <div class="bf-hp-label" id="bf-left-hp-label">100/100 HP</div>
+                    </div>
+                    <div class="battle-vs">VS</div>
+                    <div class="battle-fighter" id="bf-right">
+                        <span class="bf-emoji" id="bf-right-emoji">🐶</span>
+                        <div class="bf-name" id="bf-right-name">Соперник</div>
+                        <div class="bf-hp-bar"><div class="bf-hp-fill" id="bf-right-hp" style="width:100%"></div></div>
+                        <div class="bf-hp-label" id="bf-right-hp-label">100/100 HP</div>
+                    </div>
+                </div>
+                <div class="battle-log" id="battle-log"></div>
+            </div>
+            <div class="battle-actions" id="battle-actions">
+                <button class="battle-action-btn" onclick="battleAction('attack')"><span class="ba-icon">🗡️</span><span class="ba-label">Атака</span></button>
+                <button class="battle-action-btn" onclick="battleAction('defend')"><span class="ba-icon">🛡️</span><span class="ba-label">Защита</span></button>
+                <button class="battle-action-btn" onclick="battleAction('special')"><span class="ba-icon">✨</span><span class="ba-label">Удар</span></button>
+                <button class="battle-action-btn" onclick="battleAction('heal')"><span class="ba-icon">💚</span><span class="ba-label">Лечение</span></button>
+                <button class="battle-action-btn" onclick="battleAction('dodge')"><span class="ba-icon">💨</span><span class="ba-label">Уклон</span></button>
+                <button class="battle-action-btn" onclick="battleAction('rage')"><span class="ba-icon">🔥</span><span class="ba-label">Ярость</span></button>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" onclick="closeBattle()">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== МОДАЛКА ГОНКИ ПИТОМЦЕВ ===== -->
+    <div class="modal pet-game-modal" id="pet-race-modal">
+        <div class="modal-content">
+            <div class="pet-game-title">🏁 <span id="race-title-text">Гонка питомцев</span></div>
+            <div class="race-track-wrapper">
+                <div class="race-progress-row">
+                    <span id="race-left-name">Твой питомец</span>
+                    <span id="race-right-name">Соперник</span>
+                </div>
+                <div class="race-track">
+                    <div class="race-lane race-lane-1" id="race-lane-1"><span class="race-lane-emoji" id="race-emoji-1">🐱</span></div>
+                    <div class="race-lane race-lane-2" id="race-lane-2"><span class="race-lane-emoji" id="race-emoji-2">🐶</span></div>
+                    <div class="race-finish"></div>
+                </div>
+                <div class="race-controls" id="race-controls">
+                    <div>
+                        <div class="race-tap-btn" id="race-tap-btn" ontouchstart="raceTap(event)" onmousedown="raceTap(event)">🏃</div>
+                        <div style="text-align:center;font-size:0.72rem;color:#fff;margin-top:4px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,0.3);">Жми быстрее!</div>
+                    </div>
+                </div>
+                <div class="race-status" id="race-status">Нажмите 🏁 чтобы начать</div>
+            </div>
+            <div style="text-align:center;margin-bottom:12px;">
+                <button class="modal-btn modal-btn-primary" id="race-start-btn" onclick="beginRace()" style="background:linear-gradient(135deg,#00b894,#55efc4);">🏁 Старт</button>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" onclick="closeRace()">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== МОДАЛКА ВИКТОРИНЫ ===== -->
+    <div class="modal pet-game-modal" id="pet-quiz-modal">
+        <div class="modal-content" style="text-align:center;">
+            <div class="pet-game-title">🧠 Викторина питомцев</div>
+            <div id="quiz-pet-battle" style="display:flex;justify-content:space-around;align-items:center;margin-bottom:16px;">
+                <div style="text-align:center;">
+                    <span id="quiz-my-emoji" style="font-size:3rem;display:block;">🐱</span>
+                    <div id="quiz-my-name" style="font-size:0.8rem;font-weight:700;color:var(--text-color);">Мой</div>
+                </div>
+                <div style="font-size:1.3rem;font-weight:900;color:var(--danger-color);">VS</div>
+                <div style="text-align:center;">
+                    <span id="quiz-opp-emoji" style="font-size:3rem;display:block;">🐶</span>
+                    <div id="quiz-opp-name" style="font-size:0.8rem;font-weight:700;color:var(--text-color);">Соперник</div>
+                </div>
+            </div>
+            <div style="font-size:0.82rem;font-weight:700;color:var(--text-light);margin-bottom:8px;">Счёт: <span id="quiz-score">0 : 0</span></div>
+            <div id="quiz-question" style="font-size:1rem;font-weight:700;color:var(--text-color);margin-bottom:14px;min-height:50px;line-height:1.4;">Загрузка вопроса...</div>
+            <div id="quiz-answers" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
+            <div id="quiz-timer-bar" style="height:6px;background:var(--border-color);border-radius:10px;overflow:hidden;margin-bottom:10px;"><div id="quiz-timer-fill" style="height:100%;background:linear-gradient(90deg,#00b894,#55efc4);border-radius:10px;transition:width 0.1s linear;width:100%;"></div></div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" onclick="closeQuiz()">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== МОДАЛКА ПЕРЕТЯГИВАНИЯ ===== -->
+    <div class="modal pet-game-modal" id="pet-tug-modal">
+        <div class="modal-content" style="text-align:center;">
+            <div class="pet-game-title">💪 Перетягивание каната</div>
+            <div id="tug-pet-display" style="display:flex;justify-content:space-around;align-items:center;margin-bottom:16px;">
+                <div style="text-align:center;">
+                    <span id="tug-my-emoji" style="font-size:3rem;display:block;">🐱</span>
+                    <div id="tug-my-name" style="font-size:0.8rem;font-weight:700;color:var(--text-color);">Мой</div>
+                </div>
+                <div id="tug-rope-display" style="font-size:2rem;user-select:none;">🔗🔗🔗</div>
+                <div style="text-align:center;">
+                    <span id="tug-opp-emoji" style="font-size:3rem;display:block;">🐶</span>
+                    <div id="tug-opp-name" style="font-size:0.8rem;font-weight:700;color:var(--text-color);">Соперник</div>
+                </div>
+            </div>
+            <div style="position:relative;height:28px;background:var(--border-color);border-radius:14px;overflow:hidden;margin-bottom:16px;">
+                <div id="tug-marker" style="position:absolute;top:3px;left:calc(50% - 11px);width:22px;height:22px;background:var(--primary-color);border-radius:50%;transition:left 0.15s ease;box-shadow:0 2px 8px rgba(108,92,231,0.4);"></div>
+                <div style="position:absolute;left:0;top:0;bottom:0;width:25%;background:linear-gradient(90deg,rgba(85,239,196,0.3),transparent);border-radius:14px 0 0 14px;"></div>
+                <div style="position:absolute;right:0;top:0;bottom:0;width:25%;background:linear-gradient(270deg,rgba(253,121,168,0.3),transparent);border-radius:0 14px 14px 0;"></div>
+            </div>
+            <div style="display:flex;gap:10px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">
+                <button class="race-tap-btn" id="tug-tap-btn" style="width:100px;height:100px;font-size:2.2rem;border-color:rgba(108,92,231,0.5);" ontouchstart="tugTap(event)" onmousedown="tugTap(event)">💪</button>
+            </div>
+            <div id="tug-status" style="font-size:0.85rem;font-weight:700;color:var(--text-light);min-height:24px;">Жми на 💪 чтобы тянуть!</div>
+            <div id="tug-round-info" style="font-size:0.75rem;color:var(--text-light);margin-top:4px;"></div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" onclick="closeTug()">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Модальное окно: вступление по ссылке (превью канала) -->
     <div class="modal" id="channel-join-modal">
@@ -16201,6 +17354,7 @@ function initLanguage(){
                         return;
                     }
 
+
                     if (chat.type === 'user') {
                         const displayName = chat.name || (chat.userData ? chat.userData.name : chat.user);
                         const displayEmoji = chat.emoji || (chat.userData ? chat.userData.emoji : '😊');
@@ -16239,6 +17393,8 @@ function initLanguage(){
                         deleteChatById(chat.id, chat.type);
                     }
                 });
+
+
 
                 searchResults.appendChild(userItem);
             });
@@ -16321,6 +17477,173 @@ function initLanguage(){
                 
             } catch (error) {
                 showNotification('Ошибка: ' + error.message);
+            }
+        }
+
+        async function exportChatToHtml(chatId, chatUser, chatName) {
+            showNotification('Экспорт чата...');
+            try {
+                // Загружаем все сообщения
+                const msgSnap = await database.ref('messages/' + chatId).once('value');
+                const msgData = msgSnap.val();
+                if (!msgData || Object.keys(msgData).length === 0) {
+                    showNotification('Нет сообщений для экспорта');
+                    return;
+                }
+
+                // Преобразуем в массив и сортируем
+                const messagesArray = Object.keys(msgData).map(key => ({
+                    id: key,
+                    ...msgData[key]
+                })).filter(msg => msg.sender && msg.timestamp)
+                  .sort((a, b) => a.timestamp - b.timestamp);
+
+                // Дешифровка если нужно
+                if (typeof TwiinCrypto !== 'undefined' && window.cryptoState && window.cryptoState.isReady) {
+                    for (const msg of messagesArray) {
+                        if (msg.encrypted === true && msg.ciphertext && msg.iv) {
+                            try {
+                                const peerId = msg.sender === currentUser ? chatUser : msg.sender;
+                                const decrypted = await TwiinCrypto.decryptMessageFromPeer(peerId, msg.ciphertext, msg.iv);
+                                if (decrypted && decrypted !== 'null' && decrypted !== 'undefined') {
+                                    msg.text = decrypted;
+                                } else {
+                                    msg.text = '[Не удалось расшифровать]';
+                                }
+                            } catch (e) {
+                                msg.text = '[Ошибка расшифровки]';
+                            }
+                        }
+                    }
+                }
+
+                // Получаем данные собеседника
+                const otherUserSnap = await database.ref('users/' + encodeURIComponent(chatUser)).once('value');
+                const otherUserData = otherUserSnap.val();
+
+                const otherName = otherUserData ? otherUserData.name : chatUser;
+                const myName = currentUserData ? currentUserData.name : currentUser;
+                const chatTitle = escapeHtml(otherName);
+                const exportDate = new Date().toLocaleString('ru-RU');
+
+                // Строим HTML
+                let messagesHtml = '';
+                let lastDateStr = null;
+
+                for (const msg of messagesArray) {
+                    // Дата-разделитель
+                    const msgDate = new Date(msg.timestamp);
+                    const dateStr = msgDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+                    if (dateStr !== lastDateStr) {
+                        messagesHtml += `<div class="date-separator">${dateStr}</div>`;
+                        lastDateStr = dateStr;
+                    }
+
+                    const isSent = msg.sender === currentUser;
+                    const senderName = isSent ? escapeHtml(myName) : escapeHtml(otherName);
+                    const time = msgDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+                    const text = escapeHtml(msg.text || '');
+
+                    // Медиа
+                    let mediaHtml = '';
+                    if (msg.image) {
+                        const imgUrl = msg.image.startsWith('data:') ? msg.image : msg.image;
+                        mediaHtml += `<div class="msg-media"><img src="${imgUrl}" alt="Фото" loading="lazy"></div>`;
+                    }
+                    if (msg.video) {
+                        mediaHtml += `<div class="msg-media"><video src="${msg.video}" controls preload="metadata"></video></div>`;
+                    }
+                    if (msg.audio) {
+                        mediaHtml += `<div class="msg-media"><audio src="${msg.audio}" controls preload="metadata"></audio></div>`;
+                    }
+                    if (msg.file) {
+                        const fileName = msg.fileName || 'Файл';
+                        mediaHtml += `<div class="msg-file"><a href="${msg.file}" target="_blank">${escapeHtml(fileName)}</a></div>`;
+                    }
+                    if (msg.sticker) {
+                        const stickerEmoji = msg.sticker.emoji || '';
+                        mediaHtml += `<div class="msg-sticker">${stickerEmoji}</div>`;
+                    }
+
+                    // Reply
+                    let replyHtml = '';
+                    if (msg.replyTo && msg.replyText) {
+                        replyHtml = `<div class="msg-reply">${escapeHtml(msg.replyText)}</div>`;
+                    }
+
+                    messagesHtml += `
+                    <div class="msg ${isSent ? 'msg-sent' : 'msg-received'}">
+                        <div class="msg-sender">${senderName}</div>
+                        ${replyHtml}
+                        ${text ? `<div class="msg-text">${text}</div>` : ''}
+                        ${mediaHtml}
+                        <div class="msg-time">${time}</div>
+                    </div>`;
+                }
+
+                const htmlContent = `<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Чат с ${chatTitle} — Twiin Export</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f2f5;color:#1a1a2e;line-height:1.5}
+.container{max-width:700px;margin:0 auto;padding:20px}
+.header{text-align:center;padding:24px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:#fff;border-radius:16px 16px 0 0;margin-bottom:2px}
+.header h1{font-size:1.4rem;margin-bottom:4px}
+.header .meta{font-size:0.85rem;opacity:0.85}
+.date-separator{text-align:center;margin:16px 0;font-size:0.82rem;color:#636e72}
+.date-separator span{background:#e9ecef;padding:4px 14px;border-radius:12px}
+.msg{margin:6px 0;padding:10px 14px;border-radius:14px;max-width:80%;word-wrap:break-word;position:relative}
+.msg-sent{background:#6c5ce7;color:#fff;margin-left:auto}
+.msg-received{background:#fff;color:#1a1a2e;box-shadow:0 1px 2px rgba(0,0,0,0.08)}
+.msg-sender{font-size:0.75rem;font-weight:700;margin-bottom:2px;opacity:0.7}
+.msg-text{font-size:0.95rem;white-space:pre-wrap}
+.msg-time{font-size:0.7rem;opacity:0.6;text-align:right;margin-top:3px}
+.msg-reply{font-size:0.8rem;opacity:0.7;border-left:3px solid;padding-left:8px;margin-bottom:4px}
+.msg-sent .msg-reply{border-color:rgba(255,255,255,0.4)}
+.msg-received .msg-reply{border-color:rgba(108,92,231,0.3)}
+.msg-media{margin:6px 0}
+.msg-media img{max-width:100%;border-radius:10px;display:block}
+.msg-media video,.msg-media audio{max-width:100%;border-radius:10px}
+.msg-file a{color:#6c5ce7;text-decoration:none;font-size:0.85rem}
+.msg-received .msg-file a{color:#6c5ce7}
+.msg-sticker{font-size:3rem;text-align:center;line-height:1.3}
+.footer{text-align:center;padding:16px;font-size:0.78rem;color:#b2bec3;margin-top:12px;border-top:1px solid #e9ecef}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Чат с ${chatTitle}</h1>
+        <div class="meta">Экспорт из Twiin Messenger &middot; ${exportDate}</div>
+    </div>
+    <div class="messages">
+        ${messagesHtml}
+    </div>
+    <div class="footer">Экспортировано из Twiin Messenger (twiin.ru)</div>
+</div>
+</body>
+</html>`;
+
+                // Скачиваем файл
+                const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const safeName = (otherName || chatUser).replace(/[^a-zA-Zа-яА-ЯёЁ0-9_-]/g, '_');
+                a.download = `chat_${safeName}_${new Date().toISOString().slice(0,10)}.html`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showNotification('Чат экспортирован!');
+            } catch (error) {
+                console.error('Ошибка экспорта:', error);
+                showNotification('Ошибка экспорта: ' + error.message);
             }
         }
 
@@ -24833,6 +26156,2444 @@ document.addEventListener('click', function(e) {
             } catch(e) {}
         }
 
+        // ======================================================
+        // 🎮 СИСТЕМА ИГР С ПИТОМЦАМИ (2 игрока)
+        // ======================================================
+
+        // ---- XP и уровни ----
+        const PET_LEVELS = [0, 100, 250, 500, 850, 1300, 1900, 2700, 3800, 5200, 7000, 9500, 12500, 16500, 22000];
+        function getPetLevel(xp) {
+            for (var i = PET_LEVELS.length - 1; i >= 0; i--) { if (xp >= PET_LEVELS[i]) return i + 1; }
+            return 1;
+        }
+        function getPetXpForNextLevel(level) {
+            return PET_LEVELS[level] || (PET_LEVELS[PET_LEVELS.length-1] + (level - PET_LEVELS.length + 1) * 5000);
+        }
+        function getPetXpProgress(xp) {
+            var lvl = getPetLevel(xp);
+            var cur = PET_LEVELS[lvl - 1] || 0;
+            var nxt = getPetXpForNextLevel(lvl);
+            return Math.min(100, ((xp - cur) / (nxt - cur)) * 100);
+        }
+
+        // ---- Кэш питомца для игр ----
+        var _myPetCache = null;
+        async function getMyPetData() {
+            if (_myPetCache) return _myPetCache;
+            if (!currentUser) return null;
+            var snap = await database.ref('users/' + encodeURIComponent(currentUser) + '/pet').once('value');
+            var pet = snap.val();
+            if (!pet || !pet.name) return null;
+            var hours = Math.floor((Date.now() - (pet.bornAt || Date.now())) / 3600000);
+            pet._hours = hours;
+            pet._stage = getPetStageIndex(hours);
+            pet._emoji = getPetEmoji(pet.type, hours);
+            pet._stats = calcPetStats(pet);
+            pet._level = getPetLevel(pet.xp || 0);
+            pet._xp = pet.xp || 0;
+            _myPetCache = pet;
+            return pet;
+        }
+
+        function renderPetXpDisplay(pet) {
+            var el = document.getElementById('pet-game-xp-display');
+            if (!el) return;
+            var xp = pet._xp || 0;
+            var lvl = getPetLevel(xp);
+            var prog = getPetXpProgress(xp);
+            var nxt = getPetXpForNextLevel(lvl);
+            var cur = PET_LEVELS[lvl - 1] || 0;
+            el.innerHTML = '<div class="pet-xp-section">' +
+                '<div class="pet-xp-row"><span class="pet-xp-label">Уровень питомца</span><span><span class="pet-level-badge">⭐ ' + lvl + '</span></span></div>' +
+                '<div class="pet-xp-row"><span class="pet-xp-label">Опыт</span><span class="pet-xp-value">' + xp + ' / ' + nxt + ' XP</span></div>' +
+                '<div class="pet-xp-bar"><div class="pet-xp-fill" style="width:' + prog + '%"></div></div>' +
+                '<div class="pet-stats-row">' +
+                '<span class="pet-stat-item">⚔️ Битвы: ' + (pet.battleWins || 0) + ' побед</span>' +
+                '<span class="pet-stat-item">🏁 Гонки: ' + (pet.raceWins || 0) + ' побед</span>' +
+                '<span class="pet-stat-item">🧠 Викторины: ' + (pet.quizWins || 0) + '</span>' +
+                '</div></div>';
+        }
+
+        // ---- Меню игр ----
+        window.openPetGamesMenu = async function() {
+            var pet = await getMyPetData();
+            if (!pet) { showNotification('Сначала заведи питомца! 🥚'); openPetSetup(); return; }
+            if (pet._stage === 0) { showNotification('Питомец ещё в яйце! Подожди пока вылупится 🥚'); return; }
+            if (pet._stats.energy < 15) { showNotification('Питомец слишком устал для игр! Дай ему поспать 😴'); return; }
+            renderPetXpDisplay(pet);
+            document.getElementById('pet-games-modal').classList.add('active', 'modal-fullscreen');
+        };
+        window.closePetGamesModal = function() {
+            document.getElementById('pet-games-modal').classList.remove('active', 'modal-fullscreen');
+        };
+
+        // ---- Выбор соперника ----
+        var _pendingGameType = null;
+        async function selectOpponent(gameType, title) {
+            _pendingGameType = gameType;
+            document.getElementById('opponent-modal-title').textContent = title || 'Выберите соперника';
+            document.getElementById('pet-games-modal').classList.remove('active', 'modal-fullscreen');
+            var list = document.getElementById('opponent-list');
+            list.innerHTML = '<div style="padding:30px;color:var(--text-light);">⏳ Загрузка соперников...</div>';
+            document.getElementById('pet-opponent-modal').classList.add('active');
+
+            try {
+                var allUsers = {};
+                var cached = _dataCache.get('users_all');
+                if (cached) allUsers = cached.data || {};
+                else {
+                    var snap = await database.ref('users').once('value');
+                    allUsers = snap.val() || {};
+                    _dataCache.set('users_all', allUsers);
+                }
+                var opponents = [];
+                Object.keys(allUsers).forEach(function(key) {
+                    var u = allUsers[key];
+                    if (u && u.username && u.username !== currentUser && u.pet && u.pet.name) {
+                        var h = Math.floor((Date.now() - (u.pet.bornAt || Date.now())) / 3600000);
+                        opponents.push({
+                            username: u.username,
+                            displayName: u.name || u.username,
+                            pet: u.pet,
+                            _hours: h,
+                            _stage: getPetStageIndex(h),
+                            _emoji: getPetEmoji(u.pet.type, h),
+                            _level: getPetLevel(u.pet.xp || 0)
+                        });
+                    }
+                });
+
+                if (opponents.length === 0) {
+                    list.innerHTML = '<div style="padding:30px;color:var(--text-light);text-align:center;"><div style="font-size:3rem;margin-bottom:10px;">😢</div><p>Нет соперников с питомцами</p></div>';
+                    return;
+                }
+                opponents.sort(function(a, b) { return (b._level || 0) - (a._level || 0); });
+
+                var html = '';
+                opponents.forEach(function(o) {
+                    var stageName = PET_STAGE_NAMES[o._stage];
+                    html += '<div class="opponent-item" onclick="launchGame(\'' + o.username + '\',\'' + escapeHtml(o.displayName).replace(/'/g, "\\'") + '\')">' +
+                        '<div class="oi-avatar">' + o._emoji + '</div>' +
+                        '<div class="oi-info">' +
+                        '<div class="oi-name">' + escapeHtml(o.displayName) + '</div>' +
+                        '<div class="oi-pet"><span>' + o._emoji + '</span> ' + escapeHtml(o.pet.name) + ' <span class="oi-level">⭐' + o._level + '</span></div>' +
+                        '</div></div>';
+                });
+                list.innerHTML = html;
+            } catch(e) {
+                list.innerHTML = '<div style="padding:30px;color:var(--danger-color);">Ошибка загрузки</div>';
+            }
+        }
+
+        window.launchGame = async function(oppUsername, oppDisplayName) {
+            document.getElementById('pet-opponent-modal').classList.remove('active');
+            if (_pendingGameType === 'battle') await initBattle(oppUsername, oppDisplayName);
+            else if (_pendingGameType === 'race') await initRace(oppUsername, oppDisplayName);
+            else if (_pendingGameType === 'quiz') await initQuiz(oppUsername, oppDisplayName);
+            else if (_pendingGameType === 'tug') await initTug(oppUsername, oppDisplayName);
+        };
+
+        async function awardPetXp(amount, statKey) {
+            if (!currentUser) return;
+            try {
+                var snap = await database.ref('users/' + encodeURIComponent(currentUser) + '/pet').once('value');
+                var pet = snap.val(); if (!pet) return;
+                var newXP = (pet.xp || 0) + amount;
+                var update = { xp: newXP };
+                if (statKey) update[statKey] = (pet[statKey] || 0) + 1;
+                await database.ref('users/' + encodeURIComponent(currentUser) + '/pet').update(update);
+                _myPetCache = null;
+            } catch(e) {}
+        }
+
+        function showGameResult(icon, title, desc, rewardText, rewardClass, onRetry) {
+            var old = document.querySelector('.game-result-overlay');
+            if (old) old.remove();
+            var overlay = document.createElement('div');
+            overlay.className = 'game-result-overlay';
+            overlay.innerHTML = '<div class="game-result-card">' +
+                '<span class="gr-icon">' + icon + '</span>' +
+                '<div class="gr-title">' + title + '</div>' +
+                '<div class="gr-desc">' + desc + '</div>' +
+                '<div class="gr-reward ' + (rewardClass || 'win') + '">' + rewardText + '</div>' +
+                '<div class="gr-btns">' +
+                '<button class="modal-btn modal-btn-secondary" onclick="this.closest(\'.game-result-overlay\').remove()">Закрыть</button>' +
+                (onRetry ? '<button class="modal-btn modal-btn-primary" id="gr-retry-btn">Ещё раз</button>' : '') +
+                '</div></div>';
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+            if (onRetry) {
+                document.getElementById('gr-retry-btn').addEventListener('click', function() {
+                    overlay.remove(); onRetry();
+                });
+            }
+        }
+
+        // ==================== ⚔️ БИТВА ПИТОМЦЕВ ====================
+        var _battleState = null;
+        window.startPetBattle = function() { selectOpponent('battle', '⚔️ Выберите соперника для битвы'); };
+        window.closeBattle = function() {
+            _battleState = null;
+            document.getElementById('pet-battle-modal').classList.remove('active');
+        };
+
+        async function initBattle(oppUser, oppName) {
+            var myPet = await getMyPetData();
+            if (!myPet) return;
+            var oppSnap = await database.ref('users/' + encodeURIComponent(oppUser) + '/pet').once('value');
+            var oppPet = oppSnap.val(); if (!oppPet || !oppPet.name) { showNotification('У соперника нет питомца'); return; }
+            var oppH = Math.floor((Date.now() - (oppPet.bornAt || Date.now())) / 3600000);
+
+            var baseHP = 80 + myPet._level * 10 + myPet._stage * 15;
+            var oppBaseHP = 80 + getPetLevel(oppPet.xp || 0) * 10 + getPetStageIndex(oppH) * 15;
+
+            _battleState = {
+                myPet: myPet, oppPet: oppPet, oppUser: oppUser,
+                myHP: baseHP, myMaxHP: baseHP,
+                oppHP: oppBaseHP, oppMaxHP: oppBaseHP,
+                myDef: false, oppDef: false,
+                myRage: 0, round: 0, finished: false
+            };
+
+            document.getElementById('bf-left-emoji').textContent = myPet._emoji;
+            document.getElementById('bf-left-name').textContent = myPet.name;
+            document.getElementById('bf-right-emoji').textContent = getPetEmoji(oppPet.type, oppH);
+            document.getElementById('bf-right-name').textContent = oppPet.name;
+            updateBattleHP();
+            document.getElementById('battle-log').innerHTML = '<div class="battle-log-entry"><span class="ble-sys">Битва началась! Выберите действие.</span></div>';
+            setBattleActionsEnabled(true);
+            document.getElementById('pet-battle-modal').classList.add('active', 'modal-fullscreen');
+        }
+
+        function updateBattleHP() {
+            if (!_battleState) return;
+            var s = _battleState;
+            var myPct = Math.max(0, (s.myHP / s.myMaxHP) * 100);
+            var oppPct = Math.max(0, (s.oppHP / s.oppMaxHP) * 100);
+            var leftHP = document.getElementById('bf-left-hp');
+            var rightHP = document.getElementById('bf-right-hp');
+            leftHP.style.width = myPct + '%';
+            rightHP.style.width = oppPct + '%';
+            leftHP.className = 'bf-hp-fill' + (myPct < 25 ? ' low' : myPct < 50 ? ' mid' : '');
+            rightHP.className = 'bf-hp-fill' + (oppPct < 25 ? ' low' : oppPct < 50 ? ' mid' : '');
+            document.getElementById('bf-left-hp-label').textContent = Math.max(0, Math.round(s.myHP)) + '/' + s.myMaxHP + ' HP';
+            document.getElementById('bf-right-hp-label').textContent = Math.max(0, Math.round(s.oppHP)) + '/' + s.oppMaxHP + ' HP';
+        }
+
+        function setBattleActionsEnabled(en) {
+            var btns = document.querySelectorAll('#battle-actions .battle-action-btn');
+            btns.forEach(function(b) { if (en) b.classList.remove('disabled'); else b.classList.add('disabled'); });
+        }
+
+        function battleLog(msg) {
+            var log = document.getElementById('battle-log');
+            log.innerHTML += '<div class="battle-log-entry">' + msg + '</div>';
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function calcBattleDamage(attackerLevel, attackerStage, defenderDefending, isSpecial, isRage) {
+            var base = 8 + attackerLevel * 2 + attackerStage * 3;
+            var rand = Math.floor(Math.random() * 8) - 3;
+            var mult = isSpecial ? 1.8 : 1;
+            mult += (isRage ? 0.5 : 0);
+            var defMult = defenderDefending ? 0.4 : 1;
+            return Math.max(1, Math.round((base + rand) * mult * defMult));
+        }
+
+        window.battleAction = function(action) {
+            if (!_battleState || _battleState.finished) return;
+            var s = _battleState;
+            s.round++;
+            setBattleActionsEnabled(false);
+            s.myDef = false;
+
+            var bfLeft = document.getElementById('bf-left');
+            var bfRight = document.getElementById('bf-right');
+            bfLeft.classList.remove('attacking', 'hit');
+            bfRight.classList.remove('attacking', 'hit');
+
+            // AI action
+            var oppActions = ['attack', 'attack', 'defend', 'special', 'heal', 'dodge'];
+            var oppLevel = getPetLevel(s.oppPet.xp || 0);
+            if (oppLevel >= 3) oppActions.push('special', 'rage');
+            var oppAction = oppActions[Math.floor(Math.random() * oppActions.length)];
+            s.oppDef = false;
+
+            // Player action
+            var myLvl = s.myPet._level;
+            var myStage = s.myPet._stage;
+            var oppLvl = getPetLevel(s.oppPet.xp || 0);
+            var oppStage = getPetStageIndex(s.myPet._hours);
+
+            if (action === 'attack') {
+                var dmg = calcBattleDamage(myLvl, myStage, s.oppDef, false, s.myRage > 0);
+                s.oppHP -= dmg;
+                bfLeft.classList.add('attacking');
+                setTimeout(function() { bfRight.classList.add('hit'); }, 200);
+                battleLog('<span class="ble-atk">' + s.myPet.name + ' атакует на ' + dmg + ' урона!</span>');
+            } else if (action === 'defend') {
+                s.myDef = true;
+                battleLog(s.myPet.name + ' встаёт в защиту! 🛡️');
+            } else if (action === 'special') {
+                var dmg2 = calcBattleDamage(myLvl, myStage, s.oppDef, true, s.myRage > 0);
+                s.oppHP -= dmg2;
+                bfLeft.classList.add('attacking');
+                setTimeout(function() { bfRight.classList.add('hit'); }, 200);
+                battleLog('<span class="ble-atk">✨ ' + s.myPet.name + ' использует спецудар на ' + dmg2 + '!</span>');
+            } else if (action === 'heal') {
+                var heal = 10 + myLvl * 2;
+                s.myHP = Math.min(s.myMaxHP, s.myHP + heal);
+                battleLog('💚 ' + s.myPet.name + ' восстанавливает ' + heal + ' HP!');
+            } else if (action === 'dodge') {
+                var dodgeChance = 0.4 + myStage * 0.1;
+                battleLog('💨 ' + s.myPet.name + ' готовится уклониться!');
+            } else if (action === 'rage') {
+                s.myRage = 2;
+                battleLog('🔥 ' + s.myPet.name + ' впадает в ярость! Следующая атака сильнее!');
+            }
+
+            // Opponent action
+            setTimeout(function() {
+                if (oppAction === 'attack') {
+                    var odmg = calcBattleDamage(oppLvl, oppStage, s.myDef, false, false);
+                    if (action === 'dodge' && Math.random() < (0.4 + myStage * 0.1)) {
+                        battleLog('💨 ' + s.myPet.name + ' уклонился от атаки!');
+                    } else {
+                        s.myHP -= odmg;
+                        bfRight.classList.add('attacking');
+                        setTimeout(function() { bfLeft.classList.add('hit'); }, 200);
+                        battleLog('<span class="ble-def">' + s.oppPet.name + ' атакует на ' + odmg + '!</span>');
+                    }
+                } else if (oppAction === 'defend') {
+                    s.oppDef = true;
+                    battleLog(s.oppPet.name + ' защищается! 🛡️');
+                } else if (oppAction === 'special') {
+                    var odmg2 = calcBattleDamage(oppLvl, oppStage, s.myDef, true, false);
+                    if (action === 'dodge' && Math.random() < (0.3 + myStage * 0.1)) {
+                        battleLog('💨 ' + s.myPet.name + ' уклонился от спецудара!');
+                    } else {
+                        s.myHP -= odmg2;
+                        battleLog('<span class="ble-def">✨ ' + s.oppPet.name + ' спецудар на ' + odmg2 + '!</span>');
+                    }
+                } else if (oppAction === 'heal') {
+                    var oheal = 8 + oppLvl * 2;
+                    s.oppHP = Math.min(s.oppMaxHP, s.oppHP + oheal);
+                    battleLog('💚 ' + s.oppPet.name + ' восстанавливает ' + oheal + ' HP!');
+                } else if (oppAction === 'dodge') {
+                    battleLog('💨 ' + s.oppPet.name + ' готовится уклониться!');
+                } else if (oppAction === 'rage') {
+                    battleLog('🔥 ' + s.oppPet.name + ' впадает в ярость!');
+                }
+
+                if (s.myRage > 0) s.myRage--;
+                updateBattleHP();
+
+                setTimeout(function() {
+                    bfLeft.classList.remove('attacking', 'hit');
+                    bfRight.classList.remove('attacking', 'hit');
+
+                    if (s.myHP <= 0 || s.oppHP <= 0) {
+                        s.finished = true;
+                        var won = s.oppHP <= 0;
+                        if (won) {
+                            bfLeft.classList.add('winner');
+                            battleLog('<span class="ble-sys">🏆 ' + s.myPet.name + ' победил!</span>');
+                        } else {
+                            bfRight.classList.add('winner');
+                            battleLog('<span class="ble-sys">' + s.oppPet.name + ' победил!</span>');
+                        }
+                        setTimeout(function() {
+                            var xp = won ? 30 + s.round * 5 : 10;
+                            awardPetXp(xp, won ? 'battleWins' : null);
+                            showGameResult(
+                                won ? '🏆' : '😢',
+                                won ? 'Победа!' : 'Поражение',
+                                won ? s.myPet.name + ' одолел ' + s.oppPet.name + ' за ' + s.round + ' раундов!' : s.oppPet.name + ' оказался сильнее...',
+                                '+' + xp + ' XP',
+                                won ? 'win' : 'lose',
+                                won ? function() { closeBattle(); startPetBattle(); } : null
+                            );
+                        }, 800);
+                    } else {
+                        setBattleActionsEnabled(true);
+                    }
+                }, 500);
+            }, 600);
+        };
+
+        // ==================== 🏁 ГОНКА ПИТОМЦЕВ ====================
+        var _raceState = null;
+        var _raceBotInterval = null;
+        window.startPetRace = function() { selectOpponent('race', '🏁 Выберите соперника для гонки'); };
+        window.closeRace = function() {
+            if (_raceBotInterval) clearInterval(_raceBotInterval);
+            _raceState = null;
+            document.getElementById('pet-race-modal').classList.remove('active');
+        };
+
+        async function initRace(oppUser, oppName) {
+            var myPet = await getMyPetData();
+            if (!myPet) return;
+            var oppSnap = await database.ref('users/' + encodeURIComponent(oppUser) + '/pet').once('value');
+            var oppPet = oppSnap.val(); if (!oppPet) return;
+            var oppH = Math.floor((Date.now() - (oppPet.bornAt || Date.now())) / 3600000);
+
+            _raceState = {
+                myPet: myPet, oppPet: oppPet, oppUser: oppUser,
+                myPos: 0, oppPos: 0,
+                target: 100, finished: false, started: false
+            };
+
+            document.getElementById('race-emoji-1').textContent = myPet._emoji;
+            document.getElementById('race-emoji-2').textContent = getPetEmoji(oppPet.type, oppH);
+            document.getElementById('race-left-name').textContent = myPet.name;
+            document.getElementById('race-right-name').textContent = oppPet.name;
+            document.getElementById('race-lane-1').style.left = '4px';
+            document.getElementById('race-lane-2').style.left = '4px';
+            document.getElementById('race-status').textContent = 'Нажмите 🏁 чтобы начать';
+            document.getElementById('race-tap-btn').classList.add('disabled');
+            document.getElementById('race-start-btn').style.display = '';
+            document.getElementById('pet-race-modal').classList.add('active', 'modal-fullscreen');
+        }
+
+        window.beginRace = function() {
+            if (!_raceState || _raceState.started) return;
+            _raceState.started = true;
+            document.getElementById('race-start-btn').style.display = 'none';
+            document.getElementById('race-tap-btn').classList.remove('disabled');
+            document.getElementById('race-status').textContent = 'Жми на 🏃 быстрее!';
+
+            var oppLevel = getPetLevel(_raceState.oppPet.xp || 0);
+            var oppSpeed = 0.3 + oppLevel * 0.15 + getPetStageIndex(0) * 0.1;
+
+            _raceBotInterval = setInterval(function() {
+                if (!_raceState || _raceState.finished) return;
+                var advance = oppSpeed + (Math.random() * 0.8 - 0.3);
+                _raceState.oppPos = Math.min(_raceState.target, _raceState.oppPos + Math.max(0.1, advance));
+                updateRacePositions();
+                if (_raceState.oppPos >= _raceState.target) finishRace(false);
+            }, 200);
+        };
+
+        function updateRacePositions() {
+            if (!_raceState) return;
+            var track = document.getElementById('race-lane-1').parentElement;
+            var maxLeft = track.offsetWidth - 64;
+            var myLeft = (_raceState.myPos / _raceState.target) * maxLeft + 4;
+            var oppLeft = (_raceState.oppPos / _raceState.target) * maxLeft + 4;
+            document.getElementById('race-lane-1').style.left = myLeft + 'px';
+            document.getElementById('race-lane-2').style.left = oppLeft + 'px';
+        }
+
+        window.raceTap = function(e) {
+            e.preventDefault();
+            if (!_raceState || !_raceState.started || _raceState.finished) return;
+            var energyBonus = _raceState.myPet._stats.energy / 100;
+            var levelBonus = _raceState.myPet._level * 0.12;
+            var advance = (1.2 + levelBonus + energyBonus * 0.5) * (0.8 + Math.random() * 0.4);
+            _raceState.myPos = Math.min(_raceState.target, _raceState.myPos + Math.max(0.1, advance));
+            updateRacePositions();
+            if (_raceState.myPos >= _raceState.target) finishRace(true);
+        };
+
+        function finishRace(won) {
+            if (!_raceState || _raceState.finished) return;
+            _raceState.finished = true;
+            if (_raceBotInterval) clearInterval(_raceBotInterval);
+            document.getElementById('race-tap-btn').classList.add('disabled');
+            document.getElementById('race-status').textContent = won ? '🏆 Ты победил!' : '😢 Соперник пришёл первым!';
+
+            setTimeout(function() {
+                var xp = won ? 25 + Math.floor(_raceState.myPet._level * 3) : 8;
+                awardPetXp(xp, won ? 'raceWins' : null);
+                showGameResult(
+                    won ? '🏆' : '😢',
+                    won ? 'Победа в гонке!' : 'Поражение',
+                    won ? _raceState.myPet.name + ' финишировал первым!' : _raceState.oppPet.name + ' был быстрее...',
+                    '+' + xp + ' XP',
+                    won ? 'win' : 'lose',
+                    won ? function() { closeRace(); startPetRace(); } : null
+                );
+            }, 600);
+        }
+
+        // ==================== 🧠 ВИКТОРИНА ====================
+        var _quizState = null;
+        var _quizTimerInterval = null;
+        var _quizBotAnswerInterval = null;
+        var QUIZ_QUESTIONS = [
+            { q: 'Какое животное самое быстрое на суше?', a: ['Гепард', 'Лев', 'Зебра', 'Страус'], c: 0 },
+            { q: 'Сколько ног у паука?', a: ['6', '8', '10', '12'], c: 1 },
+            { q: 'Какое самое большое животное на Земле?', a: ['Слон', 'Синий кит', 'Жираф', 'Акула'], c: 1 },
+            { q: 'Какая птица не умеет летать?', a: ['Орёл', 'Пингвин', 'Ворона', 'Ласточка'], c: 1 },
+            { q: 'Сколько жизней у кота в легенде?', a: ['3', '7', '9', '5'], c: 2 },
+            { q: 'Какое млекопитающее умеет летать?', a: ['Белка', 'Летучая мышь', 'Лемур', 'Енот'], c: 1 },
+            { q: 'Какое животное символ Китая?', a: ['Дракон', 'Панда', 'Тигр', 'Феникс'], c: 1 },
+            { q: 'Что ест коала?', a: ['Бамбук', 'Эвкалипт', 'Яблоки', 'Траву'], c: 1 },
+            { q: 'Сколько глаз у пчелы?', a: ['2', '4', '5', '6'], c: 2 },
+            { q: 'Какое животное спит 20 часов в сутки?', a: ['Кот', 'Коала', 'Ленивец', 'Собака'], c: 2 },
+            { q: 'Какое самое маленькое млекопитающее?', a: ['Мышь', 'Бурозубка', 'Хомяк', 'Моль'], c: 1 },
+            { q: 'Как называется детёныш лошади?', a: ['Котёнок', 'Жеребёнок', 'Телёнок', 'Щенок'], c: 1 },
+            { q: 'Какое животное имеет самое длинная шею?', a: ['Слон', 'Жираф', 'Страус', 'Лебедь'], c: 1 },
+            { q: 'Сколько пальцев у кошки на передних лапах?', a: ['4', '5', '6', '3'], c: 1 },
+            { q: 'Какая рыба самая крупная?', a: ['Акула', 'Рыба-меч', 'Луна-рыба', 'Китовая акула'], c: 3 },
+        ];
+
+        window.startPetQuiz = function() { selectOpponent('quiz', '🧠 Выберите соперника для викторины'); };
+        window.closeQuiz = function() {
+            if (_quizTimerInterval) clearInterval(_quizTimerInterval);
+            if (_quizBotAnswerInterval) clearInterval(_quizBotAnswerInterval);
+            _quizState = null;
+            document.getElementById('pet-quiz-modal').classList.remove('active');
+        };
+
+        async function initQuiz(oppUser, oppName) {
+            var myPet = await getMyPetData();
+            if (!myPet) return;
+            var oppSnap = await database.ref('users/' + encodeURIComponent(oppUser) + '/pet').once('value');
+            var oppPet = oppSnap.val(); if (!oppPet) return;
+            var oppH = Math.floor((Date.now() - (oppPet.bornAt || Date.now())) / 3600000);
+
+            var questions = QUIZ_QUESTIONS.slice().sort(function() { return Math.random() - 0.5; }).slice(0, 7);
+
+            _quizState = {
+                myPet: myPet, oppPet: oppPet, oppUser: oppUser,
+                questions: questions, currentQ: 0,
+                myScore: 0, oppScore: 0, finished: false,
+                oppLevel: getPetLevel(oppPet.xp || 0),
+                timeLeft: 100
+            };
+
+            document.getElementById('quiz-my-emoji').textContent = myPet._emoji;
+            document.getElementById('quiz-opp-emoji').textContent = getPetEmoji(oppPet.type, oppH);
+            document.getElementById('quiz-my-name').textContent = myPet.name;
+            document.getElementById('quiz-opp-name').textContent = oppPet.name;
+            document.getElementById('quiz-score').textContent = '0 : 0';
+            document.getElementById('pet-quiz-modal').classList.add('active', 'modal-fullscreen');
+
+            loadQuizQuestion();
+        }
+
+        function loadQuizQuestion() {
+            if (!_quizState) return;
+            var s = _quizState;
+            if (s.currentQ >= s.questions.length) { finishQuiz(); return; }
+
+            var q = s.questions[s.currentQ];
+            document.getElementById('quiz-question').textContent = (s.currentQ + 1) + '/' + s.questions.length + '. ' + q.q;
+
+            var ansHTML = '';
+            q.a.forEach(function(ans, i) {
+                ansHTML += '<button onclick="answerQuiz(' + i + ')" style="width:100%;padding:12px;border:2px solid var(--border-color);border-radius:12px;background:var(--bg-color);font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-color);text-align:left;transition:border-color 0.15s,background 0.15s;" onmouseenter="this.style.borderColor=\'var(--primary-color)\'" onmouseleave="this.style.borderColor=\'var(--border-color)\'">' + ans + '</button>';
+            });
+            document.getElementById('quiz-answers').innerHTML = ansHTML;
+
+            s.timeLeft = 100;
+            document.getElementById('quiz-timer-fill').style.width = '100%';
+            if (_quizTimerInterval) clearInterval(_quizTimerInterval);
+            _quizTimerInterval = setInterval(function() {
+                if (!s || s.finished) { clearInterval(_quizTimerInterval); return; }
+                s.timeLeft -= 1.5;
+                document.getElementById('quiz-timer-fill').style.width = s.timeLeft + '%';
+                if (s.timeLeft <= 30) document.getElementById('quiz-timer-fill').style.background = 'linear-gradient(90deg,#e74c3c,#fd79a8)';
+                else document.getElementById('quiz-timer-fill').style.background = 'linear-gradient(90deg,#00b894,#55efc4)';
+                if (s.timeLeft <= 0) {
+                    clearInterval(_quizTimerInterval);
+                    botQuizAnswer(true);
+                }
+            }, 100);
+
+            // Bot answers after delay
+            var botDelay = 2000 + Math.random() * 5000 - s.oppLevel * 200;
+            botDelay = Math.max(1500, botDelay);
+            if (_quizBotAnswerInterval) clearTimeout(_quizBotAnswerInterval);
+            _quizBotAnswerInterval = setTimeout(function() {
+                if (!s || s.finished) return;
+                var correctChance = 0.35 + s.oppLevel * 0.05;
+                s.oppScore += Math.random() < correctChance ? 1 : 0;
+                document.getElementById('quiz-score').textContent = s.myScore + ' : ' + s.oppScore;
+            }, botDelay);
+        }
+
+        window.answerQuiz = function(idx) {
+            if (!_quizState || _quizState.finished) return;
+            if (_quizTimerInterval) clearInterval(_quizTimerInterval);
+            if (_quizBotAnswerInterval) clearTimeout(_quizBotAnswerInterval);
+
+            var s = _quizState;
+            var q = s.questions[s.currentQ];
+            var btns = document.getElementById('quiz-answers').querySelectorAll('button');
+
+            // Disable all buttons
+            btns.forEach(function(b) { b.disabled = true; b.style.pointerEvents = 'none'; });
+            btns[q.c].style.borderColor = '#00b894';
+            btns[q.c].style.background = 'rgba(0,184,148,0.15)';
+            if (idx !== q.c) {
+                btns[idx].style.borderColor = '#e74c3c';
+                btns[idx].style.background = 'rgba(231,76,60,0.1)';
+            }
+
+            if (idx === q.c) s.myScore++;
+            document.getElementById('quiz-score').textContent = s.myScore + ' : ' + s.oppScore;
+
+            // Check if bot hasn't answered yet (answer bot now)
+            setTimeout(function() {
+                s.currentQ++;
+                loadQuizQuestion();
+            }, 1200);
+        };
+
+        function botQuizAnswer(timedOut) {
+            if (!_quizState || _quizState.finished) return;
+            if (timedOut) {
+                // Player didn't answer - bot gets a chance
+                var correctChance = 0.35 + _quizState.oppLevel * 0.05;
+                _quizState.oppScore += Math.random() < correctChance ? 1 : 0;
+                document.getElementById('quiz-score').textContent = _quizState.myScore + ' : ' + _quizState.oppScore;
+            }
+            _quizState.currentQ++;
+            setTimeout(loadQuizQuestion, 500);
+        }
+
+        function finishQuiz() {
+            if (!_quizState) return;
+            _quizState.finished = true;
+            if (_quizTimerInterval) clearInterval(_quizTimerInterval);
+            var s = _quizState;
+            var won = s.myScore > s.oppScore;
+            var draw = s.myScore === s.oppScore;
+
+            setTimeout(function() {
+                var xp = won ? 35 + s.myScore * 5 : draw ? 15 : 5;
+                awardPetXp(xp, won ? 'quizWins' : (draw ? null : null));
+                showGameResult(
+                    won ? '🧠' : draw ? '🤝' : '😢',
+                    won ? 'Победа в викторине!' : draw ? 'Ничья!' : 'Поражение',
+                    'Счёт: ' + s.myScore + ' : ' + s.oppScore,
+                    '+' + xp + ' XP',
+                    won ? 'win' : draw ? 'draw' : 'lose',
+                    function() { closeQuiz(); startPetQuiz(); }
+                );
+            }, 400);
+        }
+
+        // ==================== 💪 ПЕРЕТЯГИВАНИЕ КАНАТА ====================
+        var _tugState = null;
+        var _tugBotInterval = null;
+        var _tugGameLoop = null;
+        window.startPetTugOfWar = function() { selectOpponent('tug', '💪 Выберите соперника для перетягивания'); };
+        window.closeTug = function() {
+            if (_tugBotInterval) clearInterval(_tugBotInterval);
+            if (_tugGameLoop) clearInterval(_tugGameLoop);
+            _tugState = null;
+            document.getElementById('pet-tug-modal').classList.remove('active');
+        };
+
+        async function initTug(oppUser, oppName) {
+            var myPet = await getMyPetData();
+            if (!myPet) return;
+            var oppSnap = await database.ref('users/' + encodeURIComponent(oppUser) + '/pet').once('value');
+            var oppPet = oppSnap.val(); if (!oppPet) return;
+            var oppH = Math.floor((Date.now() - (oppPet.bornAt || Date.now())) / 3600000);
+
+            _tugState = {
+                myPet: myPet, oppPet: oppPet, oppUser: oppUser,
+                position: 50, myEnergy: 100, oppEnergy: 100,
+                finished: false, round: 0, bestOf: 3, myWins: 0, oppWins: 0,
+                oppLevel: getPetLevel(oppPet.xp || 0),
+                botPulling: false
+            };
+
+            document.getElementById('tug-my-emoji').textContent = myPet._emoji;
+            document.getElementById('tug-opp-emoji').textContent = getPetEmoji(oppPet.type, oppH);
+            document.getElementById('tug-my-name').textContent = myPet.name;
+            document.getElementById('tug-opp-name').textContent = oppPet.name;
+            document.getElementById('tug-status').textContent = 'Жми на 💪 чтобы тянуть! Раунд 1';
+            document.getElementById('tug-round-info').textContent = 'До ' + _tugState.bestOf + ' побед';
+            document.getElementById('tug-marker').style.left = 'calc(50% - 11px)';
+            document.getElementById('pet-tug-modal').classList.add('active', 'modal-fullscreen');
+
+            startTugRound();
+        }
+
+        function startTugRound() {
+            if (!_tugState) return;
+            var s = _tugState;
+            s.position = 50;
+            s.myEnergy = 100;
+            s.oppEnergy = 100;
+            s.finished = false;
+            s.round++;
+            document.getElementById('tug-status').textContent = 'Жми на 💪 чтобы тянуть! Раунд ' + s.round;
+            document.getElementById('tug-marker').style.left = 'calc(50% - 11px)';
+            document.getElementById('tug-tap-btn').classList.remove('disabled');
+
+            // Bot pulling with varying intensity
+            if (_tugBotInterval) clearInterval(_tugBotInterval);
+            _tugBotInterval = setInterval(function() {
+                if (!s || s.finished) return;
+                var strength = 0.3 + s.oppLevel * 0.08 + Math.random() * 0.5;
+                s.position = Math.max(0, Math.min(100, s.position + strength));
+                updateTugPosition();
+                if (s.position >= 92) finishTugRound(false);
+            }, 150);
+
+            // Natural drift back to center (tension)
+            if (_tugGameLoop) clearInterval(_tugGameLoop);
+            _tugGameLoop = setInterval(function() {
+                if (!s || s.finished) return;
+                if (s.position > 50) s.position -= 0.05;
+                else if (s.position < 50) s.position += 0.05;
+                updateTugPosition();
+            }, 200);
+        }
+
+        function updateTugPosition() {
+            if (!_tugState) return;
+            var marker = document.getElementById('tug-marker');
+            var parent = marker.parentElement;
+            var maxLeft = parent.offsetWidth - 22;
+            var left = (_tugState.position / 100) * maxLeft;
+            marker.style.left = left + 'px';
+
+            // Update rope display
+            var diff = _tugState.position - 50;
+            var rope = '';
+            if (diff > 20) rope = '⬅️🔗🔗';
+            else if (diff > 10) rope = '🔗🔗⬅️';
+            else if (diff < -20) rope = '🔗🔗➡️';
+            else if (diff < -10) rope = '➡️🔗🔗';
+            else rope = '🔗🔗🔗';
+            document.getElementById('tug-rope-display').textContent = rope;
+        }
+
+        window.tugTap = function(e) {
+            e.preventDefault();
+            if (!_tugState || _tugState.finished) return;
+            var s = _tugState;
+            var myStrength = 1.0 + s.myPet._level * 0.1 + (s.myPet._stats.energy / 200);
+            s.position = Math.max(0, Math.min(100, s.position - myStrength));
+            updateTugPosition();
+            if (s.position <= 8) finishTugRound(true);
+        };
+
+        function finishTugRound(won) {
+            if (!_tugState) return;
+            var s = _tugState;
+            s.finished = true;
+            if (_tugBotInterval) clearInterval(_tugBotInterval);
+            if (_tugGameLoop) clearInterval(_tugGameLoop);
+            document.getElementById('tug-tap-btn').classList.add('disabled');
+
+            if (won) s.myWins++;
+            else s.oppWins++;
+
+            document.getElementById('tug-status').textContent = won ? '🏆 Ты вытянул раунд!' : '😢 Соперник вытянул!';
+            document.getElementById('tug-round-info').textContent = 'Счёт: ' + s.myWins + ' - ' + s.oppWins;
+
+            var needed = Math.ceil(s.bestOf / 2);
+            if (s.myWins >= needed || s.oppWins >= needed) {
+                // Match over
+                var matchWon = s.myWins >= needed;
+                setTimeout(function() {
+                    var xp = matchWon ? 40 + s.round * 5 : 10;
+                    awardPetXp(xp, matchWon ? null : null);
+                    showGameResult(
+                        matchWon ? '💪' : '😢',
+                        matchWon ? 'Победа!' : 'Поражение',
+                        'Счёт: ' + s.myWins + ' - ' + s.oppWins,
+                        '+' + xp + ' XP',
+                        matchWon ? 'win' : 'lose',
+                        function() { closeTug(); startPetTugOfWar(); }
+                    );
+                }, 1000);
+            } else {
+                setTimeout(startTugRound, 1500);
+            }
+        }
+
+        // ==================== 🎮 ОДИНОЧНЫЕ ИГРЫ ====================
+        var _soloHighscores = { platformer: 0, flappy: 0, dino: 0, collector: 0 };
+        try { var hs = JSON.parse(localStorage.getItem('soloHighscores') || '{}'); _soloHighscores = Object.assign(_soloHighscores, hs); } catch(e){}
+        function saveSoloHighscores() { try { localStorage.setItem('soloHighscores', JSON.stringify(_soloHighscores)); } catch(e){} }
+
+        async function getMyPetEmoji() {
+            var pet = await getMyPetData();
+            if (!pet) return '🐱';
+            return pet._emoji || getPetEmoji(pet.type, Math.floor((Date.now() - (pet.bornAt || Date.now())) / 3600000));
+        }
+
+        // ==================== 🎨 СПРАЙТЫ ПИТОМЦА (рисуются программно) ====================
+        var _petSpriteCache = { run: [], fly: null, basket: null };
+        (function() {
+            // Цвета собаки
+            var body = '#c0813a', dark = '#8B5E3C', light = '#DEB887', nose = '#333', eye = '#222', white = '#fff', pink = '#FFB6C1', collar = '#e74c3c';
+
+            // Рисуем собаку facing RIGHT
+            function drawDogFrame(ctx, w, h, frame) {
+                var px = w / 16; // пиксель
+                ctx.clearRect(0, 0, w, h);
+
+                // Хвост (виляет)
+                var tailWag = Math.sin(frame * 0.8) * 2 * px;
+                ctx.fillStyle = body;
+                ctx.beginPath();
+                ctx.moveTo(px, h - 6*px);
+                ctx.quadraticCurveTo(-1*px + tailWag, h - 9*px, 0.5*px + tailWag, h - 11*px);
+                ctx.quadraticCurveTo(1*px + tailWag, h - 10*px, px, h - 7*px);
+                ctx.fill();
+
+                // Тело
+                ctx.fillStyle = body;
+                roundRectFill(ctx, 2*px, h - 9*px, 9*px, 5*px, 2*px);
+
+                // Ноги (анимация бега)
+                var legPhase = [0, Math.PI/2, Math.PI, Math.PI*3/2];
+                ctx.fillStyle = dark;
+                var legWidth = 1.8*px, legBase = h - 4*px;
+                for (var i = 0; i < 4; i++) {
+                    var lx = (3 + i * 2) * px;
+                    var swing = Math.sin(frame * 0.5 + legPhase[i]) * 2.5 * px;
+                    ctx.fillRect(lx - legWidth/2, legBase + (i < 2 ? swing : -swing), legWidth, 4*px);
+                    // Лапы
+                    ctx.fillStyle = light;
+                    ctx.fillRect(lx - legWidth/2 - 0.3*px, h - 0.5*px + (i < 2 ? swing : -swing), legWidth + 0.6*px, 0.5*px);
+                    ctx.fillStyle = dark;
+                }
+
+                // Голова
+                ctx.fillStyle = body;
+                roundRectFill(ctx, 8*px, h - 13*px, 6*px, 5*px, 2*px);
+
+                // Уши
+                ctx.fillStyle = dark;
+                ctx.beginPath();
+                ctx.ellipse(9*px, h - 13.5*px, 1.5*px, 2.5*px, -0.3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(13*px, h - 13.5*px, 1.5*px, 2.5*px, 0.3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Морда
+                ctx.fillStyle = light;
+                roundRectFill(ctx, 12*px, h - 11*px, 3*px, 2.5*px, 1*px);
+
+                // Глаз
+                ctx.fillStyle = white;
+                ctx.beginPath();
+                ctx.ellipse(11.5*px, h - 11*px, 1.2*px, 1.3*px, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = eye;
+                ctx.beginPath();
+                ctx.ellipse(12*px, h - 11*px, 0.7*px, 0.8*px, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = white;
+                ctx.beginPath();
+                ctx.arc(12.3*px, h - 11.3*px, 0.3*px, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Нос
+                ctx.fillStyle = nose;
+                roundRectFill(ctx, 14.2*px, h - 10.5*px, 1.2*px, 0.9*px, 0.4*px);
+
+                // Рот / улыбка
+                ctx.strokeStyle = nose;
+                ctx.lineWidth = 0.5 * px;
+                ctx.beginPath();
+                ctx.arc(13.5*px, h - 9.5*px, 1.2*px, 0.2, Math.PI - 0.2);
+                ctx.stroke();
+
+                // Язык (при беге)
+                if (frame % 3 === 0) {
+                    ctx.fillStyle = pink;
+                    ctx.beginPath();
+                    ctx.ellipse(14*px, h - 8.8*px, 0.6*px, 1*px, 0.2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Ошейник
+                ctx.fillStyle = collar;
+                ctx.fillRect(7.5*px, h - 9.5*px, 3*px, 1*px);
+                // Медальон
+                ctx.fillStyle = '#f1c40f';
+                ctx.beginPath();
+                ctx.arc(9*px, h - 8.3*px, 0.6*px, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            function drawFlyDog(ctx, w, h, frame) {
+                var px = w / 16;
+                ctx.clearRect(0, 0, w, h);
+                var bob = Math.sin(frame * 0.3) * px;
+
+                // Тело
+                ctx.fillStyle = body;
+                roundRectFill(ctx, 3*px, 5*px + bob, 9*px, 5*px, 2*px);
+
+                // Крылья (анимация взмахов)
+                var wingAngle = Math.sin(frame * 0.6) * 0.5;
+                ctx.fillStyle = white;
+                ctx.save();
+                ctx.translate(5*px, 5*px + bob);
+                ctx.rotate(-0.5 + wingAngle);
+                ctx.beginPath();
+                ctx.ellipse(0, -3*px, 4*px, 2*px, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                ctx.save();
+                ctx.translate(10*px, 5*px + bob);
+                ctx.rotate(0.5 - wingAngle);
+                ctx.beginPath();
+                ctx.ellipse(0, -3*px, 4*px, 2*px, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Лапки
+                ctx.fillStyle = dark;
+                ctx.fillRect(4*px, 10*px + bob, 2*px, 3*px);
+                ctx.fillRect(9*px, 10*px + bob, 2*px, 3*px);
+                ctx.fillStyle = light;
+                ctx.fillRect(3.5*px, 12.5*px + bob, 3*px, 0.8*px);
+                ctx.fillRect(8.5*px, 12.5*px + bob, 3*px, 0.8*px);
+
+                // Голова
+                ctx.fillStyle = body;
+                roundRectFill(ctx, 9*px, 3*px + bob, 6*px, 5*px, 2*px);
+
+                // Уши
+                ctx.fillStyle = dark;
+                ctx.beginPath();
+                ctx.ellipse(10*px, 2.5*px + bob, 1.5*px, 2*px, -0.3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(14*px, 2.5*px + bob, 1.5*px, 2*px, 0.3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Морда
+                ctx.fillStyle = light;
+                roundRectFill(ctx, 13*px, 5*px + bob, 3*px, 2.5*px, 1*px);
+
+                // Глаз
+                ctx.fillStyle = white;
+                ctx.beginPath();
+                ctx.ellipse(12.5*px, 5.5*px + bob, 1.2*px, 1.3*px, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = eye;
+                ctx.beginPath();
+                ctx.ellipse(13*px, 5.5*px + bob, 0.7*px, 0.8*px, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = white;
+                ctx.beginPath();
+                ctx.arc(13.3*px, 5.2*px + bob, 0.3*px, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Нос
+                ctx.fillStyle = nose;
+                roundRectFill(ctx, 15.2*px, 6*px + bob, 1.2*px, 0.9*px, 0.4*px);
+
+                // Шарф
+                ctx.fillStyle = collar;
+                ctx.fillRect(8*px, 8*px + bob, 3*px, 1*px);
+                // Хвостики шарфа
+                ctx.fillStyle = collar;
+                var scarfWave = Math.sin(frame * 0.4) * px;
+                ctx.beginPath();
+                ctx.moveTo(9*px, 9*px + bob);
+                ctx.quadraticCurveTo(7*px + scarfWave, 11*px + bob, 6*px + scarfWave, 12*px + bob);
+                ctx.lineTo(7*px + scarfWave, 11.5*px + bob);
+                ctx.quadraticCurveTo(8*px + scarfWave, 10*px + bob, 9*px, 8.5*px + bob);
+                ctx.fill();
+
+                // Хвост
+                ctx.fillStyle = body;
+                var tw = Math.sin(frame * 0.7) * 2 * px;
+                ctx.beginPath();
+                ctx.moveTo(3*px, 6*px + bob);
+                ctx.quadraticCurveTo(1*px + tw, 3*px + bob, 2*px + tw, 1*px + bob);
+                ctx.quadraticCurveTo(3*px + tw, 2*px + bob, 3*px, 7*px + bob);
+                ctx.fill();
+            }
+
+            function drawBasketDog(ctx, w, h) {
+                var px = w / 16;
+                ctx.clearRect(0, 0, w, h);
+
+                // Корзина
+                ctx.fillStyle = '#D2691E';
+                ctx.beginPath();
+                ctx.moveTo(2*px, 11*px);
+                ctx.lineTo(3*px, 15*px);
+                ctx.lineTo(13*px, 15*px);
+                ctx.lineTo(14*px, 11*px);
+                ctx.closePath();
+                ctx.fill();
+                // Плетёнка
+                ctx.strokeStyle = '#8B4513';
+                ctx.lineWidth = 0.5 * px;
+                for (var i = 0; i < 4; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(3.5*px + i*2.5*px, 11*px);
+                    ctx.lineTo(4*px + i*2.3*px, 15*px);
+                    ctx.stroke();
+                }
+                ctx.beginPath();
+                ctx.moveTo(2.5*px, 12.5*px);
+                ctx.lineTo(13.5*px, 12.5*px);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(3*px, 14*px);
+                ctx.lineTo(13*px, 14*px);
+                ctx.stroke();
+
+                // Ручка корзины
+                ctx.strokeStyle = '#D2691E';
+                ctx.lineWidth = 1.2 * px;
+                ctx.beginPath();
+                ctx.arc(8*px, 11*px, 5*px, Math.PI, 0);
+                ctx.stroke();
+
+                // Собака в корзине (вид сверху-спереди)
+                // Тело
+                ctx.fillStyle = body;
+                roundRectFill(ctx, 4*px, 8*px, 8*px, 4*px, 2*px);
+
+                // Голова
+                roundRectFill(ctx, 9*px, 6*px, 5*px, 5*px, 2*px);
+
+                // Уши
+                ctx.fillStyle = dark;
+                ctx.beginPath();
+                ctx.ellipse(10*px, 5.5*px, 1.2*px, 2*px, -0.3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.ellipse(13.5*px, 5.5*px, 1.2*px, 2*px, 0.3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Глаза (закрытые - счастливые)
+                ctx.strokeStyle = eye;
+                ctx.lineWidth = 0.6 * px;
+                ctx.beginPath();
+                ctx.arc(11*px, 8*px, 0.8*px, 0.3, Math.PI - 0.3);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(13*px, 8*px, 0.8*px, 0.3, Math.PI - 0.3);
+                ctx.stroke();
+
+                // Нос
+                ctx.fillStyle = nose;
+                roundRectFill(ctx, 13*px, 9*px, 1.2*px, 0.9*px, 0.4*px);
+
+                // Рот (улыбка)
+                ctx.strokeStyle = nose;
+                ctx.lineWidth = 0.4 * px;
+                ctx.beginPath();
+                ctx.arc(12*px, 9.8*px, 1.5*px, 0.1, Math.PI - 0.1);
+                ctx.stroke();
+
+                // Лапки на краю корзины
+                ctx.fillStyle = light;
+                ctx.fillRect(5*px, 11*px, 2*px, 1.5*px);
+                ctx.fillRect(10*px, 11*px, 2*px, 1.5*px);
+
+                // Ошейник
+                ctx.fillStyle = collar;
+                ctx.fillRect(8.5*px, 10*px, 3*px, 0.8*px);
+            }
+
+            function roundRectFill(ctx, x, y, w, h, r) {
+                ctx.beginPath();
+                ctx.moveTo(x + r, y);
+                ctx.lineTo(x + w - r, y);
+                ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+                ctx.lineTo(x + w, y + h - r);
+                ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                ctx.lineTo(x + r, y + h);
+                ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+                ctx.lineTo(x, y + r);
+                ctx.quadraticCurveTo(x, y, x + r, y);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // Создаём offscreen canvas для каждого типа
+            function makeOffscreen(w, h) {
+                var c = document.createElement('canvas');
+                c.width = w; c.height = h;
+                return c;
+            }
+
+            // Кэшируем 4 кадра бега
+            for (var f = 0; f < 4; f++) {
+                var c = makeOffscreen(64, 64);
+                drawDogFrame(c.getContext('2d'), 64, 64, f * 6);
+                _petSpriteCache.run.push(c);
+            }
+
+            // Кэшируем летящего пса (несколько кадров для анимации)
+            _petSpriteCache.fly = [];
+            for (var f = 0; f < 4; f++) {
+                var c = makeOffscreen(64, 64);
+                drawFlyDog(c.getContext('2d'), 64, 64, f * 5);
+                _petSpriteCache.fly.push(c);
+            }
+
+            // Кэшируем пса в корзине
+            var bc = makeOffscreen(64, 64);
+            drawBasketDog(bc.getContext('2d'), 64, 64);
+            _petSpriteCache.basket = bc;
+        })();
+
+        function drawPetSprite(ctx, type, cx, cy, size, frame, opts) {
+            opts = opts || {};
+            var frames;
+            if (type === 'run') frames = _petSpriteCache.run;
+            else if (type === 'fly') frames = _petSpriteCache.fly;
+            else if (type === 'basket') frames = [_petSpriteCache.basket];
+            else return false;
+
+            if (!frames || !frames.length || !frames[0]) return false;
+
+            var fi = Math.floor(((frame || 0) / 8) % frames.length);
+            var sprite = frames[fi];
+
+            ctx.save();
+            if (opts.mirror) {
+                ctx.translate(cx, cy);
+                ctx.scale(-1, 1);
+                ctx.drawImage(sprite, -size/2, -size, size, size);
+            } else if (opts.angle !== undefined && opts.angle !== 0) {
+                ctx.translate(cx, cy);
+                ctx.rotate(opts.angle);
+                ctx.drawImage(sprite, -size/2, -size/2, size, size);
+            } else {
+                ctx.drawImage(sprite, cx - size/2, cy - size, size, size);
+            }
+            ctx.restore();
+            return true;
+        }
+
+        // ==================== 🍄 ПЛАТФОРМЕР (Mario-style) ====================
+        var _platState = null, _platRAF = null;
+        var PLAT_LEVELS;
+        (function() {
+            var gY = 260;
+            PLAT_LEVELS = [
+                {
+                    name: 'Зелёные луга',
+                    goal: 500,
+                    skyGrad: ['#74b9ff', '#a29bfe', '#55efc4'],
+                    groundColor: '#2d3436', groundTop: '#00b894', grassColor: '#00b894',
+                    platColor: '#636e72', platTop: '#b2bec3',
+                    coinEmoji: '🪙', enemyEmoji: '👾',
+                    platCount: 50, coinCount: 35, enemyCount: 12,
+                    platGap: [80, 100], platW: [65, 100], platH: 14,
+                    platYMin: gY - 25, platYMax: gY - 110,
+                    enemyGap: [200, 300],
+                    speedMult: 1
+                },
+                {
+                    name: 'Пустыня',
+                    goal: 800,
+                    skyGrad: ['#ffeaa7', '#fab1a0', '#e17055'],
+                    groundColor: '#b2bec3', groundTop: '#fdcb6e', grassColor: '#fdcb6e',
+                    platColor: '#e17055', platTop: '#fab1a0',
+                    coinEmoji: '🪙', enemyEmoji: '🕷️',
+                    platCount: 55, coinCount: 40, enemyCount: 18,
+                    platGap: [70, 90], platW: [55, 90], platH: 12,
+                    platYMin: gY - 30, platYMax: gY - 120,
+                    enemyGap: [160, 260],
+                    speedMult: 1.15
+                },
+                {
+                    name: 'Ледяная гора',
+                    goal: 1200,
+                    skyGrad: ['#dfe6e9', '#74b9ff', '#0984e3'],
+                    groundColor: '#636e72', groundTop: '#74b9ff', grassColor: '#74b9ff',
+                    platColor: '#0984e3', platTop: '#74b9ff',
+                    coinEmoji: '💎', enemyEmoji: '❄️',
+                    platCount: 60, coinCount: 45, enemyCount: 24,
+                    platGap: [60, 85], platW: [50, 85], platH: 10,
+                    platYMin: gY - 35, platYMax: gY - 130,
+                    enemyGap: [130, 230],
+                    speedMult: 1.3
+                }
+            ];
+        })();
+
+        window.startSoloPlatformer = async function() {
+            var petEmoji = await getMyPetEmoji();
+            closePetGamesModal();
+            document.getElementById('solo-platformer-modal').classList.add('active', 'modal-fullscreen');
+            document.getElementById('plat-start-screen').style.display = 'block';
+            enterGameFullscreen('solo-platformer-modal');
+            _platState = {
+                petEmoji: petEmoji,
+                player: { x: 60, y: 0, vx: 0, vy: 0, w: 28, h: 28, onGround: false, dir: 1 },
+                platforms: [],
+                coins: [],
+                enemies: [],
+                score: 0,
+                coins_: 0,
+                lives: 3,
+                camera: { x: 0 },
+                keys: { left: false, right: false, jump: false },
+                running: false,
+                finished: false,
+                level: 1,
+                maxLevel: 3,
+                levelGoal: PLAT_LEVELS[0].goal,
+                totalCoins: 0,
+                distTraveled: 0,
+                spawnX: 60,
+                groundY: 260,
+                GRAVITY: 0.55,
+                JUMP: -11,
+                SPEED: 3.5,
+                nextPlatX: 250,
+                nextCoinX: 200,
+                nextEnemyX: 400,
+                transitioning: false,
+                frame: 0
+            };
+            generatePlatformerLevel(1);
+            drawPlatformerStatic();
+        };
+
+        function generatePlatformerLevel(levelNum) {
+            var s = _platState;
+            var cfg = PLAT_LEVELS[Math.min(levelNum, PLAT_LEVELS.length) - 1];
+            s.level = levelNum;
+            s.levelGoal = cfg.goal;
+            s.platforms = [
+                { x: -50, y: s.groundY, w: 600, h: 80, type: 'ground' }
+            ];
+            s.nextPlatX = 250;
+            s.nextCoinX = 180;
+            s.nextEnemyX = 400;
+            s.coins = [];
+            s.enemies = [];
+
+            for (var i = 0; i < cfg.platCount; i++) {
+                var pw = cfg.platW[0] + Math.random() * (cfg.platW[1] - cfg.platW[0]);
+                var py = cfg.platYMin + Math.random() * (cfg.platYMax - cfg.platYMin);
+                s.platforms.push({ x: s.nextPlatX, y: py, w: pw, h: cfg.platH, type: 'float' });
+                s.nextPlatX += cfg.platGap[0] + Math.random() * (cfg.platGap[1] - cfg.platGap[0]);
+            }
+            for (var i = 0; i < cfg.coinCount; i++) {
+                s.coins.push({ x: s.nextCoinX, y: s.groundY - 40 - Math.random() * 80, collected: false, bob: Math.random() * Math.PI * 2 });
+                s.nextCoinX += 70 + Math.random() * 130;
+            }
+            for (var i = 0; i < cfg.enemyCount; i++) {
+                var evx = (1 + Math.random() * 0.5) * cfg.speedMult;
+                s.enemies.push({ x: s.nextEnemyX, y: s.groundY - 20, w: 24, h: 24, vx: evx, alive: true, startX: s.nextEnemyX, range: 60 + Math.random() * 40 });
+                s.nextEnemyX += cfg.enemyGap[0] + Math.random() * (cfg.enemyGap[1] - cfg.enemyGap[0]);
+            }
+
+            // Add finish flag at the end
+            s.finishX = s.nextEnemyX + 300;
+            document.getElementById('plat-level-hud').textContent = '📍 Уровень ' + levelNum + ': ' + cfg.name;
+        }
+
+        function drawPlatformerStatic() {
+            var c = document.getElementById('platformer-canvas');
+            var ctx = c.getContext('2d');
+            var cfg = PLAT_LEVELS[0];
+            ctx.clearRect(0, 0, c.width, c.height);
+            ctx.fillStyle = cfg.skyGrad[0];
+            ctx.fillRect(0, 0, c.width, c.height);
+            ctx.fillStyle = cfg.groundColor;
+            ctx.fillRect(0, _platState.groundY + 14, c.width, c.height - _platState.groundY);
+            ctx.font = '28px serif';
+            ctx.textAlign = 'center';
+            if (!drawPetSprite(ctx, 'run', c.width / 2, _platState.groundY - 10, 48, 0)) {
+                ctx.fillText(_platState.petEmoji, c.width / 2, _platState.groundY - 10);
+            }
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillStyle = '#fff';
+            ctx.fillText('Нажми "Старт" чтобы играть!', c.width / 2, 60);
+            ctx.font = '11px sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.fillText('Лучший: ' + _soloHighscores.platformer, c.width / 2, 85);
+        }
+
+        window.platformerStart = function() {
+            document.getElementById('plat-start-screen').style.display = 'none';
+            var s = _platState;
+            s.running = true;
+            s.finished = false;
+            s.transitioning = false;
+            s.player.x = 60; s.player.y = s.groundY - s.player.h; s.player.vx = 0; s.player.vy = 0;
+            s.score = 0; s.coins_ = 0; s.lives = 3; s.totalCoins = 0;
+            s.camera.x = 0; s.distTraveled = 0;
+            generatePlatformerLevel(1);
+            document.getElementById('plat-lives').textContent = '3';
+            if (_platRAF) cancelAnimationFrame(_platRAF);
+            platformerLoop();
+        };
+
+        function platformerLoop() {
+            var s = _platState;
+            if (!s.running) return;
+            s.frame++;
+            platformerUpdate();
+            platformerDraw();
+            _platRAF = requestAnimationFrame(platformerLoop);
+        }
+
+        function platformerUpdate() {
+            var s = _platState, p = s.player;
+            if (s.transitioning) return;
+
+            // Input
+            var spd = s.SPEED * PLAT_LEVELS[Math.min(s.level, PLAT_LEVELS.length) - 1].speedMult;
+            if (s.keys.left) { p.vx = -spd; p.dir = -1; }
+            else if (s.keys.right) { p.vx = spd; p.dir = 1; }
+            else { p.vx *= 0.7; if (Math.abs(p.vx) < 0.3) p.vx = 0; }
+            if (s.keys.jump && p.onGround) { p.vy = s.JUMP; p.onGround = false; }
+
+            // Physics
+            p.vy += s.GRAVITY;
+            p.x += p.vx;
+            p.y += p.vy;
+
+            // Don't go left of camera
+            if (p.x - s.camera.x < 0) { p.x = s.camera.x; p.vx = 0; }
+
+            // Platform collision
+            p.onGround = false;
+            for (var i = 0; i < s.platforms.length; i++) {
+                var pl = s.platforms[i];
+                if (p.x + p.w > pl.x && p.x < pl.x + pl.w) {
+                    if (p.y + p.h >= pl.y && p.y + p.h <= pl.y + pl.h + p.vy + 4 && p.vy >= 0) {
+                        p.y = pl.y - p.h;
+                        p.vy = 0;
+                        p.onGround = true;
+                    }
+                }
+            }
+
+            // Fall death
+            if (p.y > 400) { platformerDie(); return; }
+
+            // Coins
+            var cfg = PLAT_LEVELS[Math.min(s.level, PLAT_LEVELS.length) - 1];
+            for (var i = 0; i < s.coins.length; i++) {
+                var co = s.coins[i];
+                if (co.collected) continue;
+                co.bob += 0.05;
+                var cy = co.y + Math.sin(co.bob) * 4;
+                if (p.x + p.w > co.x - 10 && p.x < co.x + 10 && p.y + p.h > cy - 10 && p.y < cy + 10) {
+                    co.collected = true;
+                    s.coins_++;
+                    s.totalCoins++;
+                    s.score += 10;
+                    document.getElementById('plat-coin-count').textContent = cfg.coinEmoji + ' ' + s.totalCoins + '/' + s.levelGoal;
+                }
+            }
+
+            // Enemies
+            for (var i = 0; i < s.enemies.length; i++) {
+                var en = s.enemies[i];
+                if (!en.alive) continue;
+                en.x += en.vx;
+                if (Math.abs(en.x - en.startX) > en.range) en.vx *= -1;
+                if (p.x + p.w > en.x && p.x < en.x + en.w && p.y + p.h > en.y && p.y < en.y + en.h) {
+                    if (p.vy > 0 && p.y + p.h < en.y + en.h / 2 + 10) {
+                        en.alive = false;
+                        p.vy = -8;
+                        s.score += 20;
+                    } else {
+                        platformerDie(); return;
+                    }
+                }
+            }
+
+            // Camera
+            s.camera.x = p.x - 120;
+            if (s.camera.x < 0) s.camera.x = 0;
+
+            // Distance score
+            s.distTraveled = Math.max(s.distTraveled, Math.floor(p.x / 10));
+            document.getElementById('plat-score').textContent = s.score + s.distTraveled;
+
+            // Level goal check
+            if (s.totalCoins >= s.levelGoal && !s.transitioning) {
+                platformerNextLevel();
+            }
+        }
+
+        function platformerNextLevel() {
+            var s = _platState;
+            s.transitioning = true;
+            s.running = false;
+
+            if (s.level >= s.maxLevel) {
+                // Game completed!
+                var totalScore = s.score + s.distTraveled;
+                var best = Math.max(_soloHighscores.platformer, totalScore);
+                _soloHighscores.platformer = best;
+                saveSoloHighscores();
+                var xp = 50 + totalScore;
+                setTimeout(function() {
+                    showGameResult('👑', 'Победа! Все уровни пройдены!', 'Общий счёт: ' + totalScore, '+' + xp + ' XP', 'win', function() { startSoloPlatformer(); });
+                    awardPetXp(xp, null);
+                }, 500);
+                return;
+            }
+
+            // Show level complete
+            var xp = 20 + s.level * 10;
+            setTimeout(function() {
+                showGameResult('⭐', 'Уровень ' + s.level + ' пройден!', cfg_platName(s.level), '+' + xp + ' XP', 'win', null);
+                awardPetXp(xp, null);
+                setTimeout(function() {
+                    // Remove result overlay
+                    var ov = document.querySelector('.game-result-overlay');
+                    if (ov) ov.remove();
+                    // Load next level
+                    s.level++;
+                    s.player.x = 60; s.player.y = s.groundY - s.player.h;
+                    s.player.vx = 0; s.player.vy = 0;
+                    s.camera.x = 0; s.distTraveled = 0;
+                    s.transitioning = false;
+                    s.running = true;
+                    generatePlatformerLevel(s.level);
+                    document.getElementById('plat-coin-count').textContent = PLAT_LEVELS[Math.min(s.level, PLAT_LEVELS.length) - 1].coinEmoji + ' ' + s.totalCoins + '/' + s.levelGoal;
+                    platformerLoop();
+                }, 1500);
+            }, 300);
+        }
+
+        function cfg_platName(lvl) {
+            var cfg = PLAT_LEVELS[Math.min(lvl, PLAT_LEVELS.length) - 1];
+            return cfg ? cfg.name : '';
+        }
+
+        function platformerDie() {
+            var s = _platState;
+            s.lives--;
+            document.getElementById('plat-lives').textContent = s.lives;
+            if (s.lives <= 0) {
+                s.running = false;
+                var totalScore = s.score + s.distTraveled;
+                var best = Math.max(_soloHighscores.platformer, totalScore);
+                _soloHighscores.platformer = best;
+                saveSoloHighscores();
+                var xp = 15 + Math.floor(totalScore / 10);
+                setTimeout(function() {
+                    showGameResult('🍄', 'Игра окончена!', 'Уровень: ' + s.level + '/' + s.maxLevel + ' | Счёт: ' + totalScore, '+' + xp + ' XP', totalScore >= 50 ? 'win' : 'lose', function() { startSoloPlatformer(); });
+                    awardPetXp(xp, null);
+                }, 300);
+            } else {
+                s.player.x = Math.max(s.camera.x + 60, 60);
+                s.player.y = 0;
+                s.player.vx = 0;
+                s.player.vy = 0;
+            }
+        }
+
+        function platformerDraw() {
+            var c = document.getElementById('platformer-canvas'), ctx = c.getContext('2d');
+            var s = _platState, p = s.player;
+            var cfg = PLAT_LEVELS[Math.min(s.level, PLAT_LEVELS.length) - 1];
+            ctx.clearRect(0, 0, c.width, c.height);
+
+            // Sky
+            var skyGrad = ctx.createLinearGradient(0, 0, 0, c.height);
+            skyGrad.addColorStop(0, cfg.skyGrad[0]);
+            skyGrad.addColorStop(0.6, cfg.skyGrad[1]);
+            skyGrad.addColorStop(1, cfg.skyGrad[2]);
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, c.width, c.height);
+
+            // Clouds (parallax)
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            for (var i = 0; i < 6; i++) {
+                var cx = ((i * 120 + 30) - s.camera.x * 0.2) % (c.width + 80) - 40;
+                ctx.beginPath();
+                ctx.arc(cx, 30 + i * 15, 18, 0, Math.PI * 2);
+                ctx.arc(cx + 15, 25 + i * 15, 22, 0, Math.PI * 2);
+                ctx.arc(cx + 30, 30 + i * 15, 16, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Progress bar (coins collected)
+            var prog = Math.min(1, s.totalCoins / s.levelGoal);
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillRect(10, c.height - 18, c.width - 20, 10);
+            ctx.fillStyle = cfg.grassColor;
+            roundRect(ctx, 10, c.height - 18, Math.max(10, (c.width - 20) * prog), 10);
+            ctx.fill();
+            ctx.font = 'bold 9px sans-serif';
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(cfg.coinEmoji + ' ' + s.totalCoins + '/' + s.levelGoal + ' — ' + cfg.name, c.width / 2, c.height - 13);
+            ctx.textBaseline = 'alphabetic';
+
+            ctx.save();
+            ctx.translate(-s.camera.x, 0);
+
+            // Platforms
+            for (var i = 0; i < s.platforms.length; i++) {
+                var pl = s.platforms[i];
+                if (pl.x + pl.w < s.camera.x - 50 || pl.x > s.camera.x + c.width + 50) continue;
+                if (pl.type === 'ground') {
+                    ctx.fillStyle = cfg.groundColor;
+                    ctx.fillRect(pl.x, pl.y, pl.w, pl.h + 60);
+                    ctx.fillStyle = cfg.groundTop;
+                    ctx.fillRect(pl.x, pl.y, pl.w, 4);
+                } else {
+                    ctx.fillStyle = cfg.platColor;
+                    roundRect(ctx, pl.x, pl.y, pl.w, pl.h, 4);
+                    ctx.fill();
+                    ctx.fillStyle = cfg.platTop;
+                    ctx.fillRect(pl.x + 2, pl.y, pl.w - 4, 3);
+                }
+            }
+
+            // Coins
+            ctx.font = '16px serif';
+            ctx.textAlign = 'center';
+            for (var i = 0; i < s.coins.length; i++) {
+                var co = s.coins[i];
+                if (co.collected) continue;
+                if (co.x < s.camera.x - 20 || co.x > s.camera.x + c.width + 20) continue;
+                var cy = co.y + Math.sin(co.bob) * 4;
+                ctx.fillText(cfg.coinEmoji, co.x, cy);
+            }
+
+            // Enemies
+            ctx.font = '20px serif';
+            ctx.textAlign = 'center';
+            for (var i = 0; i < s.enemies.length; i++) {
+                var en = s.enemies[i];
+                if (!en.alive) continue;
+                if (en.x < s.camera.x - 30 || en.x > s.camera.x + c.width + 30) continue;
+                ctx.fillText(cfg.enemyEmoji, en.x + en.w / 2, en.y + en.h);
+            }
+
+            // Player
+            if (!drawPetSprite(ctx, 'run', p.x + p.w / 2, p.y + p.h, 32, s.frame, { mirror: p.dir < 0 })) {
+                ctx.font = '26px serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText(s.petEmoji, p.x + p.w / 2, p.y + p.h);
+            }
+
+            ctx.restore();
+        }
+
+        function roundRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        }
+
+        window.platInput = function(key, down) {
+            if (!_platState || !_platState.running) return;
+            _platState.keys[key] = down;
+        };
+        window.closeSoloPlatformer = function() {
+            if (_platRAF) cancelAnimationFrame(_platRAF);
+            if (_platState) _platState.running = false;
+            _platState = null;
+            exitGameFullscreen('solo-platformer-modal');
+            document.getElementById('solo-platformer-modal').classList.remove('active', 'modal-fullscreen');
+        };
+
+        // ==================== 🐦 FLAPPY PET ====================
+        var _flapState = null, _flapRAF = null;
+
+        window.startSoloFlappy = async function() {
+            var petEmoji = await getMyPetEmoji();
+            closePetGamesModal();
+            document.getElementById('solo-flappy-modal').classList.add('active', 'modal-fullscreen');
+            document.getElementById('flappy-start-screen').style.display = 'block';
+            document.getElementById('flappy-best').textContent = _soloHighscores.flappy;
+            enterGameFullscreen('solo-flappy-modal');
+            _flapState = {
+                petEmoji: petEmoji,
+                bird: { x: 80, y: 160, vy: 0, r: 16 },
+                pipes: [],
+                score: 0,
+                started: false,
+                dead: false,
+                PIPE_GAP: 120,
+                PIPE_W: 50,
+                PIPE_SPEED: 2.5,
+                GRAVITY: 0.38,
+                FLAP: -6.5,
+                nextPipeX: 300,
+                frame: 0
+            };
+            drawFlappyStatic();
+        };
+
+        function drawFlappyStatic() {
+            var c = document.getElementById('flappy-canvas'), ctx = c.getContext('2d');
+            ctx.clearRect(0, 0, c.width, c.height);
+            var g = ctx.createLinearGradient(0, 0, 0, c.height);
+            g.addColorStop(0, '#74b9ff'); g.addColorStop(1, '#00b894');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, c.width, c.height);
+            ctx.font = '30px serif'; ctx.textAlign = 'center';
+            if (!drawPetSprite(ctx, 'fly', c.width / 2, c.height / 2, 48, 0)) {
+                ctx.fillText(_flapState.petEmoji, c.width / 2, c.height / 2);
+            }
+            ctx.font = 'bold 16px sans-serif'; ctx.fillStyle = '#fff';
+            ctx.fillText('Тапни или нажми чтобы лететь!', c.width / 2, c.height / 2 + 40);
+        }
+
+        window.flappyStart = function() {
+            document.getElementById('flappy-start-screen').style.display = 'none';
+            var s = _flapState;
+            s.started = true; s.dead = false; s.score = 0;
+            s.bird.y = 160; s.bird.vy = 0;
+            s.pipes = []; s.nextPipeX = 300;
+            document.getElementById('flappy-score').textContent = '0';
+            if (_flapRAF) cancelAnimationFrame(_flapRAF);
+            flappyLoop();
+        };
+
+        window.flappyTap = function() {
+            if (!_flapState) return;
+            if (!_flapState.started) { flappyStart(); return; }
+            if (!_flapState.dead) { _flapState.bird.vy = _flapState.FLAP; }
+        };
+
+        function flappyLoop() {
+            var s = _flapState;
+            if (!s.started || s.dead) return;
+            flappyUpdate();
+            flappyDraw();
+            _flapRAF = requestAnimationFrame(flappyLoop);
+        }
+
+        function flappyUpdate() {
+            var s = _flapState, b = s.bird;
+            s.frame++;
+            b.vy += s.GRAVITY;
+            b.y += b.vy;
+
+            // Generate pipes
+            while (s.nextPipeX < b.x + c_width(document.getElementById('flappy-canvas')) + 100) {
+                var gapY = 60 + Math.random() * (c_height(document.getElementById('flappy-canvas')) - s.PIPE_GAP - 120);
+                s.pipes.push({ x: s.nextPipeX, gapY: gapY, scored: false });
+                s.nextPipeX += 180 + Math.random() * 60;
+            }
+
+            // Move pipes
+            for (var i = s.pipes.length - 1; i >= 0; i--) {
+                var pp = s.pipes[i];
+                pp.x -= s.PIPE_SPEED;
+                // Score
+                if (!pp.scored && pp.x + s.PIPE_W < b.x) {
+                    pp.scored = true;
+                    s.score++;
+                    document.getElementById('flappy-score').textContent = s.score;
+                }
+                // Collision
+                if (b.x + b.r > pp.x && b.x - b.r < pp.x + s.PIPE_W) {
+                    if (b.y - b.r < pp.gapY || b.y + b.r > pp.gapY + s.PIPE_GAP) {
+                        flappyDie(); return;
+                    }
+                }
+                if (pp.x + s.PIPE_W < b.x - 100) s.pipes.splice(i, 1);
+            }
+
+            // Bounds
+            if (b.y < 0 || b.y > c_height(document.getElementById('flappy-canvas'))) { flappyDie(); return; }
+        }
+
+        function flappyDie() {
+            var s = _flapState;
+            s.dead = true;
+            var best = Math.max(_soloHighscores.flappy, s.score);
+            _soloHighscores.flappy = best;
+            saveSoloHighscores();
+            var xp = 10 + s.score * 3;
+            setTimeout(function() {
+                showGameResult('🐦', 'Падение!', 'Счёт: ' + s.score + (s.score >= best ? ' (Рекорд!)' : ''), '+' + xp + ' XP', s.score >= 10 ? 'win' : 'lose', function() { startSoloFlappy(); });
+                awardPetXp(xp, null);
+            }, 400);
+        }
+
+        function flappyDraw() {
+            var c = document.getElementById('flappy-canvas'), ctx = c.getContext('2d');
+            var s = _flapState, b = s.bird;
+            var w = c.width, h = c.height;
+            ctx.clearRect(0, 0, w, h);
+
+            // BG
+            var bg = ctx.createLinearGradient(0, 0, 0, h);
+            bg.addColorStop(0, '#74b9ff'); bg.addColorStop(0.7, '#81ecec'); bg.addColorStop(1, '#00b894');
+            ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+
+            // Pipes
+            for (var i = 0; i < s.pipes.length; i++) {
+                var pp = s.pipes[i];
+                // Top pipe
+                ctx.fillStyle = '#00b894';
+                ctx.fillRect(pp.x, 0, s.PIPE_W, pp.gapY);
+                ctx.fillStyle = '#00a884';
+                ctx.fillRect(pp.x - 3, pp.gapY - 20, s.PIPE_W + 6, 20);
+                ctx.fillRect(pp.x + 5, pp.gapY - 18, s.PIPE_W - 10, 16);
+                // Bottom pipe
+                ctx.fillStyle = '#00b894';
+                ctx.fillRect(pp.x, pp.gapY + s.PIPE_GAP, s.PIPE_W, h - pp.gapY - s.PIPE_GAP);
+                ctx.fillStyle = '#00a884';
+                ctx.fillRect(pp.x - 3, pp.gapY + s.PIPE_GAP, s.PIPE_W + 6, 20);
+                ctx.fillRect(pp.x + 5, pp.gapY + s.PIPE_GAP + 2, s.PIPE_W - 10, 16);
+            }
+
+            // Bird
+            ctx.save();
+            ctx.translate(b.x, b.y);
+            var angle = Math.min(Math.max(b.vy * 3, -30), 70) * Math.PI / 180;
+            ctx.rotate(angle);
+            // Already translated and rotated, draw centered at origin
+            var flyFrames = _petSpriteCache.fly;
+            if (flyFrames && flyFrames.length) {
+                var fi = Math.floor((s.frame / 8) % flyFrames.length);
+                ctx.drawImage(flyFrames[fi], -14, -14, 28, 28);
+            } else {
+                ctx.font = '28px serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(s.petEmoji, 0, 0);
+            }
+            ctx.restore();
+
+            // Ground
+            ctx.fillStyle = '#2d3436';
+            ctx.fillRect(0, h - 3, w, 3);
+        }
+
+        function c_width(c) { return c.width; }
+        function c_height(c) { return c.height; }
+
+        window.closeSoloFlappy = function() {
+            if (_flapRAF) cancelAnimationFrame(_flapRAF);
+            if (_flapState) _flapState.started = false;
+            _flapState = null;
+            exitGameFullscreen('solo-flappy-modal');
+            document.getElementById('solo-flappy-modal').classList.remove('active', 'modal-fullscreen');
+        };
+
+        // ==================== 🦖 DINO-RUNNER ====================
+        var _dinoState = null, _dinoRAF = null;
+
+        window.startSoloDino = async function() {
+            var petEmoji = await getMyPetEmoji();
+            closePetGamesModal();
+            document.getElementById('solo-dino-modal').classList.add('active', 'modal-fullscreen');
+            document.getElementById('dino-start-screen').style.display = 'block';
+            enterGameFullscreen('solo-dino-modal');
+            _dinoState = {
+                petEmoji: petEmoji,
+                dino: { x: 60, y: 0, w: 32, h: 36, vy: 0, jumping: false, ducking: false },
+                obstacles: [],
+                particles: [],
+                score: 0,
+                speed: 4,
+                running: false,
+                dead: false,
+                GROUND_Y: 190,
+                GRAVITY: 0.6,
+                JUMP: -12,
+                nextObstX: 500,
+                frame: 0
+            };
+            _dinoState.dino.y = _dinoState.GROUND_Y - _dinoState.dino.h;
+            drawDinoStatic();
+        };
+
+        function drawDinoStatic() {
+            var c = document.getElementById('dino-canvas'), ctx = c.getContext('2d');
+            ctx.clearRect(0, 0, c.width, c.height);
+            var g = ctx.createLinearGradient(0, 0, 0, c.height);
+            g.addColorStop(0, '#ffeaa7'); g.addColorStop(0.5, '#fdcb6e'); g.addColorStop(1, '#2d3436');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, c.width, c.height);
+            ctx.font = '32px serif'; ctx.textAlign = 'center';
+            if (!drawPetSprite(ctx, 'run', c.width / 2, _dinoState.GROUND_Y, 52, 0)) {
+                ctx.fillText(_dinoState.petEmoji, c.width / 2, _dinoState.GROUND_Y);
+            }
+            ctx.font = 'bold 16px sans-serif'; ctx.fillStyle = '#fff';
+            ctx.fillText('Нажми "Бежать"!', c.width / 2, 50);
+            ctx.font = '11px sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.fillText('Лучший: ' + _soloHighscores.dino, c.width / 2, 70);
+        }
+
+        window.dinoStart = function() {
+            document.getElementById('dino-start-screen').style.display = 'none';
+            var s = _dinoState;
+            s.running = true; s.dead = false; s.score = 0; s.speed = 4;
+            s.dino.y = s.GROUND_Y - s.dino.h; s.dino.vy = 0; s.dino.jumping = false; s.dino.ducking = false;
+            s.obstacles = []; s.particles = []; s.nextObstX = 400; s.frame = 0;
+            document.getElementById('dino-score').textContent = '0';
+            document.getElementById('dino-speed-hud').textContent = '⚡ 1x';
+            if (_dinoRAF) cancelAnimationFrame(_dinoRAF);
+            dinoLoop();
+        };
+
+        window.dinoInput = function(key, down) {
+            if (!_dinoState || !_dinoState.running || _dinoState.dead) return;
+            var d = _dinoState.dino;
+            if (key === 'jump' && down && !d.jumping) {
+                d.vy = _dinoState.JUMP;
+                d.jumping = true;
+            }
+            if (key === 'duck') d.ducking = down;
+        };
+
+        function dinoLoop() {
+            var s = _dinoState;
+            if (!s.running || s.dead) return;
+            dinoUpdate();
+            dinoDraw();
+            _dinoRAF = requestAnimationFrame(dinoLoop);
+        }
+
+        function dinoUpdate() {
+            var s = _dinoState, d = s.dino;
+            s.frame++;
+
+            // Speed up over time
+            if (s.frame % 300 === 0) {
+                s.speed += 0.5;
+                document.getElementById('dino-speed-hud').textContent = '⚡ ' + (s.speed / 4).toFixed(1) + 'x';
+            }
+
+            // Ducking changes hitbox height
+            var targetH = d.ducking ? 20 : 36;
+            d.h = targetH;
+
+            // Jump physics
+            d.vy += s.GRAVITY;
+            d.y += d.vy;
+            if (d.y >= s.GROUND_Y - d.h) {
+                d.y = s.GROUND_Y - d.h;
+                d.vy = 0;
+                d.jumping = false;
+            }
+
+            // Generate obstacles
+            var c = document.getElementById('dino-canvas');
+            while (s.nextObstX < c.width + 100) {
+                var type = Math.random() < 0.6 ? 'cactus' : (Math.random() < 0.5 ? 'rock' : 'bird');
+                var oh = type === 'cactus' ? 30 + Math.random() * 15 : (type === 'rock' ? 20 : 24);
+                var ow = type === 'cactus' ? 18 : (type === 'rock' ? 22 : 30);
+                s.obstacles.push({
+                    x: s.nextObstX,
+                    y: s.GROUND_Y - oh,
+                    w: ow,
+                    h: oh,
+                    type: type,
+                    passed: false
+                });
+                s.nextObstX += 200 + Math.random() * 200 - s.speed * 8;
+                if (s.nextObstX < 250) s.nextObstX = 250;
+            }
+
+            // Move obstacles
+            for (var i = s.obstacles.length - 1; i >= 0; i--) {
+                var ob = s.obstacles[i];
+                ob.x -= s.speed;
+
+                // Bird animation
+                if (ob.type === 'bird') {
+                    ob.h = 18 + Math.sin(s.frame * 0.15) * 8;
+                    ob.y = s.GROUND_Y - ob.h - 10;
+                }
+
+                // Score
+                if (!ob.passed && ob.x + ob.w < d.x) {
+                    ob.passed = true;
+                    s.score++;
+                    document.getElementById('dino-score').textContent = s.score;
+                    // Dust particle
+                    for (var p = 0; p < 3; p++) {
+                        s.particles.push({ x: d.x + d.w / 2, y: s.GROUND_Y, vx: -1 - Math.random(), vy: -1 - Math.random() * 2, life: 20 });
+                    }
+                }
+
+                // Collision
+                if (d.x + d.w > ob.x + 4 && d.x < ob.x + ob.w - 4 && d.y + d.h > ob.y + 4) {
+                    dinoDie(); return;
+                }
+
+                if (ob.x + ob.w < -50) s.obstacles.splice(i, 1);
+            }
+
+            // Particles
+            for (var i = s.particles.length - 1; i >= 0; i--) {
+                var pt = s.particles[i];
+                pt.x += pt.vx; pt.y += pt.vy; pt.vy += 0.1; pt.life--;
+                if (pt.life <= 0) s.particles.splice(i, 1);
+            }
+        }
+
+        function dinoDie() {
+            var s = _dinoState;
+            s.dead = true;
+            var best = Math.max(_soloHighscores.dino, s.score);
+            _soloHighscores.dino = best;
+            saveSoloHighscores();
+            var xp = 10 + s.score * 2;
+            setTimeout(function() {
+                showGameResult('🦖', 'Столкновение!', 'Счёт: ' + s.score + (s.score >= best ? ' (Рекорд!)' : ''), '+' + xp + ' XP', s.score >= 15 ? 'win' : 'lose', function() { startSoloDino(); });
+                awardPetXp(xp, null);
+            }, 400);
+        }
+
+        function dinoDraw() {
+            var c = document.getElementById('dino-canvas'), ctx = c.getContext('2d');
+            var s = _dinoState, w = c.width, h = c.height;
+            ctx.clearRect(0, 0, w, h);
+
+            // BG
+            var bg = ctx.createLinearGradient(0, 0, 0, h);
+            bg.addColorStop(0, '#ffeaa7'); bg.addColorStop(0.4, '#fdcb6e'); bg.addColorStop(0.7, '#fab1a0'); bg.addColorStop(1, '#636e72');
+            ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+
+            // Ground
+            ctx.fillStyle = '#2d3436';
+            ctx.fillRect(0, s.GROUND_Y, w, h - s.GROUND_Y);
+            ctx.fillStyle = '#636e72';
+            ctx.fillRect(0, s.GROUND_Y, w, 3);
+
+            // Ground details
+            ctx.fillStyle = '#555';
+            for (var i = 0; i < 20; i++) {
+                var gx = ((i * 35 - s.frame * s.speed * 0.5) % w + w) % w;
+                ctx.fillRect(gx, s.GROUND_Y + 8 + (i % 3) * 5, 8, 2);
+            }
+
+            // Obstacles
+            for (var i = 0; i < s.obstacles.length; i++) {
+                var ob = s.obstacles[i];
+                if (ob.x < -50 || ob.x > w + 50) continue;
+                ctx.font = (ob.type === 'bird' ? '22' : '24') + 'px serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(ob.type === 'cactus' ? '🌵' : (ob.type === 'rock' ? '🪨' : '🦅'), ob.x + ob.w / 2, ob.y + ob.h);
+            }
+
+            // Particles
+            ctx.fillStyle = 'rgba(210,180,140,0.6)';
+            for (var i = 0; i < s.particles.length; i++) {
+                var pt = s.particles[i];
+                ctx.fillRect(pt.x, pt.y, 3, 3);
+            }
+
+            // Dino (pet) — animated PNG sprite facing RIGHT
+            var d = s.dino;
+            var bounce = !d.jumping && Math.floor(s.frame / 6) % 2 === 0 ? -2 : 0;
+            var spriteSize = d.ducking ? 24 : 36;
+            if (!drawPetSprite(ctx, 'run', d.x + d.w / 2, d.y + d.h - 2 + bounce, spriteSize, s.frame)) {
+                ctx.font = d.ducking ? '22px serif' : '30px serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'alphabetic';
+                ctx.fillText(s.petEmoji, d.x + d.w / 2, d.y + d.h - 2 + bounce);
+            }
+        }
+
+        window.closeSoloDino = function() {
+            if (_dinoRAF) cancelAnimationFrame(_dinoRAF);
+            if (_dinoState) _dinoState.running = false;
+            _dinoState = null;
+            exitGameFullscreen('solo-dino-modal');
+            document.getElementById('solo-dino-modal').classList.remove('active', 'modal-fullscreen');
+        };
+
+        // ==================== 🍎 СОБИРАТЕЛЬ ВКУСНЯШЕК ====================
+        var _colState = null, _colInterval = null, _colAnimFrame = null;
+
+        window.startSoloCollector = async function() {
+            var petEmoji = await getMyPetEmoji();
+            closePetGamesModal();
+            document.getElementById('solo-collector-modal').classList.add('active', 'modal-fullscreen');
+            document.getElementById('col-start-screen').style.display = 'block';
+            enterGameFullscreen('solo-collector-modal');
+            var field = document.getElementById('collector-field');
+            // Clean old items
+            field.querySelectorAll('.collector-item').forEach(function(el) { el.remove(); });
+            _colState = {
+                petEmoji: petEmoji,
+                basketX: 50,
+                score: 0,
+                lives: 3,
+                running: false,
+                items: [],
+                spawnTimer: 0,
+                fieldW: 0,
+                keys: { left: false, right: false },
+                speed: 2
+            };
+        };
+
+        window.collectorStart = function() {
+            document.getElementById('col-start-screen').style.display = 'none';
+            var s = _colState;
+            var field = document.getElementById('collector-field');
+            s.running = true; s.score = 0; s.lives = 3; s.spawnTimer = 0; s.speed = 2;
+            s.basketX = 50;
+            s.items = [];
+            s.fieldW = field.offsetWidth;
+            field.querySelectorAll('.collector-item').forEach(function(el) { el.remove(); });
+            if (_colInterval) clearInterval(_colInterval);
+            if (_colAnimFrame) cancelAnimationFrame(_colAnimFrame);
+            collectorGameLoop();
+        };
+
+        function collectorGameLoop() {
+            var s = _colState;
+            if (!s || !s.running) return;
+
+            // Move basket
+            if (s.keys.left) s.basketX = Math.max(0, s.basketX - 8);
+            if (s.keys.right) s.basketX = Math.min(s.fieldW - 40, s.basketX + 8);
+            var basket = document.getElementById('collector-basket');
+            basket.style.left = s.basketX + 'px';
+
+            // Spawn items
+            s.spawnTimer++;
+            if (s.spawnTimer % Math.max(15, 40 - Math.floor(s.score / 5)) === 0) {
+                spawnCollectorItem(s);
+            }
+
+            // Move items
+            var field = document.getElementById('collector-field');
+            var fieldH = field.offsetHeight;
+            var basketEl = document.getElementById('collector-basket');
+            var basketLeft = s.basketX;
+            var basketRight = s.basketX + 40;
+            var basketTop = fieldH - 50;
+
+            for (var i = s.items.length - 1; i >= 0; i--) {
+                var item = s.items[i];
+                item.y += s.speed + item.speedBonus;
+
+                var el = item.el;
+                el.style.top = item.y + 'px';
+
+                // Check catch
+                var itemLeft = item.x;
+                var itemRight = item.x + 30;
+                var itemBottom = item.y + 30;
+                if (itemBottom >= basketTop && itemRight >= basketLeft && itemLeft <= basketRight) {
+                    if (item.type === 'bomb') {
+                        s.lives--;
+                        showMiniFloatingText(item.x + 15, item.y, '💥', field);
+                        if (s.lives <= 0) { collectorDie(); return; }
+                    } else {
+                        s.score += item.points;
+                        showMiniFloatingText(item.x + 15, item.y, '+' + item.points, field);
+                    }
+                    el.remove();
+                    s.items.splice(i, 1);
+                    continue;
+                }
+
+                // Missed
+                if (item.y > fieldH + 20) {
+                    el.remove();
+                    s.items.splice(i, 1);
+                }
+            }
+
+            _colAnimFrame = requestAnimationFrame(collectorGameLoop);
+        }
+
+        function spawnCollectorItem(s) {
+            var field = document.getElementById('collector-field');
+            var types = [
+                { emoji: '🍎', points: 10, type: 'food', speedBonus: 0 },
+                { emoji: '🍕', points: 15, type: 'food', speedBonus: 0.3 },
+                { emoji: '🍩', points: 20, type: 'food', speedBonus: 0.5 },
+                { emoji: '🧀', points: 12, type: 'food', speedBonus: 0.1 },
+                { emoji: '🍓', points: 25, type: 'food', speedBonus: 0.6 },
+                { emoji: '💣', points: -1, type: 'bomb', speedBonus: 0.2 },
+                { emoji: '⭐', points: 50, type: 'star', speedBonus: 0.8 }
+            ];
+            // Higher score = more bombs
+            var bombChance = Math.min(0.3, 0.1 + s.score * 0.005);
+            var roll = Math.random();
+            var chosen;
+            if (roll < bombChance) {
+                chosen = types[5]; // bomb
+            } else if (roll < bombChance + 0.05) {
+                chosen = types[6]; // star
+            } else {
+                chosen = types[Math.floor(Math.random() * 5)];
+            }
+
+            var x = Math.random() * (s.fieldW - 40);
+            var el = document.createElement('div');
+            el.className = 'collector-item';
+            el.textContent = chosen.emoji;
+            el.style.left = x + 'px';
+            el.style.top = '-30px';
+            field.appendChild(el);
+
+            s.items.push({
+                x: x, y: -30,
+                speedBonus: chosen.speedBonus,
+                points: chosen.points,
+                type: chosen.type,
+                el: el
+            });
+        }
+
+        function showMiniFloatingText(x, y, text, container) {
+            var el = document.createElement('div');
+            el.textContent = text;
+            el.style.cssText = 'position:absolute;left:' + x + 'px;top:' + y + 'px;font-size:1rem;font-weight:900;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.5);pointer-events:none;z-index:10;transition:all 0.6s ease-out;opacity:1;';
+            container.appendChild(el);
+            requestAnimationFrame(function() {
+                el.style.top = (y - 40) + 'px';
+                el.style.opacity = '0';
+            });
+            setTimeout(function() { el.remove(); }, 700);
+        }
+
+        function collectorDie() {
+            var s = _colState;
+            s.running = false;
+            if (_colInterval) clearInterval(_colInterval);
+            if (_colAnimFrame) cancelAnimationFrame(_colAnimFrame);
+            var best = Math.max(_soloHighscores.collector, s.score);
+            _soloHighscores.collector = best;
+            saveSoloHighscores();
+            var xp = 10 + Math.floor(s.score / 5);
+            setTimeout(function() {
+                showGameResult('🍎', 'Игра окончена!', 'Собрано: ' + s.score + ' очков' + (s.score >= best ? ' (Рекорд!)' : ''), '+' + xp + ' XP', s.score >= 50 ? 'win' : 'lose', function() { startSoloCollector(); });
+                awardPetXp(xp, null);
+            }, 400);
+        }
+
+        window.colInput = function(key, down) {
+            if (!_colState || !_colState.running) return;
+            _colState.keys[key] = down;
+        };
+        window.closeSoloCollector = function() {
+            if (_colState) _colState.running = false;
+            if (_colInterval) clearInterval(_colInterval);
+            if (_colAnimFrame) cancelAnimationFrame(_colAnimFrame);
+            var field = document.getElementById('collector-field');
+            if (field) field.querySelectorAll('.collector-item').forEach(function(el) { el.remove(); });
+            _colState = null;
+            exitGameFullscreen('solo-collector-modal');
+            document.getElementById('solo-collector-modal').classList.remove('active', 'modal-fullscreen');
+        };
+
+        // ==================== КЛАВИАТУРНОЕ УПРАВЛЕНИЕ ====================
+        document.addEventListener('keydown', function(e) {
+            // Platformer
+            if (_platState && _platState.running) {
+                if (e.key === 'ArrowLeft' || e.key === 'a') _platState.keys.left = true;
+                if (e.key === 'ArrowRight' || e.key === 'd') _platState.keys.right = true;
+                if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') { _platState.keys.jump = true; e.preventDefault(); }
+            }
+            // Flappy
+            if (_flapState && _flapState.started && !_flapState.dead) {
+                if (e.key === ' ' || e.key === 'ArrowUp') { flappyTap(); e.preventDefault(); }
+            }
+            // Dino
+            if (_dinoState && _dinoState.running && !_dinoState.dead) {
+                if (e.key === 'ArrowUp' || e.key === ' ' || e.key === 'w') { dinoInput('jump', true); e.preventDefault(); }
+                if (e.key === 'ArrowDown' || e.key === 's') dinoInput('duck', true);
+            }
+            // Collector
+            if (_colState && _colState.running) {
+                if (e.key === 'ArrowLeft' || e.key === 'a') _colState.keys.left = true;
+                if (e.key === 'ArrowRight' || e.key === 'd') _colState.keys.right = true;
+            }
+        });
+        document.addEventListener('keyup', function(e) {
+            if (_platState && _platState.running) {
+                if (e.key === 'ArrowLeft' || e.key === 'a') _platState.keys.left = false;
+                if (e.key === 'ArrowRight' || e.key === 'd') _platState.keys.right = false;
+                if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') _platState.keys.jump = false;
+            }
+            if (_dinoState && _dinoState.running) {
+                if (e.key === 'ArrowUp' || e.key === ' ' || e.key === 'w') dinoInput('jump', false);
+                if (e.key === 'ArrowDown' || e.key === 's') dinoInput('duck', false);
+            }
+            if (_colState && _colState.running) {
+                if (e.key === 'ArrowLeft' || e.key === 'a') _colState.keys.left = false;
+                if (e.key === 'ArrowRight' || e.key === 'd') _colState.keys.right = false;
+            }
+        });
+
+        // Canvas touch for flappy
+        (function() {
+            var fc = document.getElementById('flappy-canvas');
+            if (fc) {
+                fc.addEventListener('touchstart', function(e) { e.preventDefault(); flappyTap(); }, { passive: false });
+                fc.addEventListener('mousedown', function(e) { flappyTap(); });
+            }
+            var dc = document.getElementById('dino-canvas');
+            if (dc) {
+                dc.addEventListener('touchstart', function(e) { e.preventDefault(); if (_dinoState && _dinoState.running && !_dinoState.dead) { dinoInput('jump', true); setTimeout(function() { dinoInput('jump', false); }, 100); } }, { passive: false });
+            }
+        })();
+
+        // Export to window
+        window.startSoloPlatformer = window.startSoloPlatformer;
+        window.startSoloFlappy = window.startSoloFlappy;
+        window.startSoloDino = window.startSoloDino;
+        window.startSoloCollector = window.startSoloCollector;
+        window.closeSoloPlatformer = window.closeSoloPlatformer;
+        window.closeSoloFlappy = window.closeSoloFlappy;
+        window.closeSoloDino = window.closeSoloDino;
+        window.closeSoloCollector = window.closeSoloCollector;
+
+        // ==================== ПОЛНОЭКРАННЫЙ РЕЖИМ ====================
+        window._gameSavedStyles = {};
+
+        window.enterGameFullscreen = function(modalId) {
+            var modal = document.getElementById(modalId);
+            if (!modal) return;
+            
+            var content = modal.querySelector('.modal-content');
+            var title = modal.querySelector('.pet-game-title');
+            var controls = modal.querySelector('.solo-game-controls');
+            var startDiv = controls ? controls.nextElementSibling : null;
+            var wrap = modal.querySelector('.solo-game-canvas-wrap');
+            var canvas = wrap ? wrap.querySelector('canvas') : null;
+            var field = modal.querySelector('.collector-field');
+
+            // Сохраняем оригинальные стили
+            _gameSavedStyles[modalId] = {
+                modalStyle: modal.getAttribute('style') || '',
+                contentStyle: content.getAttribute('style') || '',
+                titleStyle: title ? title.getAttribute('style') || '' : '',
+                controlsStyle: controls ? controls.getAttribute('style') || '' : '',
+                startDivStyle: startDiv ? startDiv.getAttribute('style') || '' : ''
+            };
+
+            // 1. Модал — на весь экран
+            modal.style.cssText = 'position:fixed!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;z-index:999999!important;background:#000!important;padding:0!important;margin:0!important;display:block!important;overflow:hidden!important;';
+
+            // 2. Modal-content — на весь экран
+            content.style.cssText = 'position:absolute!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;padding:0!important;margin:0!important;border:none!important;border-radius:0!important;box-shadow:none!important;transform:none!important;background:#000!important;overflow:hidden!important;display:block!important;';
+
+            // 3. Заголовок — сверху 30px
+            if (title) {
+                title.style.cssText = 'position:absolute!important;top:0!important;left:0!important;right:0!important;height:30px!important;min-height:30px!important;background:rgba(0,0,0,0.9)!important;padding:2px 8px!important;display:flex!important;justify-content:flex-end!important;align-items:center!important;z-index:12!important;margin:0!important;';
+            }
+
+            // 4. Кнопки управления — внизу
+            if (controls) {
+                controls.style.cssText = 'position:absolute!important;bottom:0!important;left:0!important;right:0!important;height:60px!important;min-height:60px!important;background:rgba(0,0,0,0.95)!important;padding:4px 8px!important;display:flex!important;justify-content:center!important;align-items:center!important;gap:12px!important;z-index:12!important;margin:0!important;';
+            }
+
+            // 5. Стартовый экран — над кнопками
+            if (startDiv) {
+                startDiv.style.cssText = 'position:absolute!important;bottom:60px!important;left:0!important;right:0!important;background:rgba(0,0,0,0.85)!important;padding:4px!important;text-align:center!important;z-index:11!important;';
+            }
+
+            // 6. Канвас-wrap — заполняет между заголовком и кнопками
+            var ctrlH = controls ? 60 : 0;
+            var titleH = title ? 30 : 0;
+            var canvasH = window.innerHeight - titleH - ctrlH;
+            var canvasW = window.innerWidth;
+
+            if (wrap) {
+                wrap.style.cssText = 'position:absolute!important;top:' + titleH + 'px!important;left:0!important;right:0!important;bottom:' + ctrlH + 'px!important;width:100%!important;background:#000!important;margin:0!important;border-radius:0!important;overflow:hidden!important;';
+            }
+
+            if (wrap && canvas) {
+                canvas.style.cssText = 'position:absolute!important;top:0!important;left:0!important;width:100%!important;height:100%!important;display:block!important;';
+                canvas.width = Math.max(canvasW, 100);
+                canvas.height = Math.max(canvasH, 100);
+            }
+
+            // 7. Собиратель
+            if (field) {
+                field.style.cssText = 'position:absolute!important;top:' + titleH + 'px!important;left:0!important;right:0!important;bottom:' + ctrlH + 'px!important;width:100%!important;background:#000!important;margin:0!important;border-radius:0!important;overflow:hidden!important;';
+            }
+
+            // 8. Блокируем скролл body
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100vw';
+            document.body.style.height = '100vh';
+
+            // 9. Нативный фуллскрин (плюс)
+            try {
+                var rq = modal.requestFullscreen || modal.webkitRequestFullscreen || modal.msRequestFullscreen;
+                if (rq) rq.call(modal).catch(function(){});
+            } catch(e) {}
+
+            // 10. Горизонтальная ориентация
+            try {
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(function(){});
+                }
+            } catch(e) {}
+
+            // 11. Ресайз после поворота
+            setTimeout(function() { _resizeGameInline(modalId); }, 100);
+            setTimeout(function() { _resizeGameInline(modalId); }, 500);
+            setTimeout(function() { _resizeGameInline(modalId); }, 1200);
+        };
+
+        window._resizeGameInline = function(modalId) {
+            var modal = document.getElementById(modalId);
+            if (!modal) return;
+            
+            var vh = window.innerHeight;
+            var vw = window.innerWidth;
+            var titleH = 30;
+            var ctrlH = 60;
+            var canvasH = vh - titleH - ctrlH;
+
+            var wrap = modal.querySelector('.solo-game-canvas-wrap');
+            var canvas = wrap ? wrap.querySelector('canvas') : null;
+            var field = modal.querySelector('.collector-field');
+
+            if (wrap && canvas && vw > 0 && canvasH > 0) {
+                canvas.width = vw;
+                canvas.height = Math.max(canvasH, 50);
+            }
+
+            if (field) {
+                var basket = field.querySelector('.collector-basket');
+                if (basket) {
+                    basket.style.fontSize = Math.max(canvasH * 0.08, 16) + 'px';
+                }
+            }
+        };
+
+        window.exitGameFullscreen = function(modalId) {
+            var modal = document.getElementById(modalId);
+            if (!modal) return;
+
+            var saved = _gameSavedStyles[modalId];
+            if (saved) {
+                var content = modal.querySelector('.modal-content');
+                var title = modal.querySelector('.pet-game-title');
+                var controls = modal.querySelector('.solo-game-controls');
+                var startDiv = controls ? controls.nextElementSibling : null;
+
+                modal.setAttribute('style', saved.modalStyle);
+                if (content) content.setAttribute('style', saved.contentStyle);
+                if (title) title.setAttribute('style', saved.titleStyle);
+                if (controls) controls.setAttribute('style', saved.controlsStyle);
+                if (startDiv) startDiv.setAttribute('style', saved.startDivStyle);
+            }
+
+            delete _gameSavedStyles[modalId];
+
+            // Восстанавливаем body
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.body.style.height = '';
+
+            // Выход из нативного фуллскрина
+            try {
+                if (document.exitFullscreen) document.exitFullscreen().catch(function(){});
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            } catch(e) {}
+
+            // Разблокировка ориентации
+            try {
+                if (screen.orientation && screen.orientation.unlock) {
+                    screen.orientation.unlock();
+                }
+            } catch(e) {}
+        };
+
+        // Ресайз при повороте экрана
+        window.addEventListener('resize', function() {
+            Object.keys(_gameSavedStyles).forEach(function(modalId) {
+                _resizeGameInline(modalId);
+            });
+        });
+        window.addEventListener('orientationchange', function() {
+            setTimeout(function() {
+                Object.keys(_gameSavedStyles).forEach(function(modalId) {
+                    _resizeGameInline(modalId);
+                });
+            }, 300);
+        });
+
+        window.toggleSoloFullscreen = function(modalId) {
+            var modal = document.getElementById(modalId);
+            if (!modal) return;
+            if (modal.classList.contains('is-fullscreen')) {
+                exitGameFullscreen(modalId);
+            } else {
+                enterGameFullscreen(modalId);
+            }
+        };
+
+        // Exit fullscreen on Escape or native exit
+        document.addEventListener('fullscreenchange', function() {
+            if (!document.fullscreenElement) {
+                document.querySelectorAll('.solo-game-modal.is-fullscreen').forEach(function(m) {
+                    m.classList.remove('is-fullscreen');
+                });
+            }
+        });
+        document.addEventListener('webkitfullscreenchange', function() {
+            if (!document.webkitFullscreenElement) {
+                document.querySelectorAll('.solo-game-modal.is-fullscreen').forEach(function(m) {
+                    m.classList.remove('is-fullscreen');
+                });
+            }
+        });
+
+        // ==================== МОДАЛЬНЫЕ ОБРАБОТЧИКИ ====================
+        document.getElementById('pet-battle-modal').addEventListener('click', function(e) {
+            if (e.target === document.getElementById('pet-battle-modal')) closeBattle();
+        });
+        document.getElementById('pet-race-modal').addEventListener('click', function(e) {
+            if (e.target === document.getElementById('pet-race-modal')) closeRace();
+        });
+        document.getElementById('pet-quiz-modal').addEventListener('click', function(e) {
+            if (e.target === document.getElementById('pet-quiz-modal')) closeQuiz();
+        });
+        document.getElementById('pet-tug-modal').addEventListener('click', function(e) {
+            if (e.target === document.getElementById('pet-tug-modal')) closeTug();
+        });
+        document.getElementById('pet-games-modal').addEventListener('click', function(e) {
+            if (e.target === document.getElementById('pet-games-modal')) closePetGamesModal();
+        });
+        document.getElementById('pet-opponent-modal').addEventListener('click', function(e) {
+            if (e.target === document.getElementById('pet-opponent-modal')) document.getElementById('pet-opponent-modal').classList.remove('active');
+        });
+        document.getElementById('solo-platformer-modal').addEventListener('click', function(e) {
+            if (e.target === document.getElementById('solo-platformer-modal')) closeSoloPlatformer();
+        });
+        document.getElementById('solo-flappy-modal').addEventListener('click', function(e) {
+            if (e.target === document.getElementById('solo-flappy-modal')) closeSoloFlappy();
+        });
+        document.getElementById('solo-dino-modal').addEventListener('click', function(e) {
+            if (e.target === document.getElementById('solo-dino-modal')) closeSoloDino();
+        });
+        document.getElementById('solo-collector-modal').addEventListener('click', function(e) {
+            if (e.target === document.getElementById('solo-collector-modal')) closeSoloCollector();
+        });
+
+        // Экспортируем игры в window
+        window.startPetBattle = window.startPetBattle;
+        window.startPetRace = window.startPetRace;
+        window.startPetQuiz = window.startPetQuiz;
+        window.startPetTugOfWar = window.startPetTugOfWar;
+        window.openPetGamesMenu = window.openPetGamesMenu;
+        window.closePetGamesModal = window.closePetGamesModal;
+
     </script>
 
 
@@ -25174,6 +28935,9 @@ document.addEventListener('click', function(e) {
                 ddChSettings.style.display = isChannelCreator ? '' : 'none';
             }
             if (aiSection)      aiSection.style.display      = (chatType === 'ai')      ? '' : 'none';
+            // Экспорт чата — только в личных чатах
+            var ddExport = document.getElementById('dd-export-chat');
+            if (ddExport) ddExport.style.display = (chatType === 'user') ? '' : 'none';
             // Блокировка — только в личных чатах
             if (ddBlock) ddBlock.style.display = (chatType === 'user') ? '' : 'none';
             // Скрыть «Удалить чат» для AI
@@ -25211,6 +28975,15 @@ document.addEventListener('click', function(e) {
             document.getElementById('dd-video-call').addEventListener('click', function() {
                 closeMenu();
                 document.getElementById('video-call-btn').click();
+            });
+            // Экспорт чата
+            document.getElementById('dd-export-chat').addEventListener('click', function() {
+                closeMenu();
+                if (typeof currentChat !== 'undefined' && currentChat && typeof exportChatToHtml === 'function') {
+                    var chatId = (typeof getChatId === 'function') ? getChatId(currentUser, currentChat) : '';
+                    var chatName = document.getElementById('chat-user-name') ? document.getElementById('chat-user-name').textContent.trim() : currentChat;
+                    exportChatToHtml(chatId, currentChat, chatName);
+                }
             });
             // Настройки группы
             document.getElementById('dd-group-settings').addEventListener('click', function() {

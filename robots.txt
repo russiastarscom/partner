@@ -1,0 +1,17 @@
+# Twiin Messenger — robots.txt
+# https://twiin.ru/robots.txt
+
+User-agent: *
+Allow: /
+Allow: /manifest.json
+Disallow: /service-worker.js
+
+# Sitemap
+Sitemap: https://twiin.ru/sitemap.xml
+
+# Crawl-delay для ботов (Яндекс)
+User-agent: Yandex
+Crawl-delay: 1
+
+User-agent: Googlebot
+Crawl-delay: 0
