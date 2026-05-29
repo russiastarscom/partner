@@ -2662,6 +2662,9 @@
             gap: 4px;
             padding: 8px 14px 12px;
             border-top: 1px solid var(--border-color);
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow: visible;
         }
 
         /* Лайк поста */
@@ -2680,6 +2683,7 @@
             font-family: inherit;
             font-weight: 500;
             user-select: none;
+            flex-shrink: 0;
         }
         .post-like-btn:hover {
             background: rgba(231, 76, 60, 0.1);
@@ -2706,9 +2710,15 @@
             padding: 6px 8px;
             pointer-events: none;
             user-select: none;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
         .post-views .views-count {
             font-weight: 600;
+        }
+        .views-svg-icon {
+            flex-shrink: 0;
+            vertical-align: middle;
         }
         .post-comment-toggle {
             display: inline-flex;
@@ -2724,6 +2734,11 @@
             transition: background 0.18s, color 0.18s;
             font-family: inherit;
             font-weight: 500;
+            flex-shrink: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .post-comment-toggle:hover,
         .post-comment-toggle.active {
@@ -2909,9 +2924,12 @@
             display: flex;
             gap: 7px;
             align-items: center;
+            overflow: hidden;
+            max-width: 100%;
         }
         .reply-input {
             flex: 1;
+            min-width: 0;
             padding: 7px 13px;
             border: 1.5px solid var(--border-color);
             border-radius: 18px;
@@ -2921,6 +2939,7 @@
             font-family: inherit;
             outline: none;
             transition: border-color 0.15s;
+            box-sizing: border-box;
         }
         .reply-input:focus { border-color: var(--primary-color); }
         .reply-send-btn {
@@ -2946,6 +2965,9 @@
             padding: 10px 16px 13px;
             border-top: 1px solid var(--border-color);
             background: var(--bg-color);
+            overflow: hidden;
+            max-width: 100%;
+            box-sizing: border-box;
         }
         .new-comment-user-avatar {
             width: 30px;
@@ -2965,6 +2987,7 @@
         }
         .new-comment-input {
             flex: 1;
+            min-width: 0;
             padding: 9px 16px;
             border: 1.5px solid var(--border-color);
             border-radius: 22px;
@@ -2974,6 +2997,7 @@
             font-family: inherit;
             outline: none;
             transition: border-color 0.15s, box-shadow 0.15s;
+            box-sizing: border-box;
         }
         .new-comment-input:focus {
             border-color: var(--primary-color);
@@ -3424,7 +3448,8 @@
             color: rgba(255,255,255,0.85);
             font-size: 0.82rem;
         }
-        .sv-views-icon { font-size: 1rem; }
+        .sv-views-icon { display: inline-flex; align-items: center; }
+        .sv-views-icon svg { display: block; }
         .sv-views-count { font-weight: 700; font-size: 0.95rem; }
         .sv-views-label { color: rgba(255,255,255,0.65); }
         .sv-viewers-list {
@@ -4001,7 +4026,7 @@
             gap: 7px;
             margin-top: 12px;
             padding: 9px 20px;
-            background: linear-gradient(135deg, #ff0050 0%, #ff4d6d 50%, #ff6b35 100%);
+            background: var(--primary-color);
             border: none;
             border-radius: 24px;
             color: #fff;
@@ -4011,7 +4036,7 @@
             cursor: pointer;
             transition: all 0.22s cubic-bezier(.34,1.56,.64,1);
             font-family: inherit;
-            box-shadow: 0 4px 18px rgba(255,0,80,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
+            box-shadow: 0 4px 18px rgba(108,92,231,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
             position: relative;
             overflow: hidden;
         }
@@ -4041,19 +4066,27 @@
             100% { left: 110%; opacity: 0; }
         }
         .shorts-toggle-btn:hover {
+            background: var(--primary-dark);
             transform: scale(1.06) translateY(-1px);
-            box-shadow: 0 8px 28px rgba(255,0,80,0.55), inset 0 1px 0 rgba(255,255,255,0.25);
+            box-shadow: 0 8px 28px rgba(108,92,231,0.55), inset 0 1px 0 rgba(255,255,255,0.25);
         }
         .shorts-toggle-btn:active {
+            background: var(--primary-color);
             transform: scale(0.97);
-            box-shadow: 0 2px 10px rgba(255,0,80,0.4);
+            box-shadow: 0 2px 10px rgba(108,92,231,0.4);
         }
-        .shorts-toggle-btn svg {
+        .shorts-toggle-btn .shorts-icon-img {
+            width: 22px;
+            height: 22px;
             flex-shrink: 0;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+            filter: brightness(0) invert(1);
+            pointer-events: none;
         }
         body.dark-theme .shorts-toggle-btn {
-            box-shadow: 0 4px 22px rgba(255,0,80,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+            box-shadow: 0 4px 22px rgba(108,92,231,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        body.dark-theme .shorts-toggle-btn:hover {
+            background: var(--primary-dark);
         }
 
         /* ===== SHORTS VIEW ===== */
@@ -4586,11 +4619,15 @@
             flex-direction: column;
             margin-left: 12px;
             min-width: 0;
+            justify-content: center;
+            margin-top: 8px;
+            margin-bottom: -8px;
         }
 
         .chat-header-info h2 {
             margin-left: 0;
             margin-bottom: 0;
+            line-height: 1.3;
         }
 
         .chat-header-subtitle {
@@ -4901,6 +4938,9 @@
             flex-shrink: 0;
             width: 20px;
             text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
         .msg-popup-status .status-label {
             color: var(--text-light, #888);
@@ -7746,6 +7786,79 @@
             border-radius: 50%;
         }
 
+        /* ── Verified badge for channels ── */
+        .verified-badge {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-left: 3px;
+            flex-shrink: 0;
+            vertical-align: text-bottom;
+            position: relative;
+            top: -1px;
+        }
+        .verified-badge svg {
+            width: 16px;
+            height: 16px;
+            display: block;
+        }
+        .verified-badge-lg {
+            width: 18px;
+            height: 18px;
+            margin-left: 4px;
+            vertical-align: middle;
+            top: -1px;
+        }
+        .verified-badge-lg svg {
+            width: 18px;
+            height: 18px;
+        }
+        .post-channel-name .verified-badge {
+            width: 14px;
+            height: 14px;
+            margin-left: 3px;
+            vertical-align: middle;
+            top: 0;
+        }
+        .post-channel-name .verified-badge svg {
+            width: 14px;
+            height: 14px;
+        }
+        .chat-header-info h2 .verified-badge-lg {
+            width: 16px;
+            height: 16px;
+            vertical-align: middle;
+            top: 0;
+        }
+        .chat-header-info h2 .verified-badge-lg svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* ── Channel links in settings ── */
+        .channel-links-section {
+            margin-bottom: 12px;
+        }
+        .channel-links-title {
+            font-size: 0.82rem;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .channel-link-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .channel-link-row .ch-link-label {
+            width: 40%;
+            flex-shrink: 0;
+        }
+        .channel-link-row .ch-link-url {
+            flex: 1;
+            min-width: 0;
+        }
+
         /* ── Modal: big preview ── */
         .channel-icon-preview {
             width: 88px;
@@ -8560,15 +8673,18 @@
             transform: translateX(-50%) translateY(-60px);
             background: #0984e3;
             color: white;
-            padding: 10px 24px;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            font-weight: 500;
+            padding: 12px 28px;
+            border-radius: 14px;
+            font-size: 0.92rem;
+            font-weight: 600;
             z-index: 99999;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.3s, transform 0.3s;
+            transition: opacity 0.3s, transform 0.3s, background 0.4s;
             box-shadow: 0 4px 20px rgba(9, 132, 227, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .cache-toast.visible {
             opacity: 1;
@@ -8966,6 +9082,23 @@
             .message-time {
                 font-size: 0.65rem;
             }
+
+            .post-footer {
+                gap: 2px;
+                padding: 6px 10px 10px;
+            }
+            .post-like-btn {
+                padding: 5px 8px;
+                font-size: 0.82rem;
+            }
+            .post-comment-toggle {
+                padding: 5px 8px;
+                font-size: 0.82rem;
+            }
+            .post-views {
+                padding: 4px 6px;
+                font-size: 0.78rem;
+            }
         }
 
         /* Extra small screens */
@@ -8994,6 +9127,26 @@
             .chat-header-btn {
                 padding: 5px;
                 font-size: 0.9rem;
+            }
+
+            .post-footer {
+                gap: 1px;
+                padding: 5px 8px 8px;
+            }
+            .post-like-btn {
+                padding: 4px 6px;
+                font-size: 0.78rem;
+                gap: 3px;
+            }
+            .post-comment-toggle {
+                padding: 4px 6px;
+                font-size: 0.78rem;
+                gap: 3px;
+            }
+            .post-views {
+                padding: 3px 5px;
+                font-size: 0.74rem;
+                gap: 3px;
             }
         }
 
@@ -11162,9 +11315,7 @@
                     </p>
                     <!-- Кнопка Shorts -->
                     <button class="shorts-toggle-btn" id="shorts-toggle-btn" onclick="toggleShortsMode()" title="Shorts">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M13 2L4.09 12.97H11L10 22l9.91-10.97H14L13 2z"/>
-                        </svg>
+                        <img src="data:image/png;base64,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" class="shorts-icon-img" alt="Shorts">
                         <span>Shorts</span>
                     </button>
                 </div>
@@ -11326,6 +11477,9 @@
                                 </button>
                                 <button class="dropdown-item primary" id="dd-export-chat">
                                     <span class="di-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span> Экспорт чата
+                                </button>
+                                <button class="dropdown-item primary" id="dd-clear-chat">
+                                    <span class="di-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M5 6l1 14h12l1-14"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span> Очистить чат
                                 </button>
                                 <button class="dropdown-item danger" id="dd-report-user" style="display:none;" onclick="openReportFromChat()">
                                     <span class="di-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span> Пожаловаться
@@ -11582,7 +11736,7 @@
     </div>
 
     <!-- Меню настроек -->
-    <div class="cache-toast" id="cache-toast">✓ Кэш очищен, данные обновлены</div>
+    <div class="cache-toast" id="cache-toast">⏳ Синхронизация...</div>
     <div class="settings-menu" id="settings-menu">
         <div class="settings-menu-header">
             <h2><span data-i18n="settings.title">Настройки</span></h2>
@@ -11741,7 +11895,7 @@
             <div class="story-viewer-footer" id="sv-footer">
                 <!-- Блок просмотров (только для своих историй) -->
                 <div class="sv-views" id="sv-views" style="display:none;">
-                    <span class="sv-views-icon">👁️</span>
+                    <span class="sv-views-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
                     <span class="sv-views-count" id="sv-views-count">0</span>
                     <span class="sv-views-label"><span data-i18n="story.views">просмотров</span></span>
                     <div class="sv-viewers-list" id="sv-viewers-list"></div>
@@ -11799,7 +11953,7 @@
             <h2 class="modal-title"><span data-i18n="story.my_story">📸 Моя история</span></h2>
             <div style="display:flex;flex-direction:column;gap:10px;margin:10px 0 18px;">
                 <button class="modal-btn modal-btn-primary" style="display:flex;align-items:center;gap:10px;font-size:1rem;padding:14px 18px;border-radius:14px;" onclick="closeMyStoryModal();viewMyStory();">
-                    <span style="font-size:1.4rem;">👁️</span>
+                    <span style="display:inline-flex;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
                     <span><span data-i18n="story.view">Посмотреть историю</span></span>
                 </button>
                 <button class="modal-btn" style="display:flex;align-items:center;gap:10px;font-size:1rem;padding:14px 18px;border-radius:14px;background:rgba(108,92,231,0.1);color:var(--primary-color);border:1.5px solid rgba(108,92,231,0.25);" onclick="closeMyStoryModal();openStoryCreate();">
@@ -12010,7 +12164,7 @@
             <!-- ===== КОНЕЦ ОБЛОЖКИ ===== -->
 
             <div style="margin-top:12px;">
-                <label style="font-size:0.82rem;font-weight:600;color:var(--text-light);margin-bottom:6px;display:block;"><span data-i18n="profile.name_label">Имя</span>Имя</label>
+                <label style="font-size:0.82rem;font-weight:600;color:var(--text-light);margin-bottom:6px;display:block;"><span data-i18n="profile.name_label">Имя</span></label>
                 <input type="text" class="modal-input" id="profile-username-input" placeholder=""" data-i18n-placeholder="profile.name_placeholder" style="margin-bottom:0;">
             </div>
 
@@ -12396,6 +12550,16 @@
             <input type="text" class="modal-input" id="edit-channel-name-input" placeholder=""" data-i18n-placeholder="channel.name">
             <textarea class="modal-input" id="edit-channel-description-input" rows="3"
                 placeholder=""" data-i18n-placeholder="channel.description"></textarea>
+
+            <!-- Ссылка канала -->
+            <div class="channel-links-section">
+                <div class="channel-links-title">Кастомная ссылка</div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <span style="font-size:0.82rem;color:var(--text-light);white-space:nowrap;flex-shrink:0;">?join=</span>
+                    <input type="text" class="modal-input" id="edit-channel-slug" placeholder="my_channel" style="flex:1;min-width:0;">
+                </div>
+                <div style="font-size:0.72rem;color:var(--text-light);margin-top:4px;">Только латиница, цифры и подчёркивание. Пример: twiin_ru_official</div>
+            </div>
 
             <button class="modal-btn modal-btn-primary" id="manage-channel-icons-btn"
                 style="width: 100%; margin-bottom: 15px; display: none;">Управление иконками</button>
@@ -12980,7 +13144,7 @@ ru:{
 'chat.channel_settings':'Настройки канала','chat.group_settings':'Настройки группы',
 'chat.menu':'Меню чата','chat.change_wallpaper':'Сменить обои','chat.report':'Пожаловаться',
 'chat.share_link':'Поделиться ссылкой','chat.clear_history':'Очистить историю',
-'chat.block':'Заблокировать','chat.delete_chat_btn':'Удалить чат',
+'chat.block':'Заблокировать','chat.delete_chat_btn':'Удалить чат','chat.clear_chat':'Очистить чат','chat.clear_chat_confirm':'Очистить все сообщения в этом чате? Это действие необратимо. Чат останется, но все сообщения будут удалены.','chat.clear_chat_done':'Чат очищен',
 'input.message':'Сообщение...','input.bold':'Жирный','input.italic':'Курсив',
 'input.strike':'Зачёркнутый','input.spoiler':'Спойлер','input.code':'Код','input.mono':'Моно',
 'input.attach_file':'Прикрепить файл','input.cancel_reply':'Отменить',
@@ -13072,7 +13236,7 @@ en:{
 'chat.channel_settings':'Channel settings','chat.group_settings':'Group settings',
 'chat.menu':'Chat menu','chat.change_wallpaper':'Change Wallpaper','chat.report':'Report',
 'chat.share_link':'Share Link','chat.clear_history':'Clear History',
-'chat.block':'Block','chat.delete_chat_btn':'Delete Chat',
+'chat.block':'Block','chat.delete_chat_btn':'Delete Chat','chat.clear_chat':'Clear Chat','chat.clear_chat_confirm':'Clear all messages in this chat? This action cannot be undone. The chat will remain but all messages will be deleted.','chat.clear_chat_done':'Chat cleared',
 'input.message':'Message...','input.bold':'Bold','input.italic':'Italic',
 'input.strike':'Strikethrough','input.spoiler':'Spoiler','input.code':'Code','input.mono':'Mono',
 'input.attach_file':'Attach file','input.cancel_reply':'Cancel',
@@ -13650,54 +13814,118 @@ function initLanguage(){
         async function clearAppCache() {
             toggleSettingsMenu();
 
-            // 1. Очищаем in-memory кэш
-            _dataCache.store = {};
+            // Показываем toast "Синхронизация..."
+            const toast = document.getElementById('cache-toast');
+            toast.textContent = '⏳ Синхронизация...';
+            toast.classList.add('visible');
 
-            // 2. Очищаем localStorage от кэша (_dc_* ключи)
             try {
-                const keysToRemove = [];
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && key.startsWith('_dc_')) {
-                        keysToRemove.push(key);
+                // 1. Отписываем все realtime listeners
+                _dataCache.unsubscribeAll();
+
+                // 2. Полностью очищаем in-memory кэш
+                _dataCache.store = {};
+
+                // 3. Очищаем localStorage от кэша (_dc_* ключи)
+                try {
+                    const keysToRemove = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith('_dc_')) {
+                            keysToRemove.push(key);
+                        }
+                    }
+                    keysToRemove.forEach(key => localStorage.removeItem(key));
+                } catch(e) {}
+
+                // 4. Принудительно загружаем все данные с сервера (без кэша)
+                //    Сначала загружаем список чатов
+                if (activeTab === 'chats') {
+                    try {
+                        const snap = await Promise.race([
+                            database.ref('messages').once('value'),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+                        ]);
+                        const data = snap.val();
+                        _dataCache.set('messages_all', data);
+                        await _buildRecentChatsList(data);
+                    } catch(e) {
+                        console.warn('[clearAppCache] messages fetch failed:', e.message);
+                    }
+                } else if (activeTab === 'users') {
+                    await loadUsers();
+                } else if (activeTab === 'channels') {
+                    try {
+                        const snap = await Promise.race([
+                            database.ref('channels').once('value'),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+                        ]);
+                        const data = snap.val();
+                        _dataCache.set('channels_all', data);
+                        _applyChannelsData(data);
+                    } catch(e) {
+                        console.warn('[clearAppCache] channels fetch failed:', e.message);
+                    }
+                } else if (activeTab === 'bots' && typeof window.loadBots === 'function') {
+                    window.loadBots();
+                }
+
+                // 5. Переподписываемся на realtime обновления
+                if (!_dataCache.listeners['messages_all']) {
+                    _dataCache.subscribe('messages_all', database.ref('messages'), async (allChats, fromCache) => {
+                        if (!fromCache && activeTab === 'chats') await _buildRecentChatsList(allChats);
+                        _checkNewMessagesFromData(allChats);
+                    });
+                }
+                if (!_dataCache.listeners['channels_all']) {
+                    _dataCache.subscribe('channels_all', database.ref('channels'), (channelsData, fromCache) => {
+                        _applyChannelsData(channelsData);
+                    });
+                }
+
+                // 6. Перезагружаем текущий чат
+                if (currentChat) {
+                    if (currentChatType === 'ai') {
+                        await loadAIMessages();
+                    } else {
+                        try {
+                            const chatId = (currentChatType === 'group' || currentChatType === 'channel')
+                                ? currentChat : getChatId(currentUser, currentChat);
+                            const cacheKey = 'msgs_' + chatId;
+                            _dataCache.invalidate(cacheKey);
+                            // Принудительно загружаем сообщения чата с сервера
+                            try {
+                                const msgSnap = await Promise.race([
+                                    database.ref('messages/' + chatId).once('value'),
+                                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+                                ]);
+                                const msgData = msgSnap.val();
+                                _dataCache.set(cacheKey, msgData);
+                            } catch(e) {
+                                console.warn('[clearAppCache] chat messages fetch failed:', e.message);
+                            }
+                        } catch(e) {}
+                        await loadMessages();
                     }
                 }
-                keysToRemove.forEach(key => localStorage.removeItem(key));
-            } catch(e) {}
 
-            // 3. Отписываем все realtime listeners и пересоздаём
-            _dataCache.unsubscribeAll();
+                // 7. Обновляем истории
+                if (typeof window.loadStories === 'function' && activeTab === 'chats') {
+                    window.loadStories();
+                }
 
-            // 4. Показываем toast
-            const toast = document.getElementById('cache-toast');
-            toast.classList.add('visible');
-            setTimeout(() => toast.classList.remove('visible'), 2500);
+                // Успех
+                toast.textContent = '✓ Данные обновлены';
+                setTimeout(() => toast.classList.remove('visible'), 2500);
 
-            // 5. Перезагружаем все данные
-            try {
-                await refreshAllUI({
-                    invalidateMessages: true,
-                    invalidateUsers: true,
-                    invalidateGroups: true,
-                    invalidateChannels: true,
-                    reloadCurrentChat: true
-                });
             } catch(e) {
-                console.warn('[clearAppCache] refresh error:', e);
-            }
-
-            // 6. Если есть открытый чат — перезагружаем сообщения
-            if (currentChat) {
-                try {
-                    const chatId = (currentChatType === 'group' || currentChatType === 'channel')
-                        ? currentChat : getChatId(currentUser, currentChat);
-                    const cacheKey = 'msgs_' + chatId;
-                    if (_dataCache.listeners[cacheKey]) {
-                        try { _dataCache.listeners[cacheKey].off(); } catch(e) {}
-                        delete _dataCache.listeners[cacheKey];
-                    }
-                    loadMessages();
-                } catch(e) {}
+                console.error('[clearAppCache] error:', e);
+                toast.textContent = '✗ Ошибка синхронизации';
+                toast.style.background = '#e74c3c';
+                setTimeout(() => {
+                    toast.classList.remove('visible');
+                    toast.style.background = '';
+                }, 3000);
             }
         }
 
@@ -17179,29 +17407,12 @@ function initLanguage(){
 
         async function loadRecentChats() {
             try {
-                // Мгновенный рендер из кэша если есть, иначе показываем лоадер
+                // Мгновенный рендер из кэша если есть
                 const cached = _dataCache.get('messages_all');
                 if (cached) {
                     await _buildRecentChatsList(cached.data);
                 } else {
                     searchResults.innerHTML = '<div style="text-align: center; padding: 10px; color: var(--text-light);">Загрузка чатов...</div>';
-
-                    // 🔧 FIX: кэш сброшен (invalidate), но listener уже существует.
-                    // Firebase не перешлёт данные повторно — делаем одноразовый fetch с таймаутом.
-                    if (_dataCache.listeners['messages_all']) {
-                        try {
-                            const snap = await Promise.race([
-                                database.ref('messages').once('value'),
-                                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
-                            ]);
-                            const data = snap.val();
-                            _dataCache.set('messages_all', data);
-                            await _buildRecentChatsList(data);
-                        } catch (fetchErr) {
-                            // Таймаут или ошибка сети — не блокируем UI, ждём realtime
-                            console.warn('[loadRecentChats] одноразовый fetch не удался:', fetchErr.message);
-                        }
-                    }
                 }
 
                 // Создаём подписку только один раз
@@ -17210,6 +17421,22 @@ function initLanguage(){
                         if (!fromCache && activeTab === 'chats') await _buildRecentChatsList(allChats);
                         _checkNewMessagesFromData(allChats);
                     });
+                }
+
+                // Если кэша нет — принудительно делаем одноразовый fetch с таймаутом,
+                // потому что subscribe мог уже отдать кэш (которого нет) и не вызовет cb повторно
+                if (!cached) {
+                    try {
+                        const snap = await Promise.race([
+                            database.ref('messages').once('value'),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+                        ]);
+                        const data = snap.val();
+                        _dataCache.set('messages_all', data);
+                        await _buildRecentChatsList(data);
+                    } catch (fetchErr) {
+                        console.warn('[loadRecentChats] одноразовый fetch не удался:', fetchErr.message);
+                    }
                 }
             } catch (error) {
                 showNotification('Ошибка: ' + error.message);
@@ -17345,6 +17572,8 @@ function initLanguage(){
                     emoji = '📢';
                 }
 
+                const channelObj = (chat.type === 'channel') ? channels.find(c => c.id === chat.id) : null;
+
                 userItem.innerHTML = `
                     <div class="user-avatar-wrap">
                         <div class="user-avatar">${avatar}</div>
@@ -17353,7 +17582,7 @@ function initLanguage(){
                     <div class="user-info">
                         <h3>
                             <span class="user-emoji-small">${emoji}</span>
-                            <span>${escapeHtml(name)}</span>
+                            <span>${escapeHtml(name)}</span>${channelObj ? getVerifiedBadgeHtml(channelObj) : ''}
                         </h3>
                         ${chat.type === 'user' && username ? `<p style="font-size: 0.75rem; color: var(--text-light);">@${username}${chat.userData && chat.userData.online && canSeeOnlineStatus(chat.userData) ? ' · <span style="color:var(--online-color);font-weight:600;">в сети</span>' : chat.userData && chat.userData.lastSeen ? ' · ' + formatLastSeen(chat.userData.lastSeen) : ''}</p>` : ''}
                         <div class="chat-preview">
@@ -18528,7 +18757,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                             channelItem.innerHTML = `
                                 <div class="channel-icon">${iconHtml}</div>
                                 <div class="channel-info">
-                                    <h3>${escapeHtml(channel.name)}</h3>
+                                    <h3>${escapeHtml(channel.name)}${getVerifiedBadgeHtml(channel)}</h3>
                                     <p>${escapeHtml(channel.description || 'Нет описания')}</p>
                                     <div class="channel-subscribers">
                                         <span>👤 ${channel.subscribers ? channel.subscribers.length : 0}</span>
@@ -18748,21 +18977,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                 if (cached) {
                     if (currentChatType === 'channel') displayMessages(cached.data, false);
                     else displayMessages(cached.data, true);
-                } else if (_dataCache.listeners[cacheKey]) {
-                    // 🔧 FIX: кэш сброшен (invalidate), но listener уже висит.
-                    // Firebase не перешлёт данные повторно — делаем одноразовый fetch с таймаутом.
-                    try {
-                        const snap = await Promise.race([
-                            database.ref('messages/' + chatId).once('value'),
-                            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
-                        ]);
-                        const data = snap.val();
-                        _dataCache.set(cacheKey, data);
-                        if (currentChatType === 'channel') displayMessages(data, false);
-                        else displayMessages(data, true);
-                    } catch (fetchErr) {
-                        console.warn('[loadMessages] одноразовый fetch не удался:', fetchErr.message);
-                    }
                 }
 
                 // 2. Подписываемся на realtime (ещё не подписаны)
@@ -18777,6 +18991,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                             }
                         }
                     });
+                }
+
+                // 3. Если кэша нет — принудительно fetch с сервера
+                if (!cached) {
+                    try {
+                        const snap = await Promise.race([
+                            database.ref('messages/' + chatId).once('value'),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+                        ]);
+                        const data = snap.val();
+                        _dataCache.set(cacheKey, data);
+                        if (currentChatType === 'channel') displayMessages(data, false);
+                        else displayMessages(data, true);
+                    } catch (fetchErr) {
+                        console.warn('[loadMessages] одноразовый fetch не удался:', fetchErr.message);
+                    }
                 }
             } catch (error) {
                 console.error('Ошибка загрузки сообщений:', error);
@@ -19287,7 +19517,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                 <div class="post-header">
                     <div class="post-channel-avatar">${channelIcon}</div>
                     <div class="post-channel-meta">
-                        <div class="post-channel-name">${channelName}</div>
+                        <div class="post-channel-name">${channelName}${currentChannel ? getVerifiedBadgeHtml(currentChannel) : ''}</div>
                         <div class="post-time">${dateStr}, ${timeString}</div>
                     </div>
                     ${editBtns}
@@ -19301,7 +19531,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                         💬&nbsp;<span class="cmt-count" id="cmt-count-${safeId}">0</span>&nbsp;комментариев
                     </button>
                     <span class="post-views">
-                        👁&nbsp;<span class="views-count" id="views-count-${safeId}">0</span>
+                        <svg class="views-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>&nbsp;<span class="views-count" id="views-count-${safeId}">0</span>
                     </span>
                 </div>
                 <div class="comments-section" id="comments-${safeId}">
@@ -20118,7 +20348,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             if (isSent) {
                 if (status === 'read' && readTime) {
                     statusHTML += '<div class="status-row">';
-                    statusHTML += '<span class="status-icon status-read">👁</span>';
+                    statusHTML += '<span class="status-icon status-read"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>';
                     statusHTML += '<span class="status-label">Прочитано</span>';
                     statusHTML += '<span class="status-value status-read">' + formatFullTime(readTime) + '</span>';
                     statusHTML += '</div>';
@@ -22131,7 +22361,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             if (channelsData) {
                 Object.keys(channelsData).forEach(channelId => {
                     const channel = channelsData[channelId];
-                    channels.push({ id: channelId, name: channel.name, description: channel.description, creator: channel.creator, subscribers: channel.subscribers || [], createdAt: channel.createdAt, icons: channel.icons || [] });
+                    channels.push({ id: channelId, name: channel.name, description: channel.description, creator: channel.creator, subscribers: channel.subscribers || [], createdAt: channel.createdAt, icons: channel.icons || [], verified: channel.verified || false, slug: channel.slug || null });
                 });
             }
             // Рендерим список каналов если активна вкладка «Каналы»
@@ -22173,11 +22403,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                     _dataCache.subscribe('channels_all', database.ref('channels'), (channelsData, fromCache) => {
                         _applyChannelsData(channelsData);
                     });
-                } else if (!cached) {
+                }
+                // Если кэша нет — принудительно fetch с сервера
+                if (!cached) {
                     try {
                         const snapshot = await Promise.race([
                             database.ref('channels').once('value'),
-                            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
                         ]);
                         const channelsData = snapshot.val();
                         _dataCache.set('channels_all', channelsData);
@@ -22213,7 +22445,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                 channelItem.innerHTML = `
                     <div class="channel-icon">${iconHtml}</div>
                     <div class="channel-info">
-                        <h3>${escapeHtml(channel.name)}</h3>
+                        <h3>${escapeHtml(channel.name)}${getVerifiedBadgeHtml(channel)}</h3>
                         <p>${escapeHtml(channel.description || 'Нет описания')}</p>
                         <div class="channel-subscribers">
                             <span>👤 ${channel.subscribers ? channel.subscribers.length : 0}</span>
@@ -22303,7 +22535,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                     if (subtitleEl && subtitleEl.classList.contains('visible')) {
                         const subCount = (currentChannel && currentChannel.subscribers) ? currentChannel.subscribers.length : 0;
                         const subWord = subCount === 1 ? 'подписчик' : (subCount >= 2 && subCount <= 4) ? 'подписчика' : 'подписчиков';
-                        subtitleEl.innerHTML = `👤 <span class="sub-count">${subCount}</span> ${subWord}`;
+                        subtitleEl.innerHTML = `<span class="sub-count">${subCount}</span> ${subWord}`;
                     }
                 }
             } catch (error) {
@@ -22398,7 +22630,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             const iconHtml = currentChannel ? getChannelIconHtml(currentChannel) : '📢';
 
             chatUserEmoji.textContent = '';
-            chatUserName.innerHTML = `<span class="user-emoji-small" id="chat-user-emoji"></span><span>${escapeHtml(channelName)}</span>`;
+            chatUserName.innerHTML = `<span class="user-emoji-small" id="chat-user-emoji"></span><span>${escapeHtml(channelName)}</span>${currentChannel ? getVerifiedBadgeHtml(currentChannel, 'lg') : ''}`;
 
             // Check if icon is iframe or emoji
             chatAvatar.classList.add('channel-avatar-shape');
@@ -22409,7 +22641,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             if (subtitleEl) {
                 const subCount = (currentChannel && currentChannel.subscribers) ? currentChannel.subscribers.length : 0;
                 const subWord = subCount === 1 ? 'подписчик' : (subCount >= 2 && subCount <= 4) ? 'подписчика' : 'подписчиков';
-                subtitleEl.innerHTML = `👤 <span class="sub-count">${subCount}</span> ${subWord}`;
+                subtitleEl.innerHTML = `<span class="sub-count">${subCount}</span> ${subWord}`;
                 subtitleEl.classList.add('visible');
             }
 
@@ -22423,7 +22655,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
             var ddChannelSettings = document.getElementById('dd-channel-settings');
             if (currentChannel && currentChannel.creator === currentUser) {
-                channelSettingsBtn.style.display = 'block';
+                channelSettingsBtn.style.display = 'none';
                 if (ddChannelSettings) ddChannelSettings.style.display = '';
             } else {
                 channelSettingsBtn.style.display = 'none';
@@ -22451,6 +22683,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
             editChannelNameInput.value = currentChannel.name;
             editChannelDescriptionInput.value = currentChannel.description || '';
+
+            // Загружаем кастомный slug канала
+            document.getElementById('edit-channel-slug').value = currentChannel.slug || '';
 
             // Show/hide manage icons button based on whether user is the creator
             if (currentChannel.creator === currentUser) {
@@ -22488,14 +22723,45 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                 return;
             }
 
+            // Собираем кастомный slug
+            const slugRaw = document.getElementById('edit-channel-slug').value.trim();
+            const newSlug = slugRaw ? slugRaw.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase() : '';
+
+            // Проверяем slug на уникальность
+            if (newSlug) {
+                try {
+                    const slugSnap = await database.ref('channel_slugs/' + newSlug).once('value');
+                    const slugData = slugSnap.val();
+                    if (slugData && slugData.channelId !== currentChannel.id) {
+                        showNotification('Эта ссылка уже занята другим каналом');
+                        return;
+                    }
+                } catch(e) {
+                    showNotification('Ошибка проверки ссылки: ' + e.message);
+                    return;
+                }
+            }
+
             try {
+                // Удаляем старый slug если был
+                if (currentChannel.slug) {
+                    await database.ref('channel_slugs/' + currentChannel.slug).remove().catch(() => {});
+                }
+
+                // Сохраняем новый slug в маппинг
+                if (newSlug) {
+                    await database.ref('channel_slugs/' + newSlug).set({ channelId: currentChannel.id });
+                }
+
                 await database.ref('channels/' + currentChannel.id).update({
                     name: newName,
-                    description: newDescription
+                    description: newDescription,
+                    slug: newSlug || null
                 });
 
                 currentChannel.name = newName;
                 currentChannel.description = newDescription;
+                currentChannel.slug = newSlug || null;
 
                 chatUserName.querySelector('span:last-child').textContent = newName;
 
@@ -22842,6 +23108,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                 }
             }
             return channel.name ? `<span style="font-size:1.1rem;font-weight:700;letter-spacing:-0.5px;">${channel.name.charAt(0).toUpperCase()}</span>` : '📢';
+        }
+
+        /** Возвращает HTML галочки верификации для канала */
+        function getVerifiedBadgeHtml(channel, size) {
+            if (!channel || !channel.verified) return '';
+            const cls = size === 'lg' ? 'verified-badge-lg' : 'verified-badge';
+            return `<span class="${cls}" title="Подтверждённый канал"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#1DA1F2"/><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
         }
 
         async function loadBlockedUsers() {
@@ -23554,6 +23827,59 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                 } catch (error) {
                     showNotification('Ошибка: ' + error.message);
                 }
+            }
+        }
+
+        // Очистить чат (удалить все сообщения, но оставить чат)
+        async function clearPersonalChat() {
+            if (!currentChat) return;
+            if (currentChatType !== 'user') {
+                if (typeof showNotification === 'function') showNotification('Очистить чат можно только в личных чатах');
+                return;
+            }
+
+            // Подтверждение через кастомную модалку
+            var confirmed = confirm('Очистить все сообщения в этом чате? Это действие необратимо. Чат останется, но все сообщения будут удалены.');
+            if (!confirmed) return;
+
+            try {
+                var chatId = getChatId(currentUser, currentChat);
+
+                // Удаляем все сообщения из Firebase
+                await database.ref('messages/' + chatId).remove();
+
+                // Очищаем отображение на экране
+                var messagesContainer = document.getElementById('chat-messages');
+                if (messagesContainer) {
+                    var messages = messagesContainer.querySelectorAll('.message');
+                    messages.forEach(function(msg) { msg.remove(); });
+                }
+
+                // Обновляем последнее сообщение в recentChats
+                var userRef = database.ref('users/' + encodeURIComponent(currentUser));
+                var snapshot = await userRef.once('value');
+                var userData = snapshot.val();
+
+                if (userData && userData.recentChats) {
+                    var updatedRecentChats = userData.recentChats.map(function(chat) {
+                        if (chat.username === currentChat) {
+                            return Object.assign({}, chat, { lastMessage: '', timestamp: Date.now() });
+                        }
+                        return chat;
+                    });
+                    await userRef.update({ recentChats: updatedRecentChats });
+                    currentUserData.recentChats = updatedRecentChats;
+                }
+
+                if (typeof showNotification === 'function') showNotification('Чат очищен');
+
+                // Обновляем список чатов
+                if (activeTab === 'chats' && typeof loadRecentChats === 'function') {
+                    await loadRecentChats();
+                }
+            } catch (error) {
+                console.error('Error clearing chat:', error);
+                if (typeof showNotification === 'function') showNotification('Ошибка: ' + error.message);
             }
         }
 
@@ -28960,6 +29286,9 @@ document.addEventListener('click', function(e) {
             // Скрыть «Удалить чат» для AI
             const ddDeleteChat = document.getElementById('dd-delete-chat');
             if (ddDeleteChat) ddDeleteChat.style.display = (chatType === 'ai') ? 'none' : '';
+            // Очистить чат — только для личных чатов
+            var ddClearChat = document.getElementById('dd-clear-chat');
+            if (ddClearChat) ddClearChat.style.display = (chatType === 'user') ? '' : 'none';
         }
 
         // ==================== HAMBURGER MENU ====================
@@ -29022,6 +29351,12 @@ document.addEventListener('click', function(e) {
             document.getElementById('dd-block-user').addEventListener('click', function() {
                 closeMenu();
                 if (typeof toggleBlockUser === 'function') toggleBlockUser();
+            });
+
+            // Очистить чат (только для личных чатов)
+            document.getElementById('dd-clear-chat').addEventListener('click', function() {
+                closeMenu();
+                if (typeof clearPersonalChat === 'function') clearPersonalChat();
             });
 
             // Удалить чат
@@ -29451,6 +29786,17 @@ document.addEventListener('click', function(e) {
     // ── Генерация ссылки ──
     function getChannelInviteLink(channelId) {
         const base = window.location.origin + window.location.pathname;
+        // Если у канала есть кастомный slug — используем его
+        if (typeof currentChannel !== 'undefined' && currentChannel && currentChannel.slug) {
+            return base + '?join=' + encodeURIComponent(currentChannel.slug);
+        }
+        // Ищем slug в массиве channels
+        if (typeof channels !== 'undefined' && channels) {
+            const ch = channels.find(c => c.id === channelId);
+            if (ch && ch.slug) {
+                return base + '?join=' + encodeURIComponent(ch.slug);
+            }
+        }
         return base + '?join=' + encodeURIComponent(channelId);
     }
 
@@ -29544,19 +29890,50 @@ document.addEventListener('click', function(e) {
 
             clearInterval(interval);
 
-            const channel = channels.find(c => c.id === joinId);
-            if (!channel) {
-                // Попробуем загрузить из Firebase
-                if (typeof database !== 'undefined') {
-                    database.ref('channels/' + joinId).once('value').then(function(snap) {
-                        const data = snap.val();
-                        if (data) showChannelJoinModal({ id: joinId, ...data });
-                        else if (typeof showNotification === 'function') showNotification('❌ Канал не найден');
-                    });
-                }
+            // Сначала ищем по ID напрямую
+            let channel = channels.find(c => c.id === joinId);
+
+            if (channel) {
+                showChannelJoinModal(channel);
                 return;
             }
-            showChannelJoinModal(channel);
+
+            // Ищем по кастомному slug в локальном массиве
+            channel = channels.find(c => c.slug === joinId);
+            if (channel) {
+                showChannelJoinModal(channel);
+                return;
+            }
+
+            // Пробуем загрузить из Firebase — сначала по ID
+            if (typeof database !== 'undefined') {
+                database.ref('channels/' + joinId).once('value').then(function(snap) {
+                    const data = snap.val();
+                    if (data) {
+                        showChannelJoinModal({ id: joinId, ...data });
+                        return;
+                    }
+                    // Не нашли по ID — ищем в маппинге slug'ов
+                    return database.ref('channel_slugs/' + joinId).once('value');
+                }).then(function(snap) {
+                    if (!snap) return;
+                    const slugData = snap.val();
+                    if (slugData && slugData.channelId) {
+                        // Нашли slug — загружаем канал
+                        return database.ref('channels/' + slugData.channelId).once('value');
+                    }
+                }).then(function(snap) {
+                    if (!snap) return;
+                    const data = snap.val();
+                    if (data) {
+                        showChannelJoinModal({ id: snap.key, ...data });
+                    } else {
+                        if (typeof showNotification === 'function') showNotification('❌ Канал не найден');
+                    }
+                }).catch(function() {
+                    if (typeof showNotification === 'function') showNotification('❌ Канал не найден');
+                });
+            }
         }, 500);
     }
 
@@ -31192,7 +31569,7 @@ window.openMyContentPanel = async function() {
             <div id="content-stats" style="display:flex;gap:12px;margin:16px 0">
                 <div style="flex:1;background:linear-gradient(135deg,rgba(108,92,231,0.1),rgba(162,155,254,0.15));border-radius:14px;padding:16px;text-align:center">
                     <div style="font-size:2rem;font-weight:700;color:var(--primary-color)" id="stats-total-views">0</div>
-                    <div style="font-size:0.8rem;color:var(--text-light)">👁️ Просмотров</div>
+                    <div style="font-size:0.8rem;color:var(--text-light);display:flex;align-items:center;justify-content:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Просмотров</div>
                 </div>
                 <div style="flex:1;background:linear-gradient(135deg,rgba(231,76,60,0.1),rgba(255,107,107,0.15));border-radius:14px;padding:16px;text-align:center">
                     <div style="font-size:2rem;font-weight:700;color:#e74c3c" id="stats-total-likes">0</div>
@@ -31313,7 +31690,7 @@ window.openMyContentPanel = async function() {
                         <div style="flex:1;min-width:0">
                             <div style="font-size:0.9rem;font-weight:600;color:var(--text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(story.text || 'История')}</div>
                             <div style="font-size:0.75rem;color:var(--text-light);margin-top:4px">
-                                👁️ ${formatCount(story.views || 0)} • ${formatDate(story.ts)}
+                                <svg style="vertical-align:middle" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> ${formatCount(story.views || 0)} • ${formatDate(story.ts)}
                             </div>
                         </div>
                         <button onclick="deleteContentItem('stories', '${story.id}')" style="background:none;border:none;color:var(--danger-color);cursor:pointer;padding:8px;font-size:1.1rem" title="Удалить">🗑️</button>
