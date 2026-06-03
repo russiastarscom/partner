@@ -25959,6 +25959,11 @@ async function requestUsername() {
                        placeholder="Имя" autocomplete="off">
                 <input type="text" id="reg-username" class="auth-input"
                        placeholder="Юзернейм (уникальный)" autocomplete="off">
+                <input type="tel" id="reg-phone" class="auth-input" style="margin-bottom:0;"
+                       placeholder="Номер телефона (обязательно)" autocomplete="tel">
+                <div id="reg-phone-warn" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid rgba(231,76,60,0.35);">
+                    ⚠️ Номер телефона обязателен. Без него аккаунт будет заблокирован!
+                </div>
                 <input type="password" id="reg-password" class="auth-input" 
                        style="margin-bottom:4px;" placeholder="Пароль" autocomplete="off">
                 <div id="reg-password-nonlatin" class="auth-nonlatin-warn">
@@ -25967,11 +25972,6 @@ async function requestUsername() {
                 <input type="password" id="reg-password-confirm" class="auth-input" 
                        style="margin-bottom:6px;" placeholder="Повторите пароль" autocomplete="off">
                 <div id="reg-password-match-msg" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;"></div>
-                <input type="email" id="reg-email" class="auth-input" style="margin-bottom:0;"
-                       placeholder="Email (обязательно)" autocomplete="email">
-                <div id="reg-email-warn" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid rgba(231,76,60,0.35);">
-                    ⚠️ Введите корректный email
-                </div>
                 <div style="margin-bottom: 18px;">
                     <span class="auth-emoji-label">Выберите статус:</span>
                     <div style="display: flex; flex-wrap: wrap; gap: 6px;">
@@ -26001,37 +26001,6 @@ async function requestUsername() {
                 </button>
             </div>
             
-            <!-- ШАГ 2: подтверждение почты (ТОЛЬКО если email указан) -->
-            <div id="reg-step-2" style="display:none;">
-                <div style="text-align:center;margin-bottom:16px;">
-                    <div style="font-size:2.5rem;margin-bottom:8px;">📧</div>
-                    <div style="font-weight:700;font-size:1rem;color:var(--text-color);margin-bottom:6px;">Подтверждение почты</div>
-                    <div id="reg-email-sent-to" style="font-size:0.85rem;color:var(--text-light);margin-bottom:4px;word-break:break-all;"></div>
-                    <div style="font-size:0.78rem;color:var(--text-light);">Код действителен 10 минут · Проверьте папку «Спам»</div>
-                </div>
-                <div style="margin-bottom:12px;">
-                    <label style="font-size:0.82rem;color:var(--text-light);margin-bottom:6px;display:block;">Код подтверждения</label>
-                    <input type="text" id="reg-code-input" class="auth-input"
-                           placeholder="• • • • • •"
-                           maxlength="6"
-                           inputmode="numeric"
-                           autocomplete="one-time-code"
-                           style="text-align:center;font-size:1.8rem;letter-spacing:10px;font-weight:800;padding:14px;">
-                </div>
-                <div id="reg-code-msg" style="display:none;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px;"></div>
-                <button id="confirm-code-btn" class="auth-btn-primary auth-btn-register">
-                    ✅ Подтвердить почту
-                </button>
-                <button id="resend-code-btn" style="width:100%;margin-top:8px;padding:10px;border:none;background:transparent;color:var(--primary-color);cursor:pointer;font-size:0.9rem;font-family:inherit;">
-                    🔄 Отправить код повторно
-                </button>
-                <button id="skip-email-btn" style="width:100%;margin-top:4px;padding:8px;border:none;background:transparent;color:var(--text-light);cursor:pointer;font-size:0.85rem;font-family:inherit;">
-                    ⏩ Пропустить подтверждение почты
-                </button>
-                <button id="back-to-reg-btn" style="width:100%;padding:8px;border:none;background:transparent;color:var(--text-light);cursor:pointer;font-size:0.85rem;font-family:inherit;">
-                    ← Назад к форме
-                </button>
-            </div>
         </div>
     `;
 
@@ -26062,6 +26031,7 @@ async function requestUsername() {
     // ========== РЕГИСТРАЦИЯ ==========
     const regName = document.getElementById('reg-name');
     const regUsername = document.getElementById('reg-username');
+    const regPhone = document.getElementById('reg-phone');
     const regPassword = document.getElementById('reg-password');
     const regPasswordConfirm = document.getElementById('reg-password-confirm');
     const regPasswordMatchMsg = document.getElementById('reg-password-match-msg');
@@ -26194,9 +26164,9 @@ async function requestUsername() {
     submitRegister.addEventListener('click', async () => {
         const name = regName.value.trim();
         const username = regUsername.value.trim().toLowerCase();
+        const phone = regPhone.value.trim();
         const password = regPassword.value.trim();
         const passwordConfirm = regPasswordConfirm.value.trim();
-        const regEmailVal = document.getElementById('reg-email').value.trim();
 
         if (!name || !username || !password) {
             showNotification('Пожалуйста, заполните все поля');
@@ -26207,6 +26177,20 @@ async function requestUsername() {
             showNotification('Юзернейм должен быть не менее 3 символов');
             return;
         }
+
+        // Проверка телефона (ОБЯЗАТЕЛЬНЫЙ)
+        const phoneWarn = document.getElementById('reg-phone-warn');
+        if (!phone) {
+            if (phoneWarn) { phoneWarn.style.display = 'block'; phoneWarn.textContent = '⚠️ Номер телефона обязателен. Без него аккаунт будет заблокирован!'; }
+            regPhone.focus();
+            return;
+        }
+        if (phone.length < 7) {
+            if (phoneWarn) { phoneWarn.style.display = 'block'; phoneWarn.textContent = '⚠️ Введите корректный номер телефона'; }
+            regPhone.focus();
+            return;
+        }
+        if (phoneWarn) phoneWarn.style.display = 'none';
 
         if (password.length < 4) {
             showNotification('Пароль должен быть не менее 4 символов');
@@ -26236,21 +26220,6 @@ async function requestUsername() {
         }
         if (privacyWarn) privacyWarn.style.display = 'none';
 
-        // Проверка email (ОБЯЗАТЕЛЬНЫЙ)
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const emailWarn = document.getElementById('reg-email-warn');
-        if (!regEmailVal) {
-            if (emailWarn) { emailWarn.style.display = 'block'; emailWarn.textContent = '⚠️ Email обязателен для регистрации'; }
-            document.getElementById('reg-email').focus();
-            return;
-        }
-        if (!emailRegex.test(regEmailVal)) {
-            if (emailWarn) { emailWarn.style.display = 'block'; emailWarn.textContent = '⚠️ Введите корректный email'; }
-            document.getElementById('reg-email').focus();
-            return;
-        }
-        if (emailWarn) emailWarn.style.display = 'none';
-
         try {
             // Проверяем занятость юзернейма
             const userRef = database.ref('users/' + encodeURIComponent(username));
@@ -26260,91 +26229,19 @@ async function requestUsername() {
                 return;
             }
 
-            // Сохраняем данные
+            // Сразу создаём аккаунт (без подтверждения почты)
             window._pendingReg = {
-                name, username, password, email: regEmailVal || '',
-                emoji: selectedEmoji, emailVerified: false
+                name, username, password, phone,
+                emoji: selectedEmoji
             };
 
-            // Если email указан — отправляем код и переходим на шаг 2
-            if (regEmailVal) {
-                const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
-                const codeExpiry = Date.now() + 10 * 60 * 1000;
-                window._pendingReg.code = verifyCode;
-                window._pendingReg.expiry = codeExpiry;
-
-                submitRegister.disabled = true;
-                submitRegister.textContent = 'Отправка...';
-
-                let emailSent = false;
-                try {
-                    await emailjs.send('service_rttja94', 'template_cngvu5j', {
-                        to_email: regEmailVal,
-                        to_name: name,
-                        from_name: 'Twiin Messenger',
-                        message: '🔐 Ваш код подтверждения для Twiin: ' + verifyCode + '\n\nКод действителен 10 минут. Не передавайте его никому.',
-                        time: new Date().toLocaleString('ru-RU')
-                    });
-                    emailSent = true;
-                } catch (ejsErr) {
-                    console.error('EmailJS ошибка:', ejsErr);
-                }
-
-                submitRegister.disabled = false;
-                submitRegister.textContent = '✅ Зарегистрироваться';
-
-                // Переключаемся на шаг 2 (подтверждение email)
-                document.getElementById('reg-step-1').style.display = 'none';
-                document.getElementById('reg-step-2').style.display = 'block';
-                const sentToEl = document.getElementById('reg-email-sent-to');
-                if (sentToEl) {
-                    sentToEl.textContent = emailSent
-                        ? 'Код отправлен на ' + regEmailVal
-                        : '⚠️ Не удалось отправить на ' + regEmailVal + '. Вы можете пропустить.';
-                }
-                document.getElementById('reg-code-input').focus();
-            } else {
-                // Без email — сразу создаём аккаунт
-                await finishRegistration(window._pendingReg, modal);
-            }
+            await finishRegistration(window._pendingReg, modal);
 
         } catch (error) {
             submitRegister.disabled = false;
             submitRegister.textContent = '✅ Зарегистрироваться';
             showNotification('Ошибка: ' + error.message);
         }
-    });
-
-    // Кнопка «Назад»
-    document.getElementById('back-to-reg-btn').addEventListener('click', () => {
-        document.getElementById('reg-step-2').style.display = 'none';
-        document.getElementById('reg-step-1').style.display = 'block';
-    });
-
-    // Повторная отправка кода
-    document.getElementById('resend-code-btn').addEventListener('click', async () => {
-        const pr = window._pendingReg;
-        if (!pr) return;
-        const newCode = Math.floor(100000 + Math.random() * 900000).toString();
-        pr.code = newCode;
-        pr.expiry = Date.now() + 10 * 60 * 1000;
-        const btn = document.getElementById('resend-code-btn');
-        btn.disabled = true;
-        btn.textContent = 'Отправка...';
-        try {
-            await emailjs.send('service_rttja94', 'template_cngvu5j', {
-                to_email: pr.email,
-                to_name: pr.name,
-                from_name: 'Twiin Messenger',
-                message: 'Ваш новый код подтверждения: ' + newCode + '\n\nКод действителен 10 минут.',
-                time: new Date().toLocaleString('ru-RU')
-            });
-            showNotification('📧 Код отправлен повторно');
-        } catch(e) {
-            showNotification('Ошибка: ' + e.message);
-        }
-        btn.disabled = false;
-        btn.textContent = 'Отправить код повторно';
     });
 
     // ── Финальная регистрация (общая функция) ──────────────────
@@ -26357,15 +26254,13 @@ async function requestUsername() {
                 name: pr.name,
                 username: pr.username,
                 password: pr.password,
+                phone: pr.phone || '',
                 emoji: pr.emoji,
                 online: true,
                 lastSeen: Date.now(),
                 blockedUsers: [],
                 subscribedChannels: [],
-                recentChats: [],
-                email: pr.email || '',
-                emailVerified: !!pr.emailVerified,
-                emailNotify: !!pr.email
+                recentChats: []
             };
 
             await userRef.set(currentUserData);
@@ -26406,58 +26301,6 @@ async function requestUsername() {
             showNotification('Ошибка регистрации: ' + error.message);
         }
     }
-
-    // Кнопка «Пропустить подтверждение почты»
-    document.getElementById('skip-email-btn').addEventListener('click', async () => {
-        const pr = window._pendingReg;
-        if (!pr) return;
-        pr.emailVerified = false;
-        await finishRegistration(pr, modal);
-    });
-
-    // Подтверждение кода почты (необязательное)
-    document.getElementById('confirm-code-btn').addEventListener('click', async () => {
-        const pr = window._pendingReg;
-        const codeInput = document.getElementById('reg-code-input');
-        const codeMsg = document.getElementById('reg-code-msg');
-        const enteredCode = codeInput ? codeInput.value.trim() : '';
-
-        const showCodeMsg = (text, ok) => {
-            codeMsg.style.display = 'block';
-            codeMsg.textContent = text;
-            codeMsg.style.background = ok ? 'rgba(46,204,113,0.13)' : 'rgba(231,76,60,0.1)';
-            codeMsg.style.color = ok ? '#2ecc71' : '#e74c3c';
-            codeMsg.style.border = ok ? '1px solid rgba(46,204,113,0.4)' : '1px solid rgba(231,76,60,0.35)';
-        };
-
-        if (!enteredCode || enteredCode.length < 6) {
-            showCodeMsg('❌ Введите 6-значный код', false);
-            return;
-        }
-
-        if (!pr) {
-            showCodeMsg('❌ Ошибка: начните регистрацию заново', false);
-            return;
-        }
-
-        if (Date.now() > pr.expiry) {
-            showCodeMsg('❌ Код истёк. Запросите новый', false);
-            return;
-        }
-
-        if (enteredCode !== pr.code) {
-            showCodeMsg('❌ Неверный код. Проверьте почту', false);
-            codeInput.style.borderColor = '#e74c3c';
-            return;
-        }
-
-        showCodeMsg('✅ Код верный! Создаём аккаунт...', true);
-        const confirmBtn = document.getElementById('confirm-code-btn');
-        confirmBtn.disabled = true;
-
-        pr.emailVerified = true;
-        await finishRegistration(pr, modal);
-    });
 
     // ========== ВХОД ==========
     const loginUsername = document.getElementById('login-username');
