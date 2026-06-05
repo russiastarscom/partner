@@ -12615,6 +12615,14 @@
                     </div>
                     <span class="sm-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
                 </div>
+                <div class="settings-menu-item" id="recovery-code-menu-btn" onclick="toggleSettingsMenu();showRecoveryCodeFromSettings();">
+                    <div class="sm-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6c5ce7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></div>
+                    <div class="sm-content">
+                        <div class="sm-title">Код восстановления</div>
+                        <div class="sm-subtitle">Посмотреть код для сброса пароля</div>
+                    </div>
+                    <span class="sm-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                </div>
             </div>
 
             <div class="settings-group">
@@ -14235,6 +14243,242 @@ function initLanguage(){
         } catch (error) {
             console.error('Ошибка инициализации Firebase:', error);
         }
+
+        // ══════════════════════════════════════════════════════════
+        // ГЛОБАЛЬНЫЕ ФУНКЦИИ: Код восстановления аккаунта
+        // (должны быть доступны всегда, не только в модалке авторизации)
+        // ══════════════════════════════════════════════════════════
+
+        window.generateRecoveryCode = function() {
+            const segments = 4;
+            const segLen = 4;
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = '';
+            for (let s = 0; s < segments; s++) {
+                if (s > 0) code += '-';
+                for (let c = 0; c < segLen; c++) {
+                    code += chars[Math.floor(Math.random() * chars.length)];
+                }
+            }
+            return code;
+        };
+
+        window.showRecoveryCodeModal = function(recoveryCode, username, isFromSettings) {
+            // Удаляем предыдущее окно если есть
+            const oldOverlay = document.getElementById('recovery-code-overlay');
+            if (oldOverlay) oldOverlay.remove();
+
+            const overlay = document.createElement('div');
+            overlay.id = 'recovery-code-overlay';
+            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);animation:fadeIn 0.25s ease-out;';
+
+            const box = document.createElement('div');
+            box.id = 'recovery-code-box';
+            const isDark = document.body.classList.contains('dark-theme');
+            box.style.cssText = `
+                background: ${isDark ? '#1a1a2e' : '#ffffff'};
+                border-radius: 24px;
+                padding: 0;
+                max-width: 400px;
+                width: 100%;
+                text-align: center;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.35), 0 0 0 1px rgba(108,92,231,0.15);
+                overflow: hidden;
+                animation: fadeInScale 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            `;
+
+            // Заголовок с градиентом
+            const headerGrad = isFromSettings
+                ? 'linear-gradient(135deg, #6c5ce7 0%, #a29bfe 50%, #6c5ce7 100%)'
+                : 'linear-gradient(135deg, #e74c3c 0%, #6c5ce7 50%, #a29bfe 100%)';
+
+            const headerTitle = isFromSettings ? '🔑 Ваш код восстановления' : '🔐 Сохраните код!';
+            const headerDesc = isFromSettings
+                ? `Код для сброса пароля аккаунта <b>@${username}</b>. Храните его в тайне.`
+                : `Этот код — единственный способ восстановить аккаунт <b>@${username}</b>, если вы забудете пароль.`;
+
+            box.innerHTML = `
+                <div style="background:${headerGrad};padding:22px 20px 18px;position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:rgba(255,255,255,0.08);border-radius:50%;"></div>
+                    <div style="position:absolute;bottom:-30px;left:-10px;width:60px;height:60px;background:rgba(255,255,255,0.05);border-radius:50%;"></div>
+                    <div style="font-size:2.8rem;margin-bottom:6px;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.2));">${isFromSettings ? '🔑' : '🔐'}</div>
+                    <h3 style="margin:0;font-size:1.15rem;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.2);">${headerTitle}</h3>
+                </div>
+                <div style="padding:20px;">
+                    <p style="margin:0 0 16px;font-size:0.84rem;color:${isDark ? 'rgba(255,255,255,0.6)' : 'var(--text-light)'};line-height:1.55;">${headerDesc}</p>
+
+                    <div style="position:relative;background:${isDark ? 'rgba(108,92,231,0.12)' : 'linear-gradient(135deg,rgba(108,92,231,0.06),rgba(162,155,254,0.1))'};border:2px solid rgba(108,92,231,0.25);border-radius:16px;padding:18px 14px;margin-bottom:16px;">
+                        <div id="recovery-code-text" style="font-family:'Courier New',monospace;font-size:1.4rem;font-weight:900;letter-spacing:4px;color:var(--primary-color);user-select:all;word-break:break-all;">${recoveryCode}</div>
+                        <div style="margin-top:8px;font-size:0.7rem;color:${isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.25)'};letter-spacing:1px;">НАЖМИТЕ ЧТОБЫ ВЫДЕЛИТЬ</div>
+                    </div>
+
+                    <div style="display:flex;gap:8px;margin-bottom:14px;">
+                        <button id="copy-recovery-code" style="flex:1;padding:12px 8px;border:none;border-radius:12px;background:var(--primary-color);color:#fff;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:6px;">
+                            <span>📋</span> Скопировать
+                        </button>
+                        <button id="screenshot-hint-btn" style="flex:1;padding:12px 8px;border:1.5px solid ${isDark ? 'rgba(255,255,255,0.12)' : 'var(--border-color)'};border-radius:12px;background:${isDark ? 'rgba(255,255,255,0.04)' : 'transparent'};color:${isDark ? 'rgba(255,255,255,0.7)' : 'var(--text-color)'};font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:6px;">
+                            <span>📸</span> Скриншот
+                        </button>
+                    </div>
+
+                    ${isFromSettings ? `
+                    <button id="regenerate-recovery-code" style="width:100%;padding:11px;border:1.5px solid rgba(231,76,60,0.3);border-radius:12px;background:rgba(231,76,60,0.06);color:#e74c3c;font-size:0.84rem;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:14px;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:6px;">
+                        <span>🔄</span> Сгенерировать новый код
+                    </button>
+                    ` : `
+                    <div style="background:rgba(231,76,60,0.07);border:1px solid rgba(231,76,60,0.18);border-radius:12px;padding:10px 14px;margin-bottom:14px;">
+                        <p style="margin:0;font-size:0.78rem;color:#e74c3c;line-height:1.45;">⚠️ <b>Запишите код!</b> Без него восстановить аккаунт будет невозможно. Вы также можете посмотреть код позже в Настройках.</p>
+                    </div>
+                    `}
+
+                    ${isFromSettings ? `
+                    <button id="close-recovery-modal" style="width:100%;padding:13px;border:none;border-radius:12px;background:var(--primary-color);color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s;">Закрыть</button>
+                    ` : `
+                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;cursor:pointer;justify-content:center;">
+                        <input type="checkbox" id="recovery-code-saved" style="width:18px;height:18px;accent-color:var(--primary-color);cursor:pointer;">
+                        <span style="font-size:0.84rem;color:var(--text-color);font-weight:600;">Я сохранил(а) код восстановления</span>
+                    </label>
+                    <button id="close-recovery-modal" style="width:100%;padding:13px;border:none;border-radius:12px;background:var(--success-color);color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;opacity:0.35;pointer-events:none;transition:all 0.15s;">Продолжить</button>
+                    `}
+                </div>
+            `;
+
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+
+            const closeBtn = document.getElementById('close-recovery-modal');
+            const copyBtn = document.getElementById('copy-recovery-code');
+            const screenshotBtn = document.getElementById('screenshot-hint-btn');
+            const regenerateBtn = document.getElementById('regenerate-recovery-code');
+            const checkbox = document.getElementById('recovery-code-saved');
+
+            // Закрытие
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    if (isFromSettings || (checkbox && checkbox.checked)) {
+                        overlay.style.animation = 'fadeIn 0.2s ease-out reverse';
+                        setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 180);
+                    }
+                });
+            }
+
+            // Чекбокс (только при регистрации)
+            if (checkbox) {
+                checkbox.addEventListener('change', () => {
+                    closeBtn.style.opacity = checkbox.checked ? '1' : '0.35';
+                    closeBtn.style.pointerEvents = checkbox.checked ? 'auto' : 'none';
+                });
+            }
+
+            // Копирование
+            copyBtn.addEventListener('click', () => {
+                const codeEl = document.getElementById('recovery-code-text');
+                const code = codeEl ? codeEl.textContent : recoveryCode;
+                navigator.clipboard.writeText(code).then(() => {
+                    copyBtn.innerHTML = '<span>✅</span> Скопировано!';
+                    copyBtn.style.background = 'var(--success-color)';
+                    setTimeout(() => {
+                        copyBtn.innerHTML = '<span>📋</span> Скопировать';
+                        copyBtn.style.background = 'var(--primary-color)';
+                    }, 2000);
+                }).catch(() => {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = code;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    copyBtn.innerHTML = '<span>✅</span> Скопировано!';
+                    copyBtn.style.background = 'var(--success-color)';
+                    setTimeout(() => {
+                        copyBtn.innerHTML = '<span>📋</span> Скопировать';
+                        copyBtn.style.background = 'var(--primary-color)';
+                    }, 2000);
+                });
+            });
+
+            // Скриншот
+            screenshotBtn.addEventListener('click', () => {
+                if (typeof showNotification === 'function') {
+                    showNotification('📸 Сделайте скриншот экрана сейчас!');
+                }
+            });
+
+            // Перегенерация кода (только из настроек)
+            if (regenerateBtn) {
+                regenerateBtn.addEventListener('click', async () => {
+                    // Подтверждение
+                    regenerateBtn.disabled = true;
+                    regenerateBtn.innerHTML = '<span>⏳</span> Генерация...';
+
+                    try {
+                        const newCode = window.generateRecoveryCode();
+                        const userRef = database.ref('users/' + encodeURIComponent(username));
+                        await userRef.update({ recoveryCode: newCode, recoveryCodeCreatedAt: Date.now() });
+
+                        // Обновляем код в модалке с анимацией
+                        const codeEl = document.getElementById('recovery-code-text');
+                        if (codeEl) {
+                            codeEl.style.transition = 'transform 0.2s, opacity 0.2s';
+                            codeEl.style.transform = 'scale(0.8)';
+                            codeEl.style.opacity = '0';
+                            setTimeout(() => {
+                                codeEl.textContent = newCode;
+                                codeEl.style.transform = 'scale(1.05)';
+                                codeEl.style.opacity = '1';
+                                setTimeout(() => { codeEl.style.transform = 'scale(1)'; }, 150);
+                            }, 200);
+                        }
+
+                        regenerateBtn.innerHTML = '<span>✅</span> Новый код сгенерирован!';
+                        regenerateBtn.style.borderColor = 'rgba(46,204,113,0.4)';
+                        regenerateBtn.style.background = 'rgba(46,204,113,0.08)';
+                        regenerateBtn.style.color = '#2ecc71';
+                        setTimeout(() => {
+                            regenerateBtn.innerHTML = '<span>🔄</span> Сгенерировать новый код';
+                            regenerateBtn.style.borderColor = 'rgba(231,76,60,0.3)';
+                            regenerateBtn.style.background = 'rgba(231,76,60,0.06)';
+                            regenerateBtn.style.color = '#e74c3c';
+                            regenerateBtn.disabled = false;
+                        }, 3000);
+
+                        if (typeof showNotification === 'function') {
+                            showNotification('🔄 Новый код восстановления сгенерирован!');
+                        }
+                    } catch (err) {
+                        regenerateBtn.innerHTML = '<span>❌</span> Ошибка';
+                        regenerateBtn.disabled = false;
+                        setTimeout(() => {
+                            regenerateBtn.innerHTML = '<span>🔄</span> Сгенерировать новый код';
+                        }, 2000);
+                        if (typeof showNotification === 'function') {
+                            showNotification('Ошибка: ' + err.message);
+                        }
+                    }
+                });
+            }
+
+            // Клик по оверлею
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    if (isFromSettings) {
+                        overlay.style.animation = 'fadeIn 0.2s ease-out reverse';
+                        setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 180);
+                    } else {
+                        if (typeof showNotification === 'function') {
+                            showNotification('⚠️ Сначала подтвердите, что сохранили код!');
+                        }
+                        box.style.animation = 'none';
+                        box.offsetHeight;
+                        box.style.animation = 'shake 0.4s ease-out';
+                    }
+                }
+            });
+        };
+
+        // ══════════════════════════════════════════════════════════
+        // КОНЕЦ ГЛОБАЛЬНЫХ ФУНКЦИЙ ВОССТАНОВЛЕНИЯ
+        // ══════════════════════════════════════════════════════════
 
         // Элементы DOM
         const currentUserEl = document.getElementById('current-user');
@@ -18367,6 +18611,33 @@ function initLanguage(){
                 document.getElementById('privacy-read-receipts').checked = privacySettings.readReceipts !== false;
             });
             privacyModal.classList.add('active', 'modal-fullscreen');
+        }
+        
+        // ── Показ кода восстановления из настроек ──
+        async function showRecoveryCodeFromSettings() {
+            if (!currentUser) {
+                showNotification('Сначала войдите в аккаунт');
+                return;
+            }
+            try {
+                const userRef = database.ref('users/' + encodeURIComponent(currentUser));
+                const snapshot = await userRef.once('value');
+                if (!snapshot.exists()) {
+                    showNotification('Ошибка: данные пользователя не найдены');
+                    return;
+                }
+                const userData = snapshot.val();
+                if (!userData.recoveryCode) {
+                    // Генерируем код, если аккаунт был создан до обновления
+                    const newCode = window.generateRecoveryCode();
+                    await userRef.update({ recoveryCode: newCode, recoveryCodeCreatedAt: Date.now() });
+                    window.showRecoveryCodeModal(newCode, currentUser, true);
+                } else {
+                    window.showRecoveryCodeModal(userData.recoveryCode, currentUser, true);
+                }
+            } catch (err) {
+                showNotification('Ошибка: ' + err.message);
+            }
         }
         
         function closePrivacySettings() {
@@ -25950,6 +26221,7 @@ async function requestUsername() {
                 ⚠️ Пароль содержит <b>не латинские</b> символы. Проверьте раскладку клавиатуры!
             </div>
             <button id="submit-login" class="auth-btn-primary">Войти</button>
+            <button id="forgot-password-btn" style="display:block;width:100%;margin-top:10px;padding:10px;border:1.5px solid var(--primary-color);border-radius:10px;background:transparent;color:var(--primary-color);font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background 0.2s,transform 0.1s;">🔑 Забыли пароль? Восстановить по коду</button>
         </div>
         
         <!-- ФОРМА РЕГИСТРАЦИИ -->
@@ -26244,9 +26516,12 @@ async function requestUsername() {
         }
     });
 
+    // ── (функции generateRecoveryCode и showRecoveryCodeModal определены глобально выше) ──
+
     // ── Финальная регистрация (общая функция) ──────────────────
     async function finishRegistration(pr, modal) {
         try {
+            const recoveryCode = window.generateRecoveryCode();
             const userRef = database.ref('users/' + encodeURIComponent(pr.username));
 
             currentUser = pr.username;
@@ -26260,7 +26535,9 @@ async function requestUsername() {
                 lastSeen: Date.now(),
                 blockedUsers: [],
                 subscribedChannels: [],
-                recentChats: []
+                recentChats: [],
+                recoveryCode: recoveryCode,
+                recoveryCodeCreatedAt: Date.now()
             };
 
             await userRef.set(currentUserData);
@@ -26289,6 +26566,10 @@ async function requestUsername() {
             trackUserStatus();
 
             showNotification('🎉 Регистрация прошла успешно!');
+            // Показываем код восстановления (обязательно!)
+            setTimeout(() => {
+                window.showRecoveryCodeModal(recoveryCode, pr.username);
+            }, 800);
             setTimeout(() => { if (typeof listenForIncomingCalls === 'function') listenForIncomingCalls(); }, 1500);
             setTimeout(() => { if (typeof checkPetHungerNotification === 'function') checkPetHungerNotification(); }, 4000);
             // ── E2EE: Инициализация шифрования для нового пользователя ──
@@ -26389,6 +26670,245 @@ async function requestUsername() {
     });
     regPassword.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') submitRegister.click();
+    });
+
+    // ========== ВОССТАНОВЛЕНИЕ ПАРОЛЯ ПО КОДУ ==========
+    const forgotBtn = document.getElementById('forgot-password-btn');
+
+    forgotBtn.addEventListener('click', () => {
+        // Удаляем предыдущее если есть
+        const oldRecovery = document.getElementById('recovery-flow-overlay');
+        if (oldRecovery) oldRecovery.remove();
+
+        const recoveryOverlay = document.createElement('div');
+        recoveryOverlay.id = 'recovery-flow-overlay';
+        recoveryOverlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);z-index:100001;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);animation:fadeIn 0.25s ease-out;';
+
+        const recoveryBox = document.createElement('div');
+        const isDark = document.body.classList.contains('dark-theme');
+        recoveryBox.style.cssText = `
+            background: ${isDark ? '#1a1a2e' : '#ffffff'};
+            border-radius: 24px;
+            padding: 0;
+            max-width: 420px;
+            width: 100%;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.35), 0 0 0 1px rgba(108,92,231,0.15);
+            animation: fadeInScale 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        `;
+
+        recoveryBox.innerHTML = `
+            <div style="background:linear-gradient(135deg,#e74c3c 0%,#6c5ce7 50%,#a29bfe 100%);padding:22px 20px 18px;position:relative;overflow:hidden;">
+                <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:rgba(255,255,255,0.08);border-radius:50%;"></div>
+                <div style="position:absolute;bottom:-30px;left:-10px;width:60px;height:60px;background:rgba(255,255,255,0.05);border-radius:50%;"></div>
+                <div style="font-size:2.8rem;margin-bottom:6px;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.2));">🔑</div>
+                <h3 style="margin:0;font-size:1.15rem;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.2);">Восстановление пароля</h3>
+                <p style="margin:6px 0 0;font-size:0.8rem;color:rgba(255,255,255,0.75);line-height:1.45;">Введите код восстановления, полученный при регистрации</p>
+            </div>
+
+            <div style="padding:20px;">
+                <!-- Шаг 1: Ввод кода -->
+                <div id="recovery-step-1">
+                    <label style="display:block;margin-bottom:6px;">
+                        <span style="font-size:0.8rem;font-weight:700;color:${isDark ? 'rgba(255,255,255,0.6)' : 'var(--text-light)'};text-transform:uppercase;letter-spacing:0.5px;">Юзернейм</span>
+                        <input type="text" id="recovery-username" class="auth-input" placeholder="@username" autocomplete="off" style="margin-bottom:14px;margin-top:4px;">
+                    </label>
+                    <label style="display:block;margin-bottom:6px;">
+                        <span style="font-size:0.8rem;font-weight:700;color:${isDark ? 'rgba(255,255,255,0.6)' : 'var(--text-light)'};text-transform:uppercase;letter-spacing:0.5px;">Код восстановления</span>
+                        <input type="text" id="recovery-code-input" class="auth-input" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off" style="margin-top:4px;text-transform:uppercase;letter-spacing:3px;font-family:'Courier New',monospace;font-weight:700;font-size:1rem;text-align:center;">
+                    </label>
+                    <div id="recovery-error" style="display:none;background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.25);border-radius:12px;padding:10px 14px;margin:12px 0;font-size:0.82rem;color:#e74c3c;line-height:1.45;"></div>
+                    <button id="recovery-verify-btn" style="width:100%;padding:13px;border:none;border-radius:12px;background:var(--primary-color);color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s;margin-top:4px;">Проверить код</button>
+                </div>
+
+                <!-- Шаг 2: Новый пароль -->
+                <div id="recovery-step-2" style="display:none;">
+                    <div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.25);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:0.84rem;color:#27ae60;line-height:1.45;">
+                        ✅ Код подтверждён! Задайте новый пароль для вашего аккаунта.
+                    </div>
+                    <label style="display:block;margin-bottom:6px;">
+                        <span style="font-size:0.8rem;font-weight:700;color:${isDark ? 'rgba(255,255,255,0.6)' : 'var(--text-light)'};text-transform:uppercase;letter-spacing:0.5px;">Новый пароль</span>
+                        <input type="password" id="recovery-new-password" class="auth-input" placeholder="Минимум 4 символа" autocomplete="off" style="margin-top:4px;">
+                    </label>
+                    <label style="display:block;margin-bottom:6px;">
+                        <span style="font-size:0.8rem;font-weight:700;color:${isDark ? 'rgba(255,255,255,0.6)' : 'var(--text-light)'};text-transform:uppercase;letter-spacing:0.5px;">Повторите пароль</span>
+                        <input type="password" id="recovery-new-password-confirm" class="auth-input" placeholder="Введите ещё раз" autocomplete="off" style="margin-top:4px;">
+                    </label>
+                    <div id="recovery-password-error" style="display:none;background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.25);border-radius:12px;padding:10px 14px;margin:12px 0;font-size:0.82rem;color:#e74c3c;line-height:1.45;"></div>
+                    <button id="recovery-reset-btn" style="width:100%;padding:13px;border:none;border-radius:12px;background:var(--success-color);color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s;margin-top:4px;">🔄 Сбросить пароль</button>
+                </div>
+
+                <button id="recovery-back-btn" style="display:block;width:100%;margin-top:12px;padding:11px;border:1.5px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'var(--border-color)'};border-radius:12px;background:${isDark ? 'rgba(255,255,255,0.04)' : 'transparent'};color:${isDark ? 'rgba(255,255,255,0.5)' : 'var(--text-light)'};font-size:0.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;">← Назад ко входу</button>
+            </div>
+        `;
+
+        recoveryOverlay.appendChild(recoveryBox);
+        document.body.appendChild(recoveryOverlay);
+
+        const step1 = document.getElementById('recovery-step-1');
+        const step2 = document.getElementById('recovery-step-2');
+        const errorDiv = document.getElementById('recovery-error');
+        const passwordError = document.getElementById('recovery-password-error');
+        const verifyBtn = document.getElementById('recovery-verify-btn');
+        const resetBtn = document.getElementById('recovery-reset-btn');
+        const backBtn = document.getElementById('recovery-back-btn');
+        const usernameInput = document.getElementById('recovery-username');
+        const codeInput = document.getElementById('recovery-code-input');
+
+        let verifiedUsername = '';
+
+        verifyBtn.addEventListener('click', async () => {
+            const username = usernameInput.value.trim().toLowerCase();
+            const code = codeInput.value.trim().toUpperCase();
+
+            errorDiv.style.display = 'none';
+
+            if (!username) {
+                errorDiv.innerHTML = '⚠️ Введите юзернейм вашего аккаунта';
+                errorDiv.style.display = 'block';
+                usernameInput.focus();
+                return;
+            }
+            if (!code || code.replace(/-/g,'').length < 16) {
+                errorDiv.innerHTML = '⚠️ Введите полный код восстановления<br><span style="font-size:0.75rem;opacity:0.7;">Формат: XXXX-XXXX-XXXX-XXXX</span>';
+                errorDiv.style.display = 'block';
+                codeInput.focus();
+                return;
+            }
+
+            verifyBtn.disabled = true;
+            verifyBtn.textContent = 'Проверяем...';
+
+            try {
+                const userRef = database.ref('users/' + encodeURIComponent(username));
+                const snapshot = await userRef.once('value');
+
+                if (!snapshot.exists()) {
+                    errorDiv.innerHTML = '❌ Пользователь <b>@' + username + '</b> не найден';
+                    errorDiv.style.display = 'block';
+                    verifyBtn.disabled = false;
+                    verifyBtn.textContent = 'Проверить код';
+                    return;
+                }
+
+                const userData = snapshot.val();
+
+                if (!userData.recoveryCode) {
+                    errorDiv.innerHTML = '❌ У этого аккаунта нет кода восстановления.<br><span style="font-size:0.75rem;opacity:0.7;">Аккаунт создан до введения системы восстановления.</span>';
+                    errorDiv.style.display = 'block';
+                    verifyBtn.disabled = false;
+                    verifyBtn.textContent = 'Проверить код';
+                    return;
+                }
+
+                const normalizeCode = (c) => c.replace(/-/g, '').toUpperCase();
+                if (normalizeCode(userData.recoveryCode) !== normalizeCode(code)) {
+                    errorDiv.innerHTML = '❌ Неверный код восстановления.<br><span style="font-size:0.75rem;opacity:0.7;">Проверьте код и попробуйте снова.</span>';
+                    errorDiv.style.display = 'block';
+                    verifyBtn.disabled = false;
+                    verifyBtn.textContent = 'Проверить код';
+                    return;
+                }
+
+                verifiedUsername = username;
+                // Анимация перехода к шагу 2
+                step1.style.transition = 'opacity 0.2s, transform 0.2s';
+                step1.style.opacity = '0';
+                step1.style.transform = 'translateX(-20px)';
+                setTimeout(() => {
+                    step1.style.display = 'none';
+                    step2.style.display = 'block';
+                    step2.style.opacity = '0';
+                    step2.style.transform = 'translateX(20px)';
+                    step2.style.transition = 'opacity 0.25s, transform 0.25s';
+                    requestAnimationFrame(() => {
+                        step2.style.opacity = '1';
+                        step2.style.transform = 'translateX(0)';
+                    });
+                    document.getElementById('recovery-new-password').focus();
+                }, 200);
+
+            } catch (err) {
+                errorDiv.innerHTML = '❌ Ошибка: ' + err.message;
+                errorDiv.style.display = 'block';
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = 'Проверить код';
+            }
+        });
+
+        resetBtn.addEventListener('click', async () => {
+            const newPass = document.getElementById('recovery-new-password').value.trim();
+            const newPassConfirm = document.getElementById('recovery-new-password-confirm').value.trim();
+
+            passwordError.style.display = 'none';
+
+            if (!newPass) {
+                passwordError.textContent = '⚠️ Введите новый пароль';
+                passwordError.style.display = 'block';
+                return;
+            }
+            if (newPass.length < 4) {
+                passwordError.textContent = '⚠️ Пароль должен быть не менее 4 символов';
+                passwordError.style.display = 'block';
+                return;
+            }
+            if (newPass !== newPassConfirm) {
+                passwordError.textContent = '❌ Пароли не совпадают';
+                passwordError.style.display = 'block';
+                return;
+            }
+
+            resetBtn.disabled = true;
+            resetBtn.textContent = 'Сохраняем...';
+
+            try {
+                const userRef = database.ref('users/' + encodeURIComponent(verifiedUsername));
+                await userRef.update({ password: newPass });
+
+                try {
+                    const saved = localStorage.getItem('messenger_user');
+                    if (saved) {
+                        const data = JSON.parse(saved);
+                        if (data.username === verifiedUsername) {
+                            data.password = newPass;
+                            localStorage.setItem('messenger_user', JSON.stringify(data));
+                        }
+                    }
+                } catch(e) {}
+
+                showNotification('✅ Пароль успешно изменён! Войдите с новым паролем.');
+                recoveryOverlay.style.animation = 'fadeIn 0.2s ease-out reverse';
+                setTimeout(() => { if (recoveryOverlay.parentNode) recoveryOverlay.remove(); }, 180);
+
+                loginPassword.value = '';
+                loginUsername.value = verifiedUsername;
+                loginPassword.focus();
+
+            } catch (err) {
+                passwordError.innerHTML = '❌ Ошибка: ' + err.message;
+                passwordError.style.display = 'block';
+                resetBtn.disabled = false;
+                resetBtn.textContent = '🔄 Сбросить пароль';
+            }
+        });
+
+        backBtn.addEventListener('click', () => {
+            recoveryOverlay.style.animation = 'fadeIn 0.2s ease-out reverse';
+            setTimeout(() => { if (recoveryOverlay.parentNode) recoveryOverlay.remove(); }, 180);
+        });
+
+        recoveryOverlay.addEventListener('click', (e) => {
+            if (e.target === recoveryOverlay) {
+                recoveryOverlay.style.animation = 'fadeIn 0.2s ease-out reverse';
+                setTimeout(() => { if (recoveryOverlay.parentNode) recoveryOverlay.remove(); }, 180);
+            }
+        });
+
+        // Enter key support
+        usernameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') codeInput.focus(); });
+        codeInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') verifyBtn.click(); });
+
+        usernameInput.focus();
     });
 
     // Автозаполнение если данные уже сохранены
