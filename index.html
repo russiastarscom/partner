@@ -17648,15 +17648,9 @@ function initLanguage(){
                                     }
                                 }
                             }
-                            }
-                        if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
-                            try {
-                                const notifBody = latestMessage.text || (latestMessage.image ? '📷 Фото' : latestMessage.video ? '🎬 Видео' : latestMessage.audio ? '🎵 Аудио' : latestMessage.file ? ('📄 ' + (latestMessage.fileName || 'Файл')) : 'Новое сообщение');
-                                new Notification(chatName, { body: notifBody, tag: latestMessage.id });
-                            } catch(e) { /* Notification API may fail in some contexts */ }
-                        } else if (document.hidden && 'Notification' in window && Notification.permission !== 'denied') {
-                            Notification.requestPermission();
+                            showToastNotification({ title: chatName, message: notifPreview, type: chatId.startsWith('group_') ? 'group' : chatId.startsWith('channel_') ? 'channel' : 'message', chatId, avatar: chatId.startsWith('group_') ? '👥' : chatId.startsWith('channel_') ? '📢' : notifAvatar, duration: 6000 });
                         }
+                        createFirebaseNotification(latestMessage, chatName, notificationType);
                         lastMessageTimestamp = latestMessage.timestamp;
                     }
                 }
@@ -17672,7 +17666,7 @@ function initLanguage(){
             Object.keys(allGroups).forEach(groupId => {
                 const group = allGroups[groupId];
                 if (group.participants && group.participants.includes(currentUser) && !groups.some(g => g.id === groupId) && (document.hidden || currentChat !== groupId)) {
-                    // In-app toast уведомление о добавлении в группу отключено
+                    showToastNotification({ title: 'Новая группа', message: `Вас добавили в группу "${group.name}"`, type: 'group', chatId: groupId, avatar: '👥', duration: 5000 });
                     loadGroups();
                 }
             });
@@ -17693,7 +17687,7 @@ function initLanguage(){
                     if (latestMessage.timestamp > lastMessageTimestamp && latestMessage.sender !== currentUser && !notifiedMessageIds.has(latestMessage.id) && (document.hidden || currentChat !== channelId)) {
                         notifiedMessageIds.add(latestMessage.id);
                         if (notifiedMessageIds.size > 100) { const f = notifiedMessageIds.values().next().value; notifiedMessageIds.delete(f); }
-                        // In-app toast уведомление о новом сообщении канала отключено
+                        showToastNotification({ title: channel.name, message: latestMessage.text, type: 'channel', chatId: channelId, avatar: '📢', duration: 6000 });
                         lastMessageTimestamp = latestMessage.timestamp;
                     }
                 }
@@ -35213,7 +35207,7 @@ window.deleteContentItem = async function(type, id) {
 
     <!-- ========== PWA — Service Worker ========== -->
     <script>
-        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.protocol === 'http:')) {
+        if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
                 navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
                     .then(function (reg) {
@@ -35238,8 +35232,6 @@ window.deleteContentItem = async function(type, id) {
                         console.warn('[SW] Ошибка регистрации:', err);
                     });
             });
-        } else if ('serviceWorker' in navigator && location.protocol === 'file:') {
-            console.info('[SW] Service Worker не поддерживается при открытии файла локально (file://). Разверните на сервере для работы PWA.');
         }
     </script>
     <!-- ========== конец PWA ========== -->
@@ -35601,21 +35593,13 @@ window.deleteContentItem = async function(type, id) {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
-            </div>
-            <div class="shorts-header-center">
-                <span class="shorts-header-tab active" id="shorts-tab-all" onclick="switchShortsFeed('all')">Все</span>
-                <span class="shorts-header-tab" id="shorts-tab-subs" onclick="switchShortsFeed('subs')">Подписки</span>
+                <span>Shorts</span>
             </div>
             <button class="shorts-close-btn" onclick="closeShortsMode()">✕</button>
         </div>
-        <!-- FAB кнопка загрузки -->
-        <button class="shorts-fab-upload" onclick="openShortsUpload()" title="Опубликовать видео">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
         <div class="shorts-feed" id="shorts-feed">
             <!-- Shorts will be dynamically loaded here -->
         </div>
-        <!-- Профиль пользователя (динамически управляется JS) -->
     </div>
     <!-- ===== КОНЕЦ SHORTS CONTAINER ===== -->
 
