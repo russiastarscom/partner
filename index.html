@@ -6381,6 +6381,48 @@
             margin-top: 20px;
         }
 
+        /* Кликабельный аватар — открывает фото на весь экран (как в Telegram) */
+        .profile-cover-avatar.clickable {
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .profile-cover-avatar.clickable:hover {
+            transform: scale(1.04);
+            box-shadow: 0 6px 28px rgba(0,0,0,0.35);
+        }
+        .profile-cover-avatar.clickable:active {
+            transform: scale(0.98);
+        }
+        .profile-cover-avatar .avatar-fullscreen-hint {
+            position: absolute;
+            right: 4px;
+            bottom: 4px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            z-index: 3;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .profile-cover-avatar.clickable:hover .avatar-fullscreen-hint,
+        .profile-cover-avatar.clickable:active .avatar-fullscreen-hint {
+            opacity: 1;
+        }
+        /* На сенсорных экранах всегда показываем подсказку, т.к. нет hover */
+        @media (hover: none) and (pointer: coarse) {
+            .profile-cover-avatar.clickable .avatar-fullscreen-hint {
+                opacity: 1;
+            }
+        }
+
         /* Полноэкранный модал профиля */
         .modal.modal-fullscreen {
             background: var(--modal-bg);
@@ -11049,8 +11091,72 @@ function initLanguage(){
 
         let _msgCache = {}; // кэш сообщений для ответа
 
-        window.setReply = function(messageId, sender) {
-            const text = _msgCache[messageId] ? (_msgCache[messageId].text || '') : '';
+        // Плейсхолдеры, которые означают «сообщение ещё не расшифровано»
+        const _ENCRYPTED_PLACEHOLDERS = [
+            '[Зашифрованное сообщение]',
+            '🔒 [Не удалось расшифровать]',
+            '[Не удалось расшифровать]',
+            '[Ошибка расшифровки]'
+        ];
+
+        function _isEncryptedPlaceholder(text) {
+            if (!text) return false;
+            return _ENCRYPTED_PLACEHOLDERS.indexOf(text) !== -1;
+        }
+
+        /**
+         * Возвращает расшифрованный текст сообщения из кэша (если он есть).
+         * Используется для подмены плейсхолдера [Зашифрованное сообщение]
+         * в reply-блоках сообщений, которые ссылаются на зашифрованное сообщение.
+         */
+        function resolveReplyText(replyTo) {
+            if (!replyTo) return '';
+            let text = replyTo.text || '';
+            if (!_isEncryptedPlaceholder(text)) return text;
+
+            // Пробуем взять расшифрованный текст из кэша
+            const cached = replyTo.id ? _msgCache[replyTo.id] : null;
+            if (cached) {
+                if (cached._decryptedText) return cached._decryptedText;
+                if (cached.text && !_isEncryptedPlaceholder(cached.text)) return cached.text;
+            }
+            return text;
+        }
+
+        /**
+         * Асинхронно расшифровывает сообщение в кэше, если оно зашифровано,
+         * и возвращает расшифрованный текст. Используется в setReply, forward,
+         * copy и т.п., чтобы избежать сохранения плейсхолдера
+         * «[Зашифрованное сообщение]» в пересылаемых/отвечающих сообщениях.
+         */
+        async function _ensureDecryptedCacheText(messageId) {
+            const cached = _msgCache[messageId];
+            if (!cached) return '';
+            if (cached._decryptedText) return cached._decryptedText;
+            if (!cached.encrypted || !cached.ciphertext || !cached.iv) {
+                return cached.text || '';
+            }
+            if (!window.cryptoState || !window.cryptoState.isReady) {
+                return cached.text || '';
+            }
+            try {
+                const peerId = cached.sender === currentUser ? currentChat : cached.sender;
+                const plain = await TwiinCrypto.decryptMessageFromPeer(peerId, cached.ciphertext, cached.iv);
+                if (plain && plain !== 'null' && plain !== 'undefined') {
+                    cached.text = plain;
+                    cached._decryptedText = plain;
+                    cached.encrypted = false;
+                    return plain;
+                }
+            } catch (e) {
+                console.error('[Reply] Не удалось расшифровать сообщение для ответа:', e);
+            }
+            return cached.text || '';
+        }
+
+        window.setReply = async function(messageId, sender) {
+            // Расшифровываем оригинальное сообщение, если оно ещё зашифровано
+            const text = await _ensureDecryptedCacheText(messageId);
             replyTo = { id: messageId, sender: sender, text: (text || '').substring(0, 120) };
             replyPreviewName.textContent = sender === currentUser ? 'Вы' : sender;
             replyPreviewText.textContent = replyTo.text;
@@ -11898,7 +12004,7 @@ function initLanguage(){
                     const safeSrc = av.replace(/"/g, '&quot;');
                     const fb = userData.emoji || (fallbackLetter || '?').charAt(0).toUpperCase();
                     const fbSvg = makeSvgAvatar(fb, fb, !!userData.emoji).replace(/"/g, "\\'");
-                    return `<img src="${safeSrc}" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;top:0;left:0;" onerror="this.outerHTML='${fbSvg}'">`;
+                    return `<img src="${safeSrc}" alt="avatar" class="user-avatar-img" data-avatar-url="${safeSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;top:0;left:0;" onerror="this.outerHTML='${fbSvg}'">`;
                 }
                 // старый формат — эмодзи-строка в поле avatar → берём букву имени
                 const letter = (fallbackLetter || '?').charAt(0).toUpperCase();
@@ -15951,7 +16057,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                             status: message.status || 'sent',
                             readAt: message.readAt || null,
                             encrypted: message.encrypted || false,
-                            _decryptedText: message._decryptedText || null
+                            _decryptedText: message._decryptedText || null,
+                            ciphertext: message.ciphertext || null,
+                            iv: message.iv || null
                         };
                         continue;
                     }
@@ -15976,7 +16084,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                     status: message.status || 'sent',
                     readAt: message.readAt || null,
                     encrypted: message.encrypted || false,
-                    _decryptedText: message._decryptedText || null
+                    _decryptedText: message._decryptedText || null,
+                    ciphertext: message.ciphertext || null,
+                    iv: message.iv || null
                 };
 
                 // Sender name для группового чата
@@ -15998,9 +16108,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                 let replyHtml = '';
                 if (message.replyTo) {
                     const rtSender = message.replyTo.sender === currentUser ? 'Вы' : message.replyTo.sender;
+                    const rtText = resolveReplyText(message.replyTo);
                     replyHtml = '<div class="message-reply" onclick="scrollToReplyMessage(\'' + message.replyTo.id + '\')">' +
                         '<div class="message-reply-name">' + escapeHtml(rtSender) + '</div>' +
-                        '<div class="message-reply-text">' + escapeHtml(message.replyTo.text || '') + '</div>' +
+                        '<div class="message-reply-text">' + escapeHtml(rtText || '') + '</div>' +
                         '</div>';
                 }
 
@@ -16170,9 +16281,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             let replyHtml = '';
             if (message.replyTo) {
                 const rtSender = message.replyTo.sender === currentUser ? 'Вы' : message.replyTo.sender;
+                const rtText = resolveReplyText(message.replyTo);
                 replyHtml = '<div class="message-reply" onclick="scrollToReplyMessage(\'' + message.replyTo.id + '\')">' +
                     '<div class="message-reply-name">' + escapeHtml(rtSender) + '</div>' +
-                    '<div class="message-reply-text">' + escapeHtml(message.replyTo.text || '') + '</div>' +
+                    '<div class="message-reply-text">' + escapeHtml(rtText || '') + '</div>' +
                     '</div>';
             }
 
@@ -16224,7 +16336,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                 status: message.status || 'sent',
                 readAt: message.readAt || null,
                 encrypted: message.encrypted || false,
-                _decryptedText: message._decryptedText || null
+                _decryptedText: message._decryptedText || null,
+                ciphertext: message.ciphertext || null,
+                iv: message.iv || null
             };
 
             // Обработчики
@@ -16502,7 +16616,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                             _msgCache[msg.id].text = plainText;
                             _msgCache[msg.id]._decryptedText = plainText;
                             _msgCache[msg.id].encrypted = false;
+                        } else {
+                            _msgCache[msg.id] = {
+                                text: plainText,
+                                sender: msg.sender,
+                                timestamp: msg.timestamp,
+                                status: msg.status || 'sent',
+                                readAt: msg.readAt || null,
+                                encrypted: false,
+                                _decryptedText: plainText,
+                                ciphertext: msg.ciphertext || null,
+                                iv: msg.iv || null
+                            };
                         }
+
+                        // Обновляем reply-блоки во всех сообщениях, которые ссылаются на это
+                        // сообщение — раньше в них навсегда оставался плейсхолдер
+                        // «[Зашифрованное сообщение]».
+                        try {
+                            const replyBlocks = chatMessages.querySelectorAll('.message-reply');
+                            replyBlocks.forEach(function(rb) {
+                                // Определяем ID сообщения, на которое ссылается этот reply-блок,
+                                // через onclick-атрибут: scrollToReplyMessage('<id>')
+                                const onclickAttr = rb.getAttribute('onclick') || '';
+                                const m = onclickAttr.match(/scrollToReplyMessage\(['"]([^'"]+)['"]\)/);
+                                if (m && m[1] === msg.id) {
+                                    const textEl = rb.querySelector('.message-reply-text');
+                                    if (textEl && _isEncryptedPlaceholder(textEl.textContent)) {
+                                        textEl.textContent = plainText.substring(0, 120);
+                                    }
+                                }
+                            });
+                        } catch(e) {}
                     }
                 } catch(e) { /* молча пропускаем */ }
             }
@@ -17907,15 +18052,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         /**
          * Копирует текст сообщения
          */
-        function copyMessageText(msgId) {
+        async function copyMessageText(msgId) {
             const cached = _msgCache[msgId];
-            if (cached && cached.text) {
-                navigator.clipboard.writeText(cached.text).then(() => {
+            if (!cached) return;
+            // Если сообщение зашифровано — расшифровываем перед копированием
+            const text = await _ensureDecryptedCacheText(msgId);
+            if (text) {
+                navigator.clipboard.writeText(text).then(() => {
                     showNotification('Текст скопирован');
                 }).catch(() => {
                     // Fallback
                     const ta = document.createElement('textarea');
-                    ta.value = cached.text;
+                    ta.value = text;
                     document.body.appendChild(ta);
                     ta.select();
                     document.execCommand('copy');
@@ -17928,17 +18076,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         /**
          * Открывает модалку пересылки сообщения
          */
-        function forwardMessage(msgId) {
+        async function forwardMessage(msgId) {
             const cached = _msgCache[msgId];
             if (!cached) return;
 
-            window._forwardText = cached.text;
+            // Если сообщение зашифровано — расшифровываем перед пересылкой
+            const text = await _ensureDecryptedCacheText(msgId);
+
+            window._forwardText = text;
             window._forwardSender = cached.sender;
 
             // Обновляем превью
             const senderLabel = cached.sender === currentUser ? 'Вы' : cached.sender;
             document.getElementById('forward-preview-sender').textContent = 'От: ' + senderLabel;
-            document.getElementById('forward-preview-text').textContent = cached.text || '(медиа)';
+            document.getElementById('forward-preview-text').textContent = text || '(медиа)';
 
             // Очищаем поиск
             const searchInput = document.getElementById('forward-search-input');
@@ -18838,7 +18989,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                     };
 
                     if (replyTo) {
-                        message.replyTo = { id: replyTo.id, sender: replyTo.sender, text: replyTo.text };
+                        // Если в replyTo.text остался плейсхолдер ([Зашифрованное сообщение]) —
+                        // пытаемся расшифровать оригинальное сообщение прямо сейчас.
+                        let rtText = replyTo.text || '';
+                        if (_isEncryptedPlaceholder(rtText) && replyTo.id) {
+                            try {
+                                rtText = await _ensureDecryptedCacheText(replyTo.id);
+                            } catch(e) {}
+                        }
+                        rtText = (rtText || '').substring(0, 120);
+                        message.replyTo = { id: replyTo.id, sender: replyTo.sender, text: rtText };
                     }
 
                     textarea.value = '';
@@ -18890,7 +19050,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             };
 
             if (replyTo) {
-                message.replyTo = { id: replyTo.id, sender: replyTo.sender, text: replyTo.text };
+                // Если в replyTo.text остался плейсхолдер ([Зашифрованное сообщение]) —
+                // пытаемся расшифровать оригинальное сообщение прямо сейчас.
+                let rtText = replyTo.text || '';
+                if (_isEncryptedPlaceholder(rtText) && replyTo.id) {
+                    try {
+                        rtText = await _ensureDecryptedCacheText(replyTo.id);
+                    } catch(e) {}
+                }
+                rtText = (rtText || '').substring(0, 120);
+                message.replyTo = { id: replyTo.id, sender: replyTo.sender, text: rtText };
             }
 
             try {
@@ -23428,14 +23597,40 @@ document.addEventListener('click', function(e) {
             }
         }
 
-        // Открывает профиль другого пользователя
-        // Открывает профиль другого пользователя
+        // Делает аватар в просмотре профиля кликабельным — открывает фото на весь экран (как в Telegram)
+        function _wireProfileAvatarFullscreen(modal) {
+            if (!modal) return;
+            const avatarContainer = modal.querySelector('.profile-cover-avatar');
+            if (!avatarContainer) return;
+            const avatarImg = avatarContainer.querySelector('img.user-avatar-img');
+            if (!avatarImg) return; // SVG-заглушка (буква/эмодзи) — не кликабельна
+            let url = avatarImg.getAttribute('data-avatar-url') || avatarImg.src;
+            if (!url) return;
+            // Декодируем &quot; обратно в кавычку, если было экранировано
+            try { url = url.replace(/&quot;/g, '"'); } catch(e) {}
+            avatarContainer.classList.add('clickable');
+            avatarContainer.title = 'Открыть фото профиля';
+            // Значок-подсказка «развернуть»
+            if (!avatarContainer.querySelector('.avatar-fullscreen-hint')) {
+                const hint = document.createElement('div');
+                hint.className = 'avatar-fullscreen-hint';
+                hint.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
+                avatarContainer.appendChild(hint);
+            }
+            // Снимаем предыдущий обработчик, чтобы не было дублей при повторном открытии
+            if (avatarContainer._avatarFullscreenBound) return;
+            avatarContainer._avatarFullscreenBound = true;
+            avatarContainer.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (typeof window.openImageFullscreen === 'function') {
+                    window.openImageFullscreen(url);
+                } else if (typeof window.openImageModal === 'function') {
+                    window.openImageModal(url);
+                }
+            });
+        }
 
         // Открывает профиль другого пользователя
-        // Открывает профиль другого пользователя
-        // Открывает профиль другого пользователя
-        // Открывает профиль другого пользователя с подарками
-        // Открывает профиль другого пользователя с подарками
         function openUserProfile(username) {
             // Удаляем все существующие модальные окна
             const existingModals = document.querySelectorAll('.modal');
@@ -23621,6 +23816,9 @@ document.addEventListener('click', function(e) {
                     // Обработчик закрытия
                     document.getElementById('close-profile-btn').onclick = () => modal.remove();
 
+                    // Аватар кликабелен — открывает фото на весь экран (как в Telegram)
+                    _wireProfileAvatarFullscreen(modal);
+
                     // Загружаем музыку пользователя
                     if (typeof renderMusicForUserProfile === 'function') {
                         renderMusicForUserProfile(username, `profile-music-section-${username.replace(/[^a-z0-9]/gi,'_')}`);
@@ -23709,6 +23907,8 @@ document.addEventListener('click', function(e) {
                 `;
 
                         document.getElementById('close-profile-btn').onclick = () => modal.remove();
+                        // Аватар кликабелен и в fallback-варианте
+                        _wireProfileAvatarFullscreen(modal);
                         // Загружаем музыку пользователя и в fallback-варианте
                         if (typeof renderMusicForUserProfile === 'function') {
                             renderMusicForUserProfile(username, `profile-music-section-${username.replace(/[^a-z0-9]/gi,'_')}`);
