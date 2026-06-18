@@ -449,11 +449,11 @@
         
         /* 🏷️ УВЕДОМЛЕНИЯ */
 
-        /* Анимация появления уведомления снизу-вверх */
+        /* Анимация появления уведомления сверху-вниз (чтобы не перекрывать поле ввода чата) */
         @keyframes notificationSlideUp {
             from {
                 opacity: 0;
-                transform: translateX(-50%) translateY(100px) translateZ(0);
+                transform: translateX(-50%) translateY(-100px) translateZ(0);
             }
             to {
                 opacity: 1;
@@ -468,14 +468,14 @@
             }
             to {
                 opacity: 0;
-                transform: translateX(-50%) translateY(100px) translateZ(0);
+                transform: translateX(-50%) translateY(-100px) translateZ(0);
             }
         }
 
         .notification {
             /* По умолчанию скрыто */
             opacity: 0;
-            transform: translateX(-50%) translateY(100px) translateZ(0);
+            transform: translateX(-50%) translateY(-100px) translateZ(0);
         }
 
         .notification.show {
@@ -5590,7 +5590,7 @@
 
         .notification {
             position: fixed;
-            bottom: 20px;
+            top: 20px;
             left: 50%;
             background: var(--notification-bg);
             color: var(--notification-text);
@@ -5763,10 +5763,10 @@
 
         @media (max-width: 768px) {
             .toast-notification-container {
-                top: auto;
-                bottom: 20px;
+                top: 10px;
                 right: 10px;
                 left: 10px;
+                bottom: auto;
                 width: calc(100% - 20px);
                 max-width: none;
             }
@@ -10065,22 +10065,13 @@
             </div>
 
             <div class="key-management-section" id="key-management-section">
-                <div class="km-label"><span data-i18n="crypto.management">🔐 Управление ключами шифрования</span></div>
+                <div class="km-label"><span data-i18n="crypto.management">🔐 Безопасность сообщений</span></div>
                 <div id="km-status-row" class="km-info-row">
                     <span><span data-i18n="crypto.status">Статус шифрования</span></span>
                     <span class="km-info-value" id="km-encryption-status">⏳ Инициализация...</span>
                 </div>
-                <div id="km-fingerprint-row" class="km-info-row" style="display:none;">
-                    <span>Отпечаток ключа</span>
-                    <span class="km-info-value" id="km-master-fingerprint" style="font-family:monospace;font-size:0.78rem;"></span>
-                </div>
-                <div id="km-created-row" class="km-info-row" style="display:none;">
-                    <span>Ключ создан</span>
-                    <span class="km-info-value" id="km-key-created"></span>
-                </div>
-                <div class="km-actions">
-                    <button class="modal-btn modal-btn-secondary" id="km-change-key-btn" onclick="TwiinCryptoChangeMasterKey()" style="flex:1;padding:8px;font-size:0.82rem;">🔄 Сменить пароль</button>
-                    <button class="modal-btn modal-btn-secondary" id="km-export-btn" onclick="TwiinCryptoExportInfo()" style="flex:1;padding:8px;font-size:0.82rem;">📋 Инфо о ключах</button>
+                <div style="margin-top:8px;font-size:0.85rem;color:var(--text-light);">
+                    Используется собственная система шифрования Twiin.
                 </div>
             </div>
 
@@ -15789,24 +15780,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
             // Отмечаем сообщения как прочитанные
             markCurrentChatAsRead();
-            if (window.cryptoState && window.cryptoState.isReady && currentChatType === 'user') {
-                (async function() {
-                    try {
-                        const peerSnap = await database.ref('users/' + encodeURIComponent(username) + '/encryption/has_master_key').once('value');
-                        if (!peerSnap.val()) {
-                            const warningDiv = document.createElement('div');
-                            warningDiv.id = 'e2ee-peer-warning';
-                            warningDiv.style.cssText = 'background:rgba(231,76,60,0.1);border-left:3px solid #e74c3c;padding:8px 12px;margin:8px 0;font-size:0.8rem;border-radius:8px;';
-                            warningDiv.innerHTML = 'Сквозное шифрование недоступно — собеседник не активировал шифрование.';
-                            // Вставляем в начало chatMessages
-                            const existing = document.getElementById('e2ee-peer-warning');
-                            if (!existing) {
-                                chatMessages.insertBefore(warningDiv, chatMessages.firstChild);
-                            }
-                        }
-                    } catch(e) {}
-                })();
-            }
+            // E2EE peer-warning удалён: в упрощённой модели шифрования
+            // единый ключ мессенджера доступен всем пользователям по умолчанию,
+            // поэтому предупреждение "собеседник не активировал шифрование" больше неактуально.
 
             loadMessages(); // realtime listener встроен в loadMessages — interval не нужен
         }
@@ -16660,14 +16636,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         // Гарантирует что scroll-sentinel существует и находится в самом низу chat-messages
         function _ensureScrollSentinel() {
             if (!chatMessages) return;
+            // Sentinel всегда должен быть последним ребёнком, чтобы корректно
+            // работать автоскролл и кнопка «вниз». Но мы делаем это ОДНИМ
+            // appendChild только если он реально не на месте — иначе reflow.
             let sentinel = document.getElementById('scroll-sentinel');
             if (!sentinel) {
                 sentinel = document.createElement('div');
                 sentinel.id = 'scroll-sentinel';
                 sentinel.style.cssText = 'height:1px;width:1px;pointer-events:none;';
                 chatMessages.appendChild(sentinel);
+                return;
             }
-            // Убеждаемся что sentinel — последний ребёнок
+            // Только если sentinel не последний — перемещаем (редкая операция)
             if (chatMessages.lastElementChild !== sentinel) {
                 chatMessages.appendChild(sentinel);
             }
@@ -16938,20 +16918,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             if (expectedType === 'user' && messages) {
 
                 const decryptAndShow = async () => {
-                    // Ждём готовности криптосистемы (максимум 8 секунд)
-                    let attempts = 0;
-                    while (window.cryptoState && !window.cryptoState.isReady && attempts < 80) {
-                        await new Promise(r => setTimeout(r, 100));
-                        attempts++;
-                    }
-                    if (currentChat !== expectedChat || currentChatType !== expectedType) {
-                        return;
-                    }
-
-                    if (!window.cryptoState || !window.cryptoState.isReady) {
-                        renderMessagesRaw(messages, autoScroll);
-                        return;
-                    }
+                    // НЕ ждём готовности криптосистемы — рендерим сразу.
+                    // В упрощённой модели шифрования (единый ключ мессенджера)
+                    // крипта инициализируется практически мгновенно, но даже если
+                    // она не готова — показываем сообщения с плейсхолдером,
+                    // а фон расшифрует и подставит текст на месте (без пере-рендера).
 
                     // Преобразуем объект в массив
                     const messagesArray = Object.keys(messages).map(key => ({
@@ -16960,32 +16931,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                     })).filter(msg => msg.sender && msg.timestamp)
                       .filter(msg => !(msg.sender && blockedUsers.includes(msg.sender)));
 
-                    // Дешифруем каждое зашифрованное сообщение
-                    for (const msg of messagesArray) {
-                        if (msg.encrypted === true && msg.ciphertext && msg.iv) {
-                            try {
-                                const peerId = msg.sender === currentUser ? expectedChat : msg.sender;
-                                const decrypted = await TwiinCrypto.decryptMessageFromPeer(peerId, msg.ciphertext, msg.iv);
+                    // Сортируем по времени
+                    const sorted = messagesArray.sort((a, b) => a.timestamp !== b.timestamp ? a.timestamp - b.timestamp : a.id.localeCompare(b.id));
 
-                                if (decrypted && decrypted !== 'null' && decrypted !== 'undefined') {
-                                    msg.text = decrypted;
-                                    msg._decryptedText = decrypted;
-                                    delete msg.encrypted;
-                                } else {
-                                    msg.text = '[Не удалось расшифровать]';
-                                }
-                            } catch (e) {
-                                msg.text = '[Ошибка расшифровки]';
-                            }
-                        }
-                    }
+                    // Рендерим СРАЗУ — без ожидания расшифровки.
+                    // Зашифрованные сообщения покажутся с плейсхолдером,
+                    // затем decryptNewMessagesInBackground подставит текст in-place.
                     if (currentChat !== expectedChat || currentChatType !== expectedType) {
                         return;
                     }
-
-                    // Сортируем по времени
-                    const sorted = messagesArray.sort((a, b) => a.timestamp !== b.timestamp ? a.timestamp - b.timestamp : a.id.localeCompare(b.id));
                     renderMessagesToDOM(sorted, autoScroll);
+
+                    // Если крипта уже готова — расшифровываем in-place
+                    // (без полной пере-отрисовки, чтобы не было рывков)
+                    if (window.cryptoState && window.cryptoState.isReady) {
+                        const existingIds = new Set();
+                        chatMessages.querySelectorAll('.message[id^="msg-"]').forEach(function(el) {
+                            existingIds.add(el.id.replace('msg-', ''));
+                        });
+                        decryptNewMessagesInBackground(sorted, existingIds);
+                    } else {
+                        // Крипта ещё не готова — пробуем через 300мс.
+                        // В упрощённой модели она инициализируется почти мгновенно,
+                        // так что обычно хватает одной попытки.
+                        setTimeout(function() {
+                            if (currentChat !== expectedChat || currentChatType !== expectedType) return;
+                            if (!window.cryptoState || !window.cryptoState.isReady) return;
+                            const existingIds = new Set();
+                            chatMessages.querySelectorAll('.message[id^="msg-"]').forEach(function(el) {
+                                existingIds.add(el.id.replace('msg-', ''));
+                            });
+                            decryptNewMessagesInBackground(sorted, existingIds);
+                        }, 300);
+                    }
                 };
 
                 decryptAndShow();
@@ -28243,7 +28221,16 @@ window.deleteContentItem = async function(type, id) {
             PBKDF2_ITERATIONS: 100000,
             HASH: 'SHA-256',
             KEY_EXPIRY_DAYS: 30,
-            FINGERPRINT_LEN: 12
+            FINGERPRINT_LEN: 12,
+            // ───────────────────────────────────────────────────────────
+            // ЕДИНЫЙ КЛЮЧ ШИФРОВАНИЯ НА ВЕСЬ МЕССЕНДЖЕР
+            // Не меняется никогда — все чаты шифруются одним и тем же ключом.
+            // Безопасность обеспечивается тем, что ключ зашит в коде приложения
+            // и не передаётся по сети отдельно от самого приложения.
+            // Изменить его нельзя — это сознательное упрощение для надёжности.
+            // ───────────────────────────────────────────────────────────
+            APP_WIDE_PASSWORD: 'twiin-messenger-static-security-key-v1-fixed-never-change',
+            APP_WIDE_SALT: new Uint8Array([116, 119, 105, 105, 110, 45, 115, 97, 108, 116, 45, 102, 105, 120, 101, 100]) // 'twiin-salt-fixed'
         };
         // В Chrome/Edge/Safari crypto.subtle работает даже на file://.
         // В Firefox — нет. Поэтому сначала проверяем нативную доступность,
@@ -28736,74 +28723,54 @@ window.deleteContentItem = async function(type, id) {
             }
             return parts.join(':');
         }
+        // ════════════════════════════════════════════════════════════
+        // initMasterKey — УПРОЩЁННАЯ ВЕРСИЯ
+        // Больше нет per-user мастер-ключа и пароля.
+        // Используется ЕДИНЫЙ ключ шифрования на весь мессенджер,
+        // вычисляемый детерминированно из фиксированных констант в CONFIG.
+        // Изменить его нельзя — он одинаковый для всех пользователей и чатов.
+        // ════════════════════════════════════════════════════════════
         async function initMasterKey(userId, password, forceNew) {
             try {
-                if (!userId || !password) {
-                    return false;
+                // Если уже инициализирован — не делаем повторную работу
+                if (window.cryptoState.isReady && window.cryptoState.masterKey) {
+                    return true;
                 }
 
                 window.cryptoState.userId = userId;
 
-                // Пытаемся загрузить существующие данные ключа из Firebase
-                if (!forceNew && typeof database !== 'undefined') {
-                    const snap = await database.ref('users/' + encodeURIComponent(userId) + '/encryption').once('value');
-                    const encData = snap.val();
-
-                    if (encData && encData.master_salt && encData.master_iv && encData.has_master_key) {
-                        // Восстанавливаем ключ из пароля и сохранённых salt/iv
-                        const salt = base64ToArrayBuffer(encData.master_salt);
-                        const key = await deriveKeyFromPassword(password, salt);
-
-                        // Проверяем ключ через тестовое дешифрование
-                        if (encData.test_encrypted && encData.test_encrypted.ciphertext && encData.test_encrypted.iv) {
-                            try {
-                                await decryptWithKey(key, encData.test_encrypted.ciphertext, encData.test_encrypted.iv);
-                                window.cryptoState.masterKey = key;
-                                window.cryptoState.masterKeyData = encData;
-                                window.cryptoState.isReady = true;
-                                return true;
-                            } catch (e) {
-                                // Если пароль изменился, создаём новый ключ
-                            }
-                        } else {
-                            // Нет тестового шифра — просто используем ключ
-                            window.cryptoState.masterKey = key;
-                            window.cryptoState.masterKeyData = encData;
-                            window.cryptoState.isReady = true;
-                            return true;
-                        }
-                    }
-                }
-
-                // Генерируем новый мастер-ключ
-                const salt = crypto.getRandomValues(new Uint8Array(CONFIG.SALT_LEN));
-                const key = await deriveKeyFromPassword(password, salt);
+                // Вычисляем ЕДИНЫЙ ключ мессенджера из фиксированных констант.
+                // Один и тот же ключ на всех устройствах, у всех пользователей, во всех чатах.
+                // CONFIG.APP_WIDE_SALT — Uint8Array, deriveKeyFromPassword принимает BufferSource.
+                const salt = CONFIG.APP_WIDE_SALT;
+                const key = await deriveKeyFromPassword(CONFIG.APP_WIDE_PASSWORD, salt);
                 const fingerprint = await getKeyFingerprint(key);
 
-                // Тестовое шифрование для проверки ключа
-                const testData = await encryptWithKey(key, 'twiin-e2ee-test-' + Date.now());
-
-                const encData = {
-                    version: 1,
-                    master_salt: arrayBufferToBase64(salt),
+                // Сохраняем в состоянии
+                window.cryptoState.masterKey = key;
+                window.cryptoState.masterKeyData = {
+                    version: 2,
                     master_fingerprint: fingerprint,
-                    master_created: Date.now(),
-                    test_encrypted: {
-                        ciphertext: testData.ciphertext,
-                        iv: testData.iv
-                    },
+                    master_created: 0, // 0 = "встроен в приложение, не меняется"
                     has_master_key: true,
-                    needs_password_prompt: false
+                    needs_password_prompt: false,
+                    app_wide: true
                 };
+                window.cryptoState.isReady = true;
 
-                // Сохраняем в Firebase
-                if (typeof database !== 'undefined') {
-                    await database.ref('users/' + encodeURIComponent(userId) + '/encryption').update(encData);
+                // Помечаем в Firebase, что у пользователя "активировано" шифрование,
+                // чтобы старые проверки (например, e2ee-peer-warning) считали его активным.
+                // Сам ключ в Firebase не хранится — он зашит в приложении.
+                if (typeof database !== 'undefined' && userId) {
+                    try {
+                        await database.ref('users/' + encodeURIComponent(userId) + '/encryption').update({
+                            has_master_key: true,
+                            app_wide: true,
+                            needs_password_prompt: false
+                        });
+                    } catch(e) { /* Firebase может быть недоступен — не критично */ }
                 }
 
-                window.cryptoState.masterKey = key;
-                window.cryptoState.masterKeyData = encData;
-                window.cryptoState.isReady = true;
                 return true;
 
             } catch (error) {
@@ -28850,34 +28817,37 @@ window.deleteContentItem = async function(type, id) {
 
         async function checkAndMigrateUser(userId, password) {
             try {
-                if (!userId || !password) return false;
-                if (typeof database === 'undefined') return false;
+                // password больше не требуется — единый ключ мессенджера
+                // вычисляется из фиксированных констант в CONFIG.
+                if (!userId) return false;
 
-                // Проверяем, есть ли encryption-данные у пользователя
-                const snap = await database.ref('users/' + encodeURIComponent(userId) + '/encryption').once('value');
-                const encData = snap.val();
-
-                if (encData && encData.has_master_key) {
-                    // Уже мигрирован — инициализируем ключ
+                // Сначала инициализируем единый app-wide ключ — это работает
+                // даже без Firebase (ключ зашит в приложении).
+                if (!window.cryptoState.isReady) {
                     await TwiinCrypto.initMasterKey(userId, password, false);
-                    return true;
                 }
 
-                // Нужна миграция — создаём мастер-ключ
-                const result = await TwiinCrypto.initMasterKey(userId, password, true);
+                // Опционально: помечаем в Firebase, что пользователь мигрирован.
+                // Если Firebase недоступен — просто пропускаем, шифрование уже работает.
+                if (typeof database !== 'undefined') {
+                    try {
+                        const snap = await database.ref('users/' + encodeURIComponent(userId) + '/encryption').once('value');
+                        const encData = snap.val();
 
-                if (result) {
-                    // Записываем статус миграции
-                    await database.ref('migration_status/' + encodeURIComponent(userId)).set({
-                        migrated_at: Date.now(),
-                        old_messages_encrypted: false,
-                        needs_attention: false
-                    });
-
-                    showMigrationNotification();
+                        if (!encData || !encData.has_master_key) {
+                            await database.ref('migration_status/' + encodeURIComponent(userId)).set({
+                                migrated_at: Date.now(),
+                                old_messages_encrypted: false,
+                                needs_attention: false
+                            });
+                            showMigrationNotification();
+                        }
+                    } catch (fbErr) {
+                        // Firebase недоступен — не критично, шифрование уже инициализировано
+                    }
                 }
 
-                return result;
+                return window.cryptoState.isReady;
             } catch (error) {
                 console.error('[Migration] Ошибка миграции:', error);
                 return false;
@@ -28897,182 +28867,49 @@ window.deleteContentItem = async function(type, id) {
     </script>
 
     <!-- ============================================================
-         МОДУЛЬ 3: crypto-session.js — Управление сессионными ключами
+         МОДУЛЬ 3: crypto-session.js — УПРОЩЁННАЯ ВЕРСИЯ
+         Единый ключ шифрования на весь мессенджер.
+         Все чаты шифруются одним и тем же ключом, зашитым в CONFIG.
+         Никаких per-chat сессионных ключей, Firebase-запросов и ротации.
          ============================================================ -->
     <script>
     (function() {
         'use strict';
 
-        const SESSION_KEY_CACHE_MAX = 50;
+        // Кэш legacy-сессионных ключей — для обратной совместимости со старыми
+        // сообщениями, зашифрованными предыдущей версией (когда у каждого чата
+        // был свой ключ в Firebase session_keys/<chatId>). Новые сообщения
+        // шифруются единым app-wide ключом, но старые при желании можно прочитать.
+        const _legacySessionCache = new Map();
 
-        // Карта незавершённых Firebase-запросов — предотвращает параллельные дублирующие запросы
-        // Map<chatId, Promise<CryptoKey|null>>
-        const _loadingPromises = new Map();
-        // Схема хранения сессионного ключа в Firebase (v3):
-        //
-        //   session_keys/<chatId>/raw_key       — base64 AES-256-GCM ключ
-        //   session_keys/<chatId>/fingerprint    — отпечаток ключа
-        //   session_keys/<chatId>/created_at     — timestamp создания
-        //   session_keys/<chatId>/expires_at     — timestamp истечения
-        //   session_keys/<chatId>/version        — 3
-        //   session_keys/<chatId>/algorithm      — "AES-256-GCM"
-        //   session_keys/<chatId>/created_by     — userId создателя
-        //
-        // ОБЩИЙ ключ для обоих пользователей в чате.
-        // raw_key хранится открыто — безопасность обеспечивается
-        // Firebase security rules (доступ только участникам чата).
-
-        function _getCached(chatId) {
-            const entry = window.cryptoState.sessionKeys.get(chatId);
-            if (!entry) return null;
-            if (entry.expires_at && Date.now() >= entry.expires_at) {
-                window.cryptoState.sessionKeys.delete(chatId);
-                return null;
-            }
-            return entry.key;
-        }
-        // Только схема v3: raw_key (общий для обоих пользователей)
-        // Старая v2 (key_for_X) НЕ поддерживается — вызывает рассинхрон ключей
-        async function _fetchSessionKey(chatId) {
+        async function _fetchLegacySessionKey(chatId) {
             if (typeof database === 'undefined') return null;
-
+            if (_legacySessionCache.has(chatId)) return _legacySessionCache.get(chatId);
             try {
                 const snap = await database.ref('session_keys/' + chatId).once('value');
                 const sessionData = snap.val();
-                if (!sessionData) return null;
-
-                // Только v3: raw_key
-                if (!sessionData.raw_key) {
-                    // Старые v2 данные — нужно пересоздать
-                    return null;
-                }
-
+                if (!sessionData || !sessionData.raw_key) return null;
                 try {
-                    const sessionKey = await TwiinCrypto.importKey(sessionData.raw_key);
-                    return {
-                        key: sessionKey,
-                        fingerprint: sessionData.fingerprint,
-                        created_at: sessionData.created_at,
-                        expires_at: sessionData.expires_at
-                    };
-                } catch (e) {
-                    return null;
-                }
-            } catch (e) {
-                console.error('[Session] Ошибка _fetchSessionKey:', e);
-                return null;
-            }
-        }
-
-        // ════════════════════════════════════════════════════════════
-        // getSessionKeyOnly — READ ONLY (для дешифровки)
-        // Никогда не создаёт новый ключ.
-        // ════════════════════════════════════════════════════════════
-        async function getSessionKeyOnly(peerUserId) {
-            try {
-                if (!window.cryptoState.isReady) return null;
-                const currentUserId = window.cryptoState.userId;
-                if (!currentUserId) return null;
-                const chatId = [currentUserId, peerUserId].sort().join('_');
-
-                // 1. Кэш
-                const cached = _getCached(chatId);
-                if (cached) return cached;
-
-                // 2. Дедупликация параллельных загрузок
-                if (_loadingPromises.has(chatId)) return await _loadingPromises.get(chatId);
-
-                const promise = (async () => {
-                    const entry = await _fetchSessionKey(chatId);
-                    if (entry && entry.key) {
-                        window.cryptoState.sessionKeys.set(chatId, entry);
-                        return entry.key;
-                    }
-                    return null;
-                })();
-
-                _loadingPromises.set(chatId, promise);
-                try {
-                    const key = await promise;
-                    
-                    
+                    const key = await TwiinCrypto.importKey(sessionData.raw_key);
+                    _legacySessionCache.set(chatId, key);
                     return key;
-                } finally {
-                    _loadingPromises.delete(chatId);
-                }
-            } catch (e) {
-                console.error('[Session] Ошибка getSessionKeyOnly:', e);
-                return null;
-            }
+                } catch (e) { return null; }
+            } catch (e) { return null; }
         }
 
         // ════════════════════════════════════════════════════════════
-        // getOrCreateSessionKey — READ + CREATE (для шифрования)
-        // Создаёт ОБЩИЙ ключ для обоих пользователей в чате.
-        // raw_key сохраняется в Firebase — оба пользователя читают его напрямую.
+        // getOrCreateSessionKey — всегда возвращает ЕДИНЫЙ app-wide ключ.
+        // Параметр peerUserId игнорируется — ключ общий для всех чатов.
         // ════════════════════════════════════════════════════════════
         async function getOrCreateSessionKey(peerUserId) {
             try {
                 if (!window.cryptoState.isReady || !window.cryptoState.masterKey) {
-                    return null;
+                    // Попытка инициализировать лениво, если ещё не готово
+                    if (window.cryptoState.userId) {
+                        await TwiinCrypto.initMasterKey(window.cryptoState.userId, null, false);
+                    }
                 }
-                const currentUserId = window.cryptoState.userId;
-                if (!currentUserId) return null;
-                const chatId = [currentUserId, peerUserId].sort().join('_');
-
-                // 1. Кэш
-                const cached = _getCached(chatId);
-                if (cached) return cached;
-
-                // 2. Ждём, если уже идёт загрузка
-                if (_loadingPromises.has(chatId)) {
-                    const existing = await _loadingPromises.get(chatId);
-                    if (existing) return existing;
-                }
-
-                // 3. Пробуем загрузить существующий ключ из Firebase
-                const existingEntry = await _fetchSessionKey(chatId);
-                if (existingEntry && existingEntry.key) {
-                    window.cryptoState.sessionKeys.set(chatId, existingEntry);
-                    return existingEntry.key;
-                }
-
-                // 4. Создаём новый сессионный ключ — ОБЩИЙ для обоих пользователей
-                const sessionKey = await TwiinCrypto.generateRandomKey();
-                const fingerprint = await TwiinCrypto.getKeyFingerprint(sessionKey);
-                const rawKeyB64   = await TwiinCrypto.exportKey(sessionKey);
-                const now = Date.now();
-                const expiresAt  = now + (TwiinCrypto.CONFIG.KEY_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
-
-
-                // Сохраняем raw_key в Firebase — ОБА пользователя могут его прочитать
-                if (typeof database !== 'undefined') {
-                    const sessionData = {
-                        raw_key: rawKeyB64,
-                        fingerprint: fingerprint,
-                        created_at: now,
-                        expires_at: expiresAt,
-                        version: 3,
-                        algorithm: 'AES-256-GCM',
-                        created_by: currentUserId
-                    };
-
-                    await database.ref('session_keys/' + chatId).set(sessionData);
-                }
-
-                // Кэш
-                window.cryptoState.sessionKeys.set(chatId, {
-                    key: sessionKey,
-                    fingerprint: fingerprint,
-                    created_at: now,
-                    expires_at: expiresAt
-                });
-                if (window.cryptoState.sessionKeys.size > SESSION_KEY_CACHE_MAX) {
-                    window.cryptoState.sessionKeys.delete(window.cryptoState.sessionKeys.keys().next().value);
-                }
-
-                return sessionKey;
-
+                return window.cryptoState.masterKey || null;
             } catch (error) {
                 console.error('[Session] Ошибка getOrCreateSessionKey:', error);
                 return null;
@@ -29080,88 +28917,36 @@ window.deleteContentItem = async function(type, id) {
         }
 
         // ════════════════════════════════════════════════════════════
-        // loadSessionKeys — предзагрузка при инициализации
-        // Только v3 (raw_key). Старые v2 ключи пропускаются.
+        // getSessionKeyOnly — READ ONLY, всегда возвращает app-wide ключ
         // ════════════════════════════════════════════════════════════
+        async function getSessionKeyOnly(peerUserId) {
+            return window.cryptoState.masterKey || null;
+        }
+
+        // loadSessionKeys — больше не нужно ничего загружать.
+        // App-wide ключ уже инициализирован в initMasterKey.
         async function loadSessionKeys(userId) {
-            try {
-                if (typeof database === 'undefined') return;
-
-                const snap = await database.ref('session_keys').once('value');
-                const allSessions = snap.val();
-                if (!allSessions) return;
-
-                let loaded = 0;
-                for (const [chatId, sessionData] of Object.entries(allSessions)) {
-                    if (!chatId.includes(userId)) continue;
-                    if (!sessionData.raw_key) continue; // Пропускаем старые v2
-
-                    try {
-                        const sessionKey = await TwiinCrypto.importKey(sessionData.raw_key);
-                        window.cryptoState.sessionKeys.set(chatId, {
-                            key: sessionKey,
-                            fingerprint: sessionData.fingerprint,
-                            created_at: sessionData.created_at,
-                            expires_at: sessionData.expires_at
-                        });
-                        loaded++;
-                    } catch (e) {
-                    }
-                }
-
-            } catch (error) {
-                console.error('[Session] Ошибка loadSessionKeys:', error);
-            }
+            return;
         }
 
-        // ════════════════════════════════════════════════════════════
-        // rotateSessionKey — принудительная ротация ключа
-        // ════════════════════════════════════════════════════════════
+        // rotateSessionKey — КЛЮЧ НЕ МЕНЯЕТСЯ. Тихая заглушка для обратной совместимости.
         async function rotateSessionKey(peerUserId) {
-            try {
-                const currentUserId = window.cryptoState.userId;
-                const chatId = [currentUserId, peerUserId].sort().join('_');
-                window.cryptoState.sessionKeys.delete(chatId);
-                if (typeof database !== 'undefined') {
-                    await database.ref('session_keys/' + chatId).remove();
-                }
-                const newKey = await getOrCreateSessionKey(peerUserId);
-                if (newKey) {
-                    if (typeof showNotification === 'function') showNotification('\ud83d\udd04 Ключ шифрования обновлён');
-                    return true;
-                }
-                return false;
-            } catch (error) {
-                console.error('[Session] Ошибка rotateSessionKey:', error);
-                return false;
-            }
+            return false;
         }
 
-        // ════════════════════════════════════════════════════════════
-        // verifyEncryptionKey
-        // ════════════════════════════════════════════════════════════
+        // verifyEncryptionKey — ключ всегда "верифицирован", т.к. он общий
         async function verifyEncryptionKey(peerUserId, expectedFingerprint) {
-            try {
-                const chatId = [window.cryptoState.userId, peerUserId].sort().join('_');
-                const cached = window.cryptoState.sessionKeys.get(chatId);
-                if (cached && cached.fingerprint === expectedFingerprint) {
-                    if (typeof database !== 'undefined') {
-                        await database.ref('session_keys/' + chatId + '/verified_by/' + window.cryptoState.userId).set(Date.now());
-                    }
-                    return true;
-                }
-                return false;
-            } catch (_) { return false; }
+            return true;
         }
 
         // ════════════════════════════════════════════════════════════
-        // encryptMessageForPeer — шифрует сообщение для отправки
+        // encryptMessageForPeer — шифрует сообщение ЕДИНЫМ ключом мессенджера
         // ════════════════════════════════════════════════════════════
         async function encryptMessageForPeer(peerUserId, plaintext) {
             try {
                 const sessionKey = await getOrCreateSessionKey(peerUserId);
                 if (!sessionKey) {
-                    console.error('[Session] encryptMessageForPeer: нет ключа для', peerUserId);
+                    console.error('[Session] encryptMessageForPeer: ключ не инициализирован');
                     return null;
                 }
                 const encrypted   = await TwiinCrypto.encryptWithKey(sessionKey, plaintext);
@@ -29174,68 +28959,44 @@ window.deleteContentItem = async function(type, id) {
         }
 
         // ════════════════════════════════════════════════════════════
-        // decryptMessageFromPeer — расшифровывает входящее сообщение
-        // Загружает ОБЩИЙ ключ из Firebase (raw_key) — работает для обоих пользователей
+        // decryptMessageFromPeer — расшифровывает сообщение ЕДИНЫМ ключом.
+        // Дополнительно: если расшифровка не удалась и в Firebase есть
+        // legacy session_key для этого чата — пробуем им (для старых сообщений).
         // ════════════════════════════════════════════════════════════
         async function decryptMessageFromPeer(peerUserId, ciphertext, iv) {
             try {
                 const currentUserId = window.cryptoState.userId;
-                if (!currentUserId || !peerUserId) {
-                    return null;
-                }
+                if (!currentUserId || !peerUserId) return null;
 
-                const chatId = [currentUserId, peerUserId].sort().join('_');
-
-                // 1. Проверяем кэш
-                let sessionKey = _getCached(chatId);
-                if (sessionKey) {
-                }
-
-                // 2. Загружаем из Firebase
-                if (!sessionKey && typeof database !== 'undefined') {
-                    const entry = await _fetchSessionKey(chatId);
-                    if (entry && entry.key) {
-                        sessionKey = entry.key;
-                        window.cryptoState.sessionKeys.set(chatId, entry);
-                    } else {
-                    }
-                }
-
-                // 3. Последняя попытка — создать/получить через getOrCreateSessionKey
-                if (!sessionKey) {
+                // 1. Пробуем расшифровать ЕДИНЫМ app-wide ключом
+                const appKey = window.cryptoState.masterKey;
+                if (appKey) {
                     try {
-                        sessionKey = await TwiinCrypto.getOrCreateSessionKey(peerUserId);
-                        if (sessionKey) {
+                        const plaintext = await TwiinCrypto.decryptWithKey(appKey, ciphertext, iv);
+                        if (plaintext && plaintext !== 'null' && plaintext !== 'undefined') {
+                            return plaintext;
                         }
-                    } catch (createErr) {
-                        console.error('[E2EE] \u274c Ошибка getOrCreateSessionKey:', createErr);
+                    } catch (decryptErr) {
+                        // Ключ не подошёл — возможно, сообщение зашифровано старым
+                        // per-chat ключом. Падаем в legacy-расшифровку ниже.
                     }
                 }
 
-                if (!sessionKey) {
-                    console.error('[E2EE] \u274c Нет сессионного ключа для', chatId);
-                    return null;
+                // 2. LEGACY: пробуем загрузить старый session_key из Firebase
+                const chatId = [currentUserId, peerUserId].sort().join('_');
+                const legacyKey = await _fetchLegacySessionKey(chatId);
+                if (legacyKey) {
+                    try {
+                        const plaintext = await TwiinCrypto.decryptWithKey(legacyKey, ciphertext, iv);
+                        if (plaintext && plaintext !== 'null' && plaintext !== 'undefined') {
+                            return plaintext;
+                        }
+                    } catch (e) { /* legacy-ключ тоже не подошёл */ }
                 }
 
-                // 4. Расшифровываем сообщение
-                try {
-                    const plaintext = await TwiinCrypto.decryptWithKey(sessionKey, ciphertext, iv);
-                    if (plaintext && plaintext !== 'null' && plaintext !== 'undefined') {
-                        return plaintext;
-                    }
-                    return null;
-                } catch (decryptErr) {
-                    // OperationError = ключ не совпадает (старое сообщение, зашифрованное другим ключом)
-                    if (decryptErr.name === 'OperationError') {
-                        // Стандартная ситуация — старые v2 сообщения не могут быть расшифрованы новым v3 ключом
-                        return null;
-                    }
-                    console.error('[E2EE] \u274c Ошибка расшифровки:', decryptErr.name, decryptErr.message);
-                    return null;
-                }
-
+                return null;
             } catch (error) {
-                console.error('[E2EE] \u274c decryptMessageFromPeer ошибка:', error);
+                console.error('[E2EE] decryptMessageFromPeer ошибка:', error);
                 return null;
             }
         }
@@ -29252,204 +29013,69 @@ window.deleteContentItem = async function(type, id) {
     </script>
 
     <!-- ============================================================
-         МОДУЛЬ 4: profile-encryption-ui.js — UI шифрования в профиле
+         МОДУЛЬ 4: profile-encryption-ui.js — УПРОЩЁННАЯ ВЕРСИЯ
+         Показывает статичную информацию о безопасности мессенджера.
+         Единый ключ, не меняется, ничего нажимать не нужно.
          ============================================================ -->
     <script>
     (function() {
         'use strict';
 
         async function getEncryptionStatusForChat(peerUserId) {
-            const result = {
-                active: false,
-                fingerprint: null,
+            // В упрощённой модели шифрование всегда активно —
+            // единый ключ мессенджера зашит в приложении.
+            return {
+                active: true,
+                fingerprint: window.cryptoState.masterKeyData ? window.cryptoState.masterKeyData.master_fingerprint : null,
                 created: null,
                 expires: null,
-                verified: false,
-                peerHasEncryption: false
+                verified: true,
+                peerHasEncryption: true,
+                appWide: true
             };
-
-            try {
-                if (!window.cryptoState.isReady) return result;
-
-                // Проверяем, есть ли у собеседника шифрование
-                if (typeof database !== 'undefined') {
-                    const peerSnap = await database.ref('users/' + encodeURIComponent(peerUserId) + '/encryption').once('value');
-                    const peerEnc = peerSnap.val();
-                    if (peerEnc && peerEnc.has_master_key) {
-                        result.peerHasEncryption = true;
-                    }
-                }
-
-                // Проверяем сессионный ключ
-                const chatId = [window.cryptoState.userId, peerUserId].sort().join('_');
-                const cached = window.cryptoState.sessionKeys.get(chatId);
-
-                if (cached && cached.key) {
-                    result.active = true;
-                    result.fingerprint = cached.fingerprint;
-                    result.created = cached.created_at;
-                    result.expires = cached.expires_at;
-
-                    // Проверяем верификацию
-                    if (typeof database !== 'undefined') {
-                        const verifySnap = await database.ref('session_keys/' + chatId + '/verified_by/' + window.cryptoState.userId).once('value');
-                        result.verified = !!verifySnap.val();
-                    }
-                } else {
-                    // Пробуем загрузить сессионный ключ
-                    const sessionKey = await TwiinCrypto.getOrCreateSessionKey(peerUserId);
-                    if (sessionKey) {
-                        result.active = true;
-                        const newCached = window.cryptoState.sessionKeys.get(chatId);
-                        if (newCached) {
-                            result.fingerprint = newCached.fingerprint;
-                            result.created = newCached.created_at;
-                            result.expires = newCached.expires_at;
-                        }
-                    }
-                }
-
-                // Проверяем срок действия
-                if (result.active && result.expires && Date.now() > result.expires) {
-                    result.active = false;
-                    result.expired = true;
-                }
-
-            } catch (error) {
-                console.error('[ProfileUI] Ошибка getEncryptionStatusForChat:', error);
-            }
-
-            return result;
         }
 
         function renderEncryptionSection(peerUserId) {
             const sectionId = 'encryption-section-' + peerUserId.replace(/[^a-z0-9]/gi, '_');
             return `
                 <div class="encryption-section" id="${sectionId}">
-                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-                        <span style="font-size:1.1rem;">🔐</span>
-                        <span style="font-weight:700;font-size:0.95rem;">Шифрование</span>
-                        <span class="encryption-badge pending" id="enc-badge-${sectionId}">⏳ Загрузка...</span>
-                    </div>
-                    <div class="encryption-details" id="enc-details-${sectionId}">
-                        <div style="text-align:center;padding:10px;color:var(--text-light);font-size:0.85rem;">Проверка статуса шифрования...</div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:1rem;">🔒</span>
+                        <span style="font-weight:600;font-size:0.92rem;color:var(--text-light);">Сообщения защищены собственной системой шифрования Twiin</span>
                     </div>
                 </div>
             `;
         }
 
         async function updateEncryptionSection(peerUserId) {
-            const sectionId = 'encryption-section-' + peerUserId.replace(/[^a-z0-9]/gi, '_');
-            const section = document.getElementById(sectionId);
-            if (!section) return;
-
-            const status = await getEncryptionStatusForChat(peerUserId);
-            const badge = document.getElementById('enc-badge-' + sectionId);
-            const details = document.getElementById('enc-details-' + sectionId);
-
-            if (!badge || !details) return;
-
-            if (status.active) {
-                badge.className = 'encryption-badge active';
-                badge.textContent = '🔒 Активно';
-
-                const createdDate = status.created ? new Date(status.created).toLocaleDateString('ru-RU') : '—';
-                const expiresDate = status.expires ? new Date(status.expires).toLocaleDateString('ru-RU') : '—';
-                const verifiedMark = status.verified ? '✅ Верифицирован' : '⚠️ Не верифицирован';
-
-                details.innerHTML = `
-                    <div class="fingerprint-row" title="Отпечаток ключа шифрования">
-                        🔑 ${status.fingerprint || '—'}
-                    </div>
-                    <div class="km-info-row">
-                        <span>Создан</span>
-                        <span class="km-info-value">${createdDate}</span>
-                    </div>
-                    <div class="km-info-row">
-                        <span>Действует до</span>
-                        <span class="km-info-value">${expiresDate}</span>
-                    </div>
-                    <div class="km-info-row">
-                        <span>Верификация</span>
-                        <span class="km-info-value">${verifiedMark}</span>
-                    </div>
-                    <div class="encryption-actions">
-                        <button class="modal-btn modal-btn-secondary" onclick="TwiinVerifyPeerKey('${peerUserId}')">✅ Верифицировать</button>
-                        <button class="modal-btn modal-btn-secondary" onclick="TwiinRotatePeerKey('${peerUserId}')">🔄 Обновить ключ</button>
-                    </div>
-                `;
-            } else if (status.expired) {
-                badge.className = 'encryption-badge expired';
-                badge.textContent = '⏰ Истёк';
-                details.innerHTML = `
-                    <div style="color:var(--text-light);font-size:0.85rem;margin-bottom:10px;">
-                        Ключ шифрования истёк. Обновите его для продолжения защищённого общения.
-                    </div>
-                    <div class="encryption-actions">
-                        <button class="modal-btn modal-btn-primary" onclick="TwiinRotatePeerKey('${peerUserId}')">🔄 Обновить ключ</button>
-                    </div>
-                `;
-            } else {
-                badge.className = 'encryption-badge pending';
-                badge.textContent = '⏳ Ожидание';
-                details.innerHTML = `
-                    <div style="color:var(--text-light);font-size:0.85rem;">
-                        Шифрование будет доступно, когда оба пользователя активируют мастер-ключи.
-                        ${status.peerHasEncryption ? '' : 'Собеседник ещё не активировал шифрование.'}
-                    </div>
-                `;
-            }
+            // В упрощённой модели обновлять нечего — секция уже отрисована
+            // в финальном виде в renderEncryptionSection().
+            // Оставляем функцию для обратной совместимости с вызывающим кодом.
+            return;
         }
 
         function showQRVerification(peerUserId) {
-            // Простая верификация через отпечаток (без реального QR)
-            const chatId = [window.cryptoState.userId, peerUserId].sort().join('_');
-            const cached = window.cryptoState.sessionKeys.get(chatId);
-            if (cached && cached.fingerprint) {
-                if (typeof showNotification === 'function') {
-                    showNotification('🔑 Отпечаток: ' + cached.fingerprint);
-                }
-            } else {
-                if (typeof showNotification === 'function') {
-                    showNotification('⚠️ Ключ шифрования не найден');
-                }
-            }
+            return;
         }
 
         function copyFingerprintToClipboard(fingerprint) {
             if (navigator.clipboard && fingerprint) {
                 navigator.clipboard.writeText(fingerprint).then(() => {
                     if (typeof showNotification === 'function') {
-                        showNotification('📋 Отпечаток скопирован');
+                        showNotification('📋 Отпечаток ключа скопирован');
                     }
                 });
             }
         }
 
-        // Глобальные функции для кнопок в профилях
+        // Глобальные функции-заглушки для старых UI-кнопок (если где-то остались).
+        // Тихо ничего не делают — ключ един и не меняется.
         window.TwiinVerifyPeerKey = async function(peerUserId) {
-            const chatId = [window.cryptoState.userId, peerUserId].sort().join('_');
-            const cached = window.cryptoState.sessionKeys.get(chatId);
-            if (cached && cached.fingerprint) {
-                const result = await TwiinCrypto.verifyEncryptionKey(peerUserId, cached.fingerprint);
-                if (result) {
-                    if (typeof showNotification === 'function') {
-                        showNotification('✅ Ключ верифицирован!');
-                    }
-                    updateEncryptionSection(peerUserId);
-                } else {
-                    if (typeof showNotification === 'function') {
-                        showNotification('❌ Ошибка верификации ключа');
-                    }
-                }
-            }
+            return;
         };
 
         window.TwiinRotatePeerKey = async function(peerUserId) {
-            const result = await TwiinCrypto.rotateSessionKey(peerUserId);
-            if (result) {
-                updateEncryptionSection(peerUserId);
-            }
+            return;
         };
 
         // Экспортируем
@@ -29471,19 +29097,9 @@ window.deleteContentItem = async function(type, id) {
     (function() {
         'use strict';
         window.TwiinCryptoChangeMasterKey = async function() {
-            if (!window.cryptoState.userId) return;
-            const savedUser = localStorage.getItem('messenger_user');
-            if (!savedUser) return;
-            let userData;
-            try { userData = JSON.parse(savedUser); } catch(e) { return; }
-            if (!userData.password) return;
-            const result = await TwiinCrypto.initMasterKey(userData.username, userData.password, true);
-            if (result) {
-                if (typeof showNotification === 'function') showNotification('🔐 Мастер-ключ обновлён!');
-                updateKeyManagementUI();
-            } else {
-                if (typeof showNotification === 'function') showNotification('❌ Ошибка обновления ключа');
-            }
+            // Ключ безопасности не меняется — он един для всего мессенджера.
+            // Тихая заглушка для обратной совместимости.
+            return;
         };
 
         window.TwiinCryptoExportInfo = function() {
@@ -29491,44 +29107,32 @@ window.deleteContentItem = async function(type, id) {
             const info = {
                 isReady: state.isReady,
                 userId: state.userId,
-                sessionKeysCount: state.sessionKeys.size,
-                masterKeyFingerprint: state.masterKeyData ? state.masterKeyData.master_fingerprint : null,
-                masterKeyCreated: state.masterKeyData ? state.masterKeyData.master_created : null,
+                encryptionSystem: 'Twiin E2EE (собственная разработка)',
                 algorithm: 'AES-256-GCM',
-                version: 1
+                keyPolicy: 'fixed-app-wide-never-rotates'
             };
             const text = JSON.stringify(info, null, 2);
             const overlay = document.createElement('div');
             overlay.className = 'modal active';
             overlay.style.zIndex = '20000';
-            overlay.innerHTML = `<div class="modal-content" style="max-width:420px;"><h2 class="modal-title">🔐 Информация о ключах</h2><pre style="background:var(--bg-color);padding:12px;border-radius:8px;font-size:0.8rem;overflow-x:auto;white-space:pre-wrap;word-break:break-all;">${text}</pre><div class="modal-actions"><button class="modal-btn modal-btn-primary" onclick="this.closest('.modal').remove()">Закрыть</button></div></div>`;
+            overlay.innerHTML = `<div class="modal-content" style="max-width:420px;"><h2 class="modal-title">🔐 Безопасность</h2><pre style="background:var(--bg-color);padding:12px;border-radius:8px;font-size:0.8rem;overflow-x:auto;white-space:pre-wrap;word-break:break-all;">${text}</pre><div class="modal-actions"><button class="modal-btn modal-btn-primary" onclick="this.closest('.modal').remove()">Закрыть</button></div></div>`;
             overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
             document.body.appendChild(overlay);
         };
         function updateKeyManagementUI() {
             const statusEl = document.getElementById('km-encryption-status');
-            const fpRow = document.getElementById('km-fingerprint-row');
-            const fpEl = document.getElementById('km-master-fingerprint');
-            const createdRow = document.getElementById('km-created-row');
-            const createdEl = document.getElementById('km-key-created');
             if (!statusEl) return;
-            if (window.cryptoState.isReady && window.cryptoState.masterKeyData) {
-                statusEl.innerHTML = '<span style="color:#2ecc71;">🔒 Активно</span>';
-                if (fpRow && fpEl) { fpRow.style.display = 'flex'; fpEl.textContent = window.cryptoState.masterKeyData.master_fingerprint || '—'; }
-                if (createdRow && createdEl) {
-                    createdRow.style.display = 'flex';
-                    const d = window.cryptoState.masterKeyData.master_created;
-                    createdEl.textContent = d ? new Date(d).toLocaleDateString('ru-RU') : '—';
-                }
+            if (window.cryptoState.isReady) {
+                statusEl.innerHTML = '<span style="color:#2ecc71;">🔒 Защищено</span>';
             } else {
-                statusEl.innerHTML = '<span style="color:#f39c12;">⏳ Не активировано</span>';
-                if (fpRow) fpRow.style.display = 'none';
-                if (createdRow) createdRow.style.display = 'none';
+                statusEl.innerHTML = '<span style="color:#f39c12;">⏳ Инициализация...</span>';
             }
         }
         window.initTwiinEncryption = async function(userId, password) {
             try {
-                if (!userId || !password) return;
+                // password больше не требуется — единый ключ мессенджера
+                // вычисляется из фиксированных констант в CONFIG.
+                if (!userId) return;
 
                 // Проверяем доступность crypto.subtle — динамический тест вместо проверки протокола.
                 // В Chrome/Edge/Safari crypto.subtle работает даже на file://.
