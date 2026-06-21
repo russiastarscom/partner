@@ -16200,6 +16200,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         let _lastFullyRenderedChat = null;   // ключ чата, который полностью отрендерен
         let _lastRenderedMsgIds = new Set();  // ID сообщений, уже в DOM
         let _lastScrollBottomTime = 0;        // когда пользователь последний раз был внизу
+        // Множество ID сообщений, расшифровка которых завершилась ошибкой.
+        // Чтобы не пытаться расшифровать их повторно на каждом обновлении.
+        const _failedDecryptIds = new Set();
 
         // Отслеживание виртуальной клавиатуры (iOS / Android)
         let _keyboardVisible = false;
@@ -16221,6 +16224,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         function _resetIncrementalState() {
             _lastFullyRenderedChat = null;
             _lastRenderedMsgIds = new Set();
+            // Сбрасываем список неудачных расшифровок при смене чата —
+            // в другом чате могут быть другие сообщения, которые расшифруются.
+            _failedDecryptIds.clear();
         }
 
         // Отслеживаем скролл пользователя
@@ -16537,9 +16543,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                 }
             }
 
-            // 6. Фоновая дешифровка E2EE для новых сообщений
+            // 6. Фоновая дешифровка E2EE.
+            // Расшифровываем НОВЫЕ сообщения (которых ещё нет в DOM) И
+            // уже отрисованные, если в них до сих пор торчит плейсхолдер
+            // «[Зашифрованное сообщение]» (например, крипто стала готова
+            // только сейчас, после первой отрисовки).
             if (currentChatType === 'user' && window.cryptoState && window.cryptoState.isReady) {
-                decryptNewMessagesInBackground(messagesArray, existingIds);
+                // Проверяем, есть ли в DOM зашифрованные-но-не-расшифрованные сообщения
+                let needsAlreadyRendered = false;
+                for (const id of existingIds) {
+                    const el = document.getElementById('msg-' + id);
+                    if (el) {
+                        const textContent = el.textContent || '';
+                        if (textContent.indexOf('[Зашифрованное сообщение]') !== -1 ||
+                            textContent.indexOf('[Не удалось расшифровать]') !== -1 ||
+                            textContent.indexOf('[Ошибка расшифровки]') !== -1) {
+                            needsAlreadyRendered = true;
+                            break;
+                        }
+                    }
+                }
+                decryptNewMessagesInBackground(messagesArray, existingIds, needsAlreadyRendered);
             }
 
             // 7. НЕ автоскроллим — пользователь сам решает когда скроллить вниз
@@ -16551,10 +16575,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             _lastRenderedMsgIds = newMsgIds;
         }
 
-        // Фоновая дешифровка только НОВЫХ сообщений
-        async function decryptNewMessagesInBackground(messagesArray, existingIds) {
+        // Фоновая дешифровка зашифрованных сообщений.
+        // decryptAlreadyRendered=true — расшифровывать в т.ч. уже отрисованные
+        // сообщения (используется при первом открытии чата, когда мы отрисовали
+        // плейсхолдер «[Зашифрованное сообщение]» и теперь нужно подставить текст).
+        // decryptAlreadyRendered=false (по умолчанию) — расшифровывать только
+        // новые сообщения, которых ещё нет в DOM (для инкрементального обновления).
+        async function decryptNewMessagesInBackground(messagesArray, existingIds, decryptAlreadyRendered) {
             const newEncrypted = messagesArray.filter(function(msg) {
-                return !existingIds.has(msg.id) && msg.encrypted === true && msg.ciphertext && msg.iv && !msg._decrypted;
+                if (msg.encrypted !== true || !msg.ciphertext || !msg.iv) return false;
+                if (msg._decrypted) return false; // уже расшифровано в памяти
+                if (_failedDecryptIds.has(msg.id)) return false; // уже пробовали — не вышло
+                // Если сообщение УЖЕ в DOM и мы НЕ просили пере-расшифровку —
+                // пропускаем (это инкрементальный путь, новые уже отрисованы plain-текстом).
+                if (!decryptAlreadyRendered && existingIds.has(msg.id)) return false;
+                return true;
             });
 
             if (newEncrypted.length === 0) return;
@@ -16572,8 +16607,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                             if (contentEl) {
                                 const encIcon = contentEl.querySelector('.encrypted-msg-icon');
                                 if (encIcon) encIcon.remove();
-                                const textDiv = contentEl.querySelector('div:last-of-type');
-                                if (textDiv && textDiv.querySelector) {
+                                // Ищем ПРЯМОЙ дочерний div в .message-content,
+                                // который НЕ является .message-reply — это контейнер текста.
+                                // Раньше querySelector('div:last-of-type') цеплял вложенные
+                                // div'ы из .message-reply (например .message-reply-text),
+                                // и расшифрованный текст не подставлялся в нужное место.
+                                let textDiv = null;
+                                for (let i = 0; i < contentEl.children.length; i++) {
+                                    const child = contentEl.children[i];
+                                    if (child.tagName === 'DIV' && !child.classList.contains('message-reply') && !child.classList.contains('chat-img-wrap') && !child.classList.contains('chat-media-wrap') && !child.classList.contains('chat-file-msg') && !child.classList.contains('photo-group-grid')) {
+                                        textDiv = child;
+                                    }
+                                }
+                                if (textDiv) {
                                     // Заменяем плейсхолдер на расшифрованный текст
                                     const placeholder = textDiv.querySelector('.encrypted-placeholder');
                                     if (placeholder) {
@@ -16625,7 +16671,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                             });
                         } catch(e) {}
                     }
-                } catch(e) { /* молча пропускаем */ }
+                } catch(e) {
+                    // Расшифровка не удалась — запоминаем, чтобы не пытаться повторно
+                    // на каждом обновлении (например, если ciphertext битый или ключ не подходит).
+                    _failedDecryptIds.add(msg.id);
+                }
             }
         }
 
@@ -16897,17 +16947,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                     });
                 }
 
-                // Для личных чатов — фоновая дешифровка новых сообщений
+                // Для личных чатов — фоновая дешифровка.
+                // Проверяем, есть ли в DOM нерасшифрованные сообщения (с плейсхолдером),
+                // чтобы расшифровать и их тоже, а не только новые.
                 if (expectedType === 'user' && window.cryptoState && window.cryptoState.isReady) {
                     const existingIds = new Set();
+                    let needsAlreadyRendered = false;
                     existingMsgElements.forEach(function(el) {
-                        existingIds.add(el.id.replace('msg-', ''));
+                        const id = el.id.replace('msg-', '');
+                        existingIds.add(id);
+                        const textContent = el.textContent || '';
+                        if (textContent.indexOf('[Зашифрованное сообщение]') !== -1 ||
+                            textContent.indexOf('[Не удалось расшифровать]') !== -1 ||
+                            textContent.indexOf('[Ошибка расшифровки]') !== -1) {
+                            needsAlreadyRendered = true;
+                        }
                     });
                     decryptNewMessagesInBackground(
                         Object.keys(messages).map(key => ({ id: key, ...messages[key] }))
                             .filter(msg => msg.sender && msg.timestamp)
                             .sort((a, b) => a.timestamp !== b.timestamp ? a.timestamp - b.timestamp : a.id.localeCompare(b.id)),
-                        existingIds
+                        existingIds,
+                        needsAlreadyRendered
                     );
                 }
                 updateMessagesIncrementally(messages, autoScroll);
@@ -16942,14 +17003,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                     }
                     renderMessagesToDOM(sorted, autoScroll);
 
-                    // Если крипта уже готова — расшифровываем in-place
-                    // (без полной пере-отрисовки, чтобы не было рывков)
+                    // Если крипта уже готова — расшифровываем in-place.
+                    // decryptAlreadyRendered=true: мы только что отрисовали плейсхолдеры,
+                    // теперь нужно расшифровать ВСЕ зашифрованные сообщения (включая
+                    // уже отрисованные) и подставить текст на месте.
                     if (window.cryptoState && window.cryptoState.isReady) {
                         const existingIds = new Set();
                         chatMessages.querySelectorAll('.message[id^="msg-"]').forEach(function(el) {
                             existingIds.add(el.id.replace('msg-', ''));
                         });
-                        decryptNewMessagesInBackground(sorted, existingIds);
+                        decryptNewMessagesInBackground(sorted, existingIds, true);
                     } else {
                         // Крипта ещё не готова — пробуем через 300мс.
                         // В упрощённой модели она инициализируется почти мгновенно,
@@ -16961,7 +17024,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                             chatMessages.querySelectorAll('.message[id^="msg-"]').forEach(function(el) {
                                 existingIds.add(el.id.replace('msg-', ''));
                             });
-                            decryptNewMessagesInBackground(sorted, existingIds);
+                            decryptNewMessagesInBackground(sorted, existingIds, true);
                         }, 300);
                     }
                 };
@@ -18922,6 +18985,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
             // ── Личный чат (E2EE) ─────────────────────────────────────
             if (currentChatType === 'user') {
+                // В упрощённой модели app-wide ключ инициализируется почти мгновенно,
+                // но если по какой-то причине ещё не готов — пробуем инициализировать
+                // прямо сейчас, синхронно, и только потом падаем с ошибкой.
+                if (!window.cryptoState?.isReady && currentUser) {
+                    try {
+                        if (typeof initTwiinEncryption === 'function') {
+                            await initTwiinEncryption(currentUser, null);
+                        } else if (typeof TwiinCrypto?.initMasterKey === 'function') {
+                            await TwiinCrypto.initMasterKey(currentUser, null, false);
+                        }
+                    } catch(e) { /* игнорируем — ниже проверим isReady */ }
+                }
+
+                // Короткий поллинг — на случай если крипта в процессе инициализации
                 let waitCount = 0;
                 while (!window.cryptoState?.isReady && waitCount < 30) {
                     await new Promise(r => setTimeout(r, 100));
@@ -19087,7 +19164,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         async function sendRepeatedMessages(chatId, text, count) {
             try {
                 showNotification('Отправка ' + count + ' сообщений...');
-                if (currentChatType === 'user' && window.cryptoState && window.cryptoState.isReady) {
+                if (currentChatType === 'user') {
+                    // Личный чат — всегда шифруем. Если крипта не готова — инициализируем лениво.
+                    if (!window.cryptoState?.isReady && currentUser) {
+                        try {
+                            if (typeof initTwiinEncryption === 'function') {
+                                await initTwiinEncryption(currentUser, null);
+                            } else if (typeof TwiinCrypto?.initMasterKey === 'function') {
+                                await TwiinCrypto.initMasterKey(currentUser, null, false);
+                            }
+                        } catch(e) { /* игнорируем */ }
+                    }
+                    if (!window.cryptoState?.isReady) {
+                        showNotification('Система шифрования не готова. Попробуйте позже.');
+                        return;
+                    }
                     const sessionKey = await TwiinCrypto.getOrCreateSessionKey(currentChat);
                     if (!sessionKey) {
                         showNotification('Не удалось создать ключ шифрования для повтора');
@@ -19293,8 +19384,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                 const origMsg = origSnap.val();
                 const wasEncrypted = origMsg && origMsg.encrypted === true;
 
-                if (wasEncrypted && currentChatType === 'user' && window.cryptoState && window.cryptoState.isReady) {
-                    // Шифруем новый текст
+                if (wasEncrypted && currentChatType === 'user') {
+                    // Личный чат с шифрованием — перешифровываем новый текст.
+                    // Если крипта ещё не готова — инициализируем лениво.
+                    if (!window.cryptoState?.isReady && currentUser) {
+                        try {
+                            if (typeof initTwiinEncryption === 'function') {
+                                await initTwiinEncryption(currentUser, null);
+                            } else if (typeof TwiinCrypto?.initMasterKey === 'function') {
+                                await TwiinCrypto.initMasterKey(currentUser, null, false);
+                            }
+                        } catch(e) { /* игнорируем */ }
+                    }
+                    if (!window.cryptoState?.isReady) {
+                        showNotification('Система шифрования не готова. Попробуйте позже.');
+                        return;
+                    }
                     const encResult = await TwiinCrypto.encryptMessageForPeer(currentChat, newText);
                     if (encResult) {
                         await database.ref('messages/' + chatId + '/' + editingMessageId).update({
@@ -28962,13 +29067,14 @@ window.deleteContentItem = async function(type, id) {
         // decryptMessageFromPeer — расшифровывает сообщение ЕДИНЫМ ключом.
         // Дополнительно: если расшифровка не удалась и в Firebase есть
         // legacy session_key для этого чата — пробуем им (для старых сообщений).
+        // ВАЖНО: peerUserId может быть null/undefined — в упрощённой модели
+        // app-wide ключ один для всех чатов, поэтому он не нужен для расшифровки.
+        // peerUserId нужен только для legacy-фолбэка (загрузка старого session_key).
         // ════════════════════════════════════════════════════════════
         async function decryptMessageFromPeer(peerUserId, ciphertext, iv) {
             try {
-                const currentUserId = window.cryptoState.userId;
-                if (!currentUserId || !peerUserId) return null;
-
-                // 1. Пробуем расшифровать ЕДИНЫМ app-wide ключом
+                // 1. Пробуем расшифровать ЕДИНЫМ app-wide ключом.
+                // Это сработает для всех сообщений, зашифрованных текущей версией.
                 const appKey = window.cryptoState.masterKey;
                 if (appKey) {
                     try {
@@ -28982,16 +29088,21 @@ window.deleteContentItem = async function(type, id) {
                     }
                 }
 
-                // 2. LEGACY: пробуем загрузить старый session_key из Firebase
-                const chatId = [currentUserId, peerUserId].sort().join('_');
-                const legacyKey = await _fetchLegacySessionKey(chatId);
-                if (legacyKey) {
-                    try {
-                        const plaintext = await TwiinCrypto.decryptWithKey(legacyKey, ciphertext, iv);
-                        if (plaintext && plaintext !== 'null' && plaintext !== 'undefined') {
-                            return plaintext;
-                        }
-                    } catch (e) { /* legacy-ключ тоже не подошёл */ }
+                // 2. LEGACY: пробуем загрузить старый session_key из Firebase.
+                // Нужно знать chatId = sort([currentUserId, peerUserId]).join('_').
+                // Если peerUserId или currentUserId неизвестны — пропускаем legacy.
+                const currentUserId = window.cryptoState.userId;
+                if (currentUserId && peerUserId && typeof database !== 'undefined') {
+                    const chatId = [currentUserId, peerUserId].sort().join('_');
+                    const legacyKey = await _fetchLegacySessionKey(chatId);
+                    if (legacyKey) {
+                        try {
+                            const plaintext = await TwiinCrypto.decryptWithKey(legacyKey, ciphertext, iv);
+                            if (plaintext && plaintext !== 'null' && plaintext !== 'undefined') {
+                                return plaintext;
+                            }
+                        } catch (e) { /* legacy-ключ тоже не подошёл */ }
+                    }
                 }
 
                 return null;
