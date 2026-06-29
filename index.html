@@ -12,116 +12,6 @@
 
     <!-- Основная кодировка (обязательно должна быть первой) -->
     <meta charset="UTF-8">
-
-    <!-- ============================================================ -->
-    <!-- БЛОКИРОВКА ДОСТУПА ИЗ РОССИИ (геолокация по IP)               -->
-    <!-- Логика: страница скрывается до завершения проверки страны.  -->
-    <!-- Если IP определён как российский — показывается экран       -->
-    <!-- блокировки вместо приложения. Если все геосервисы недоступны -->
-    <!-- (сбой/таймаут) — доступ разрешается (fail-open), чтобы из-за -->
-    <!-- стороннего сбоя не заблокировать реальных пользователей.    -->
-    <!-- ВАЖНО: это блокировка по IP-геолокации. Она, как и любая     -->
-    <!-- подобная блокировка, обходится через VPN/proxy — это         -->
-    <!-- фундаментальное ограничение метода, а не дефект кода.        -->
-    <!-- ============================================================ -->
-    <style id="geoBlockStyle">
-        html.geo-checking body { visibility: hidden !important; }
-        #geoBlockScreen {
-            position: fixed; inset: 0; z-index: 2147483647;
-            display: flex; align-items: center; justify-content: center;
-            background: #0f0f14; color: #f1f1f3;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-            text-align: center; padding: 24px; box-sizing: border-box;
-        }
-        #geoBlockScreen .geoBlockBox { max-width: 420px; }
-        #geoBlockScreen h1 { font-size: 1.25rem; margin: 0 0 12px; font-weight: 600; }
-        #geoBlockScreen p { font-size: 0.95rem; line-height: 1.5; color: #b7b7c2; margin: 0 0 8px; }
-    </style>
-    <script>
-    (function () {
-        document.documentElement.classList.add('geo-checking');
-
-        var RESTRICTED_COUNTRIES = ['RU'];
-        var finished = false;
-        var LOG_PREFIX = '[GeoBlock]';
-
-        if (location.protocol === 'file:') {
-            console.warn(LOG_PREFIX, 'Страница открыта как file:// — запросы к гео-сервисам почти наверняка будут заблокированы браузером (CORS, origin=null). Для корректной проверки разместите файл на сервере/хостинге (http:// или https://) и тестируйте оттуда.');
-        }
-
-        function showBlockScreen() {
-            console.log(LOG_PREFIX, 'РЕШЕНИЕ: блокируем (страна в списке RESTRICTED_COUNTRIES).');
-            try { window.stop(); } catch (e) {}
-            document.documentElement.classList.remove('geo-checking');
-            document.documentElement.classList.add('geo-blocked');
-            document.documentElement.innerHTML =
-                '<head><meta charset="UTF-8"><title>Доступ ограничен</title></head>' +
-                '<body><div id="geoBlockScreen"><div class="geoBlockBox">' +
-                    '<h1>Вы находитесь в регионе, где наше приложение недоступно</h1>' +
-                    '<p style="opacity:.7;font-size:.85rem">You are in a region where our app is not available.</p>' +
-                '</div></div></body>';
-        }
-
-        function allowAccess(reason) {
-            console.log(LOG_PREFIX, 'РЕШЕНИЕ: пропускаем доступ.', reason ? ('Причина: ' + reason) : '');
-            document.documentElement.classList.remove('geo-checking');
-        }
-
-        function finish(blocked, reason) {
-            if (finished) return;
-            finished = true;
-            if (blocked) { showBlockScreen(); } else { allowAccess(reason); }
-        }
-
-        function fetchCountry(name, url, extractCode) {
-            return fetch(url, { cache: 'no-store' })
-                .then(function (r) {
-                    if (!r.ok) { throw new Error('HTTP ' + r.status); }
-                    return r.json();
-                })
-                .then(function (data) {
-                    var cc = extractCode(data);
-                    console.log(LOG_PREFIX, name + ':', 'ответ получен, страна =', cc || '(не определена)', data);
-                    return cc ? String(cc).toUpperCase() : null;
-                });
-        }
-
-        // Несколько провайдеров подряд — если один недоступен/упал, пробуем следующий
-        var providers = [
-            { name: 'ipapi.co',   run: function () { return fetchCountry('ipapi.co', 'https://ipapi.co/json/', function (d) { return d.country_code; }); } },
-            { name: 'ipwho.is',   run: function () { return fetchCountry('ipwho.is', 'https://ipwho.is/', function (d) { return d.country_code; }); } },
-            { name: 'geojs.io',   run: function () { return fetchCountry('geojs.io', 'https://get.geojs.io/v1/ip/country.json', function (d) { return d.country; }); } }
-        ];
-
-        function runProviders(i) {
-            if (i >= providers.length) {
-                finish(false, 'все провайдеры гео-IP недоступны или не вернули код страны (см. лог выше — ошибки CORS/сети/блокировщика рекламы)');
-                return;
-            }
-            var p = providers[i];
-            console.log(LOG_PREFIX, 'Пробуем провайдера:', p.name);
-            p.run()
-                .then(function (cc) {
-                    if (!cc) { runProviders(i + 1); return; }
-                    finish(RESTRICTED_COUNTRIES.indexOf(cc) !== -1, 'страна "' + cc + '" не в списке ограничений');
-                })
-                .catch(function (err) {
-                    console.warn(LOG_PREFIX, p.name + ': ошибка запроса —', err && err.message ? err.message : err);
-                    runProviders(i + 1);
-                });
-        }
-
-        // Общий таймаут — если геосервисы не ответили за 5 сек, пропускаем пользователя
-        setTimeout(function () {
-            finish(false, 'таймаут 5 сек — геосервисы не ответили вовремя');
-        }, 5000);
-
-        console.log(LOG_PREFIX, 'Старт проверки геолокации. protocol =', location.protocol, ', host =', location.host || '(нет — локальный файл)');
-        runProviders(0);
-    })();
-    </script>
-
-    <!-- ========================== /БЛОКИРОВКА ======================= -->
     <!-- Имя пакета приложения (используется при сборке TWA/Capacitor/Cordova) -->
     <meta name="package-name"        content="russia_stars_app_twiin">
     <meta name="app-version-name"    content="3.0">
@@ -3238,133 +3128,6 @@
             background: rgba(255,255,255,0.08);
         }
 
-        /* ============================================================
-           УПОМИНАНИЯ @username — кликабельные ссылки на профиль/чат
-           ============================================================ */
-        .mention-link {
-            color: var(--primary-color, #6c5ce7);
-            background: rgba(108,92,231,0.10);
-            padding: 1px 5px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background 0.15s ease, transform 0.1s ease;
-            -webkit-tap-highlight-color: transparent;
-            display: inline;
-            white-space: nowrap;
-        }
-        .mention-link:hover {
-            background: rgba(108,92,231,0.20);
-        }
-        .mention-link:active {
-            transform: scale(0.96);
-        }
-        .message.sent .mention-link {
-            color: #fff;
-            background: rgba(255,255,255,0.22);
-        }
-        .message.sent .mention-link:hover {
-            background: rgba(255,255,255,0.32);
-        }
-
-        /* ============================================================
-           КЛИКАБЕЛЬНЫЕ ССЫЛКИ в сообщениях (URL)
-           ============================================================ */
-        .message-content a,
-        .msg-link {
-            color: var(--primary-color, #6c5ce7);
-            text-decoration: underline;
-            text-decoration-color: rgba(108,92,231,0.45);
-            text-underline-offset: 2px;
-            word-break: break-all;
-            transition: text-decoration-color 0.15s ease;
-        }
-        .message-content a:hover,
-        .msg-link:hover {
-            text-decoration-color: var(--primary-color, #6c5ce7);
-        }
-        .message.sent .message-content a,
-        .message.sent .msg-link {
-            color: #fff;
-            text-decoration-color: rgba(255,255,255,0.55);
-        }
-        .message.sent .message-content a:hover,
-        .message.sent .msg-link:hover {
-            text-decoration-color: #fff;
-        }
-
-        /* ============================================================
-           ОПИСАНИЕ ПРОФИЛЯ (bio) — карточка с текстом пользователя
-           ============================================================ */
-        .profile-bio-section {
-            margin: 16px 20px 20px !important;
-            padding: 14px 16px !important;
-            background: var(--input-bg, rgba(108,92,231,0.04)) !important;
-            border: 1px solid var(--border-color, rgba(108,92,231,0.12)) !important;
-            border-left: 3px solid var(--primary-color, #6c5ce7) !important;
-            border-radius: 12px !important;
-            font-size: 0.92rem !important;
-            line-height: 1.55 !important;
-            color: var(--text-color) !important;
-            word-break: break-word !important;
-            text-align: left !important;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.04) !important;
-        }
-        .profile-bio-label {
-            font-size: 0.7rem !important;
-            color: var(--text-light) !important;
-            margin-bottom: 8px !important;
-            font-weight: 700 !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.06em !important;
-            display: flex !important;
-            align-items: center !important;
-            gap: 5px !important;
-        }
-        .profile-bio-label::before {
-            content: '✎';
-            font-size: 0.85rem;
-            opacity: 0.7;
-        }
-        .profile-bio-content {
-            position: relative;
-        }
-        .profile-bio-content br + br {
-            display: block;
-            margin-top: 6px;
-            content: '';
-        }
-        /* Кликабельные элементы внутри bio — без inherit проблем */
-        .profile-bio-section .mention-link {
-            background: rgba(108,92,231,0.15);
-            color: var(--primary-color, #6c5ce7);
-            font-weight: 600;
-            padding: 1px 6px;
-            border-radius: 6px;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .profile-bio-section .mention-link:hover {
-            background: rgba(108,92,231,0.28);
-        }
-        .profile-bio-section .mention-link:active {
-            transform: scale(0.96);
-        }
-        .profile-bio-section .msg-link,
-        .profile-bio-section a {
-            color: var(--primary-color, #6c5ce7);
-            font-weight: 500;
-            text-decoration: underline;
-            text-decoration-color: rgba(108,92,231,0.45);
-            text-underline-offset: 2px;
-            word-break: break-all;
-        }
-        .profile-bio-section .msg-link:hover,
-        .profile-bio-section a:hover {
-            text-decoration-color: var(--primary-color, #6c5ce7);
-        }
-
 
         .message-time {
             font-size: 0.7rem;
@@ -3575,7 +3338,9 @@
 
         /* Быстрый пикер реакций (появляется при двойном тапе) */
         .msg-quick-react {
-            z-index: 10010;
+            position: absolute;
+            top: -38px;
+            z-index: 100;
             display: flex;
             gap: 2px;
             padding: 4px 8px;
@@ -3615,8 +3380,14 @@
             transform: scale(0.9) translateZ(0);
         }
 
-        /* Позиционирование sent/received теперь задаётся инлайн в JS
-           через getBoundingClientRect() — пикер в body, не в .message */
+        /* Для sent — пикер слева от пузыря */
+        .message.sent .msg-quick-react {
+            right: 0;
+        }
+        /* Для received — пикер справа от пузыря */
+        .message.received .msg-quick-react {
+            left: 0;
+        }
 
         /* Плавающая анимация реакции (взлёт вверх + исчезновение за 2 сек) */
         @keyframes reactionFloatUp {
@@ -3678,7 +3449,7 @@
         .msg-quick-react-overlay {
             position: fixed;
             inset: 0;
-            z-index: 10005;
+            z-index: 99;
             display: none;
         }
         .msg-quick-react-overlay.active {
@@ -10231,11 +10002,6 @@
                 <input type="text" class="modal-input" id="profile-username-input" placeholder=""" data-i18n-placeholder="profile.name_placeholder" style="margin-bottom:0;">
             </div>
             <div style="margin-top:12px;">
-                <label style="font-size:0.82rem;font-weight:600;color:var(--text-light);margin-bottom:6px;display:block;">Описание</label>
-                <textarea class="modal-input" id="profile-bio-input" placeholder="Расскажите о себе. Можно использовать @упоминания и ссылки https://example.com" maxlength="500" rows="3" style="margin-bottom:0;width:100%;resize:vertical;min-height:80px;font-family:inherit;line-height:1.45;"></textarea>
-                <div style="font-size:0.72rem;color:var(--text-light);margin-top:4px;text-align:right;"><span id="profile-bio-counter">0</span>/500</div>
-            </div>
-            <div style="margin-top:12px;">
                 <label style="font-size:0.82rem;font-weight:600;color:var(--text-light);margin-bottom:8px;display:block;" data-i18n="profile.avatar_label">Аватар профиля</label>
                 <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
                     <div id="user-avatar-preview" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#fff;flex-shrink:0;overflow:hidden;border:3px solid var(--border-color);">
@@ -11931,6 +11697,13 @@ function initLanguage(){
         document.addEventListener('DOMContentLoaded', initApp);
 
         async function initApp() {
+            // Тихий запрос доступа к микрофону при старте
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream.getTracks().forEach(t => t.stop()); // сразу освобождаем
+            } catch (e) {
+            }
+
             setupEventListeners();
             setupNetworkStatus();
             function applyDesktopLayout() {
@@ -12084,18 +11857,6 @@ function initLanguage(){
             const usernameInput = document.getElementById('profile-username-input');
             if (usernameInput) {
                 usernameInput.value = currentUserData ? (currentUserData.name || '') : '';
-            }
-
-            // Загружаем описание (bio) — поддерживает @упоминания и кликабельные ссылки
-            const bioInput = document.getElementById('profile-bio-input');
-            const bioCounter = document.getElementById('profile-bio-counter');
-            if (bioInput) {
-                bioInput.value = (currentUserData && currentUserData.bio) ? currentUserData.bio : '';
-                if (bioCounter) bioCounter.textContent = String(bioInput.value.length);
-                // Обновляем счётчик при вводе
-                bioInput.oninput = function() {
-                    if (bioCounter) bioCounter.textContent = String(this.value.length);
-                };
             }
 
             // Загружаем превью аватара
@@ -12368,16 +12129,9 @@ function initLanguage(){
 
             try {
                 _dataCache.invalidate('users_all');
-                // Читаем и нормализуем описание (bio) — обрезаем до 500 символов.
-                // Bio проходит через parseFormattedText при отображении, поэтому
-                // @упоминания и https:// ссылки автоматически станут кликабельными.
-                const bioInput = document.getElementById('profile-bio-input');
-                const newBio = bioInput ? bioInput.value.trim().slice(0, 500) : '';
-
                 const updateData = {
                     name: newName,
-                    emoji: userEmoji,
-                    bio: newBio || null
+                    emoji: userEmoji
                 };
                 // Сохраняем обложку
                 if (profileCoverUrl) {
@@ -12395,7 +12149,6 @@ function initLanguage(){
                     currentUserData.name = newName;
                     currentUserData.emoji = userEmoji;
                     currentUserData.cover = profileCoverUrl || null;
-                    currentUserData.bio = newBio || null;
                     if (pendingUserAvatar) {
                         currentUserData.avatar = pendingUserAvatar;
                         pendingUserAvatar = null;
@@ -17978,76 +17731,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                 return `<span class="msg-animated-emoji anim-${animName}">${emojiChar}</span>`;
             });
 
-            // Упоминания @username → кликабельная ссылка на чат/профиль (как в Telegram).
-            // Регэксп учитывает:
-            //   - (?:^|[\s\u00A0([{>*_~`"'.,;:!?|=\\/-])  — упоминание должно идти в начале
-            //     строки или после пробела/типы-пунктуации. Это НЕ активирует @ внутри слова
-            //     (email вида user@domain.com — там перед @ стоит буква, не пробел).
-            //   - @ — символ упоминания
-            //   - ([A-Za-z0-9_]{3,32}) — юзернейм: 3-32 символа, буквы/цифры/подчёркивание
-            //     (минимум 3 чтобы не ловить случайные @ в тексте; максимум 32 — стандартный лимит)
-            //   - (?![A-Za-z0-9_]) — negative lookahead: следующий символ НЕ часть юзернейма
-            //     (иначе @paul_123 зацепил бы только @paul, оставив _123 висеть)
-            html = html.replace(/(^|[\s\u00A0([{>*~`"'.,;:!?|=\\/-])(@)([A-Za-z0-9_]{3,32})(?![A-Za-z0-9_])/g,
-                (match, prefix, atSign, username) => {
-                    // prefix — символ перед @ (или пустая строка если @ в начале текста).
-                    // username уже ограничен [A-Za-z0-9_] регэкспом → безопасно для inline-атрибута.
-                    const lowerName = username.toLowerCase();
-                    return prefix +
-                        `<span class="mention-link" role="button" tabindex="0" ` +
-                        `data-mention-username="${lowerName}" ` +
-                        `onclick="event.stopPropagation(); event.preventDefault(); openChatFromMention('${lowerName}')" ` +
-                        `title="Открыть профиль @${username}">@${username}</span>`;
-                });
-
-            // Кликабельные ссылки (URL) — как в Telegram.
-            // Ловим:
-            //   - https://example.com/path?query=1&b=2#anchor
-            //   - http://example.com
-            //   - www.example.com (без протокола — добавляем https://)
-            //   - ftp://example.com
-            //
-            // Алгоритм:
-            //   1. Находим начало URL (http://, https://, ftp://, www.) после пробела/начала/пунктуации.
-            //   2. Жадно захватываем все непробельные символы (кроме <>"'`).
-            //   3. Отщепляем хвост из замыкающей пунктуации (.,;:!?)]}).
-            //      Особый случай: если в URL есть '(' и хвост — ')', оставляем (это часть URL,
-            //      например Wikipedia: /wiki/Hello_(world)).
-            //
-            // Примеры:
-            //   "Check https://example.com, ok"     → ссылка без ", ok"
-            //   "(see https://example.com)"          → ссылка без ")"
-            //   "Visit https://example.com."         → ссылка без финальной "."
-            //   "https://example.com/?q=1)"          → ссылка без ")"
-            //   "https://en.wikipedia.org/wiki/Hello_(world)" → ссылка целиком (с_balanced_ скобками)
-            const URL_TRAILING_PUNCT = '.,;:!?)]}';
-            const URL_REGEX = /(^|[\s\u00A0([{>*~`"'.,;:!?|=\\/-])((?:https?:\/\/|ftp:\/\/|www\.)[^\s<>'"`]+)/gi;
-            html = html.replace(URL_REGEX, (match, prefix, rawUrl) => {
-                let url = rawUrl;
-                let trailing = ''; // отщепленная пунктуация — возвращаем в текст после ссылки
-                // Отщепляем замыкающую пунктуацию, не входящую в URL.
-                while (url.length > 0 && URL_TRAILING_PUNCT.indexOf(url.charAt(url.length - 1)) !== -1) {
-                    const lastChar = url.charAt(url.length - 1);
-                    // Если в URL есть открывающая скобка, а закрывающая в хвосте —
-                    // оставляем (это часть URL, напр. /wiki/Hello_(world)).
-                    if (lastChar === ')' && url.indexOf('(') !== -1) break;
-                    if (lastChar === ']' && url.indexOf('[') !== -1) break;
-                    if (lastChar === '}' && url.indexOf('{') !== -1) break;
-                    trailing = lastChar + trailing;
-                    url = url.slice(0, -1);
-                }
-                if (!url) return match; // ничего не осталось — не трогаем
-
-                // Если URL начинается с www. — добавляем https:// для href.
-                const href = /^www\./i.test(url) ? 'https://' + url : url;
-                // Экранируем кавычки для href-атрибута.
-                const safeHref = href.replace(/"/g, '&quot;');
-                return prefix +
-                    `<a href="${safeHref}" class="msg-link" target="_blank" rel="noopener noreferrer" ` +
-                    `onclick="event.stopPropagation()" title="Открыть ${url}">${url}</a>` +
-                    trailing;
-            });
-
             // Спойлер: ||текст||
             html = html.replace(/\|\|(.+?)\|\|/g, '<span class="spoiler">$1</span>');
             // Жирный: **текст**
@@ -18070,48 +17753,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             const spoiler = e.target.closest('.spoiler');
             if (spoiler) {
                 spoiler.classList.toggle('revealed');
-            }
-        });
-
-        /**
-         * Глобальный делегированный обработчик кликов по .mention-link.
-         * Работает ВЕЗДЕ: в сообщениях чата, в описании профиля (bio),
-         * в комментариях каналов и т.д. — надёжнее, чем inline onclick,
-         * потому что не зависит от доступности `event` в области видимости.
-         */
-        document.addEventListener('click', function(e) {
-            // Используем closest чтобы клик по дочернему элементу внутри mention-link
-            // тоже сработал (хотя там обычно нет дочерних).
-            const mention = e.target.closest && e.target.closest('.mention-link');
-            if (!mention) return;
-
-            // Если у элемента есть data-mention-username — это наш элемент.
-            const username = mention.getAttribute('data-mention-username');
-            if (!username) return;
-
-            // Останавливаем всплытие, чтобы клик не закрыл модалку профиля
-            // и не запустил другие обработчики (например, long-press).
-            e.stopPropagation();
-            e.preventDefault();
-
-            // Вызываем функцию открытия чата.
-            if (typeof window.openChatFromMention === 'function') {
-                window.openChatFromMention(username);
-            }
-        });
-
-        /**
-         * Обработка клавиши Enter для доступности (mention-link имеет tabindex="0").
-         */
-        document.addEventListener('keydown', function(e) {
-            if (e.key !== 'Enter' && e.key !== ' ') return;
-            const mention = e.target.closest && e.target.closest('.mention-link');
-            if (!mention) return;
-            e.preventDefault();
-            e.stopPropagation();
-            const username = mention.getAttribute('data-mention-username');
-            if (username && typeof window.openChatFromMention === 'function') {
-                window.openChatFromMention(username);
             }
         });
 
@@ -18286,33 +17927,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             // Overlay для закрытия
             const overlay = document.createElement('div');
             overlay.className = 'msg-popup-overlay active';
-            // ВАЖНО: на ПК contextmenu генерирует дополнительные события
-            // (mouseup, click). Чтобы popup не закрылся сразу после показа,
-            // игнорируем клики по overlay в первые 350мс.
-            let _popupOpenedAt = Date.now();
-            overlay.addEventListener('click', (e) => {
-                if (Date.now() - _popupOpenedAt < 350) return;
-                hideMessagePopup();
-            });
-            overlay.addEventListener('mousedown', (e) => {
-                // Не даём mousedown на overlay сразу после contextmenu закрыть popup
-                if (Date.now() - _popupOpenedAt < 350) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            });
+            overlay.addEventListener('click', () => hideMessagePopup());
             document.body.appendChild(overlay);
             _activeMsgPopupOverlay = overlay;
 
             // Popup
             const popup = document.createElement('div');
             popup.className = 'msg-popup';
-            // Останавливаем всплытие кликов внутри popup, чтобы overlay
-            // не закрывал popup при клике на кнопки действий.
-            popup.addEventListener('click', (e) => e.stopPropagation());
-            popup.addEventListener('mousedown', (e) => e.stopPropagation());
-            popup.addEventListener('mouseup', (e) => e.stopPropagation());
-            popup.addEventListener('contextmenu', (e) => e.preventDefault());
 
             const isSent = messageData.sender === currentUser;
             const sentTime = messageData.timestamp ? new Date(messageData.timestamp) : null;
@@ -18782,11 +18403,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             let moved = false;
 
             const onStart = (e) => {
-                // Игнорируем long-press на интерактивных элементах внутри сообщения:
-                // аудио-плеер, ссылки, упоминания @username — у них свой обработчик клика.
-                if (e.target.closest('.audio-play-btn') ||
-                    e.target.closest('a') ||
-                    e.target.closest('.mention-link')) return;
+                if (e.target.closest('.audio-play-btn') || e.target.closest('a')) return;
 
                 // В режиме выделения — короткий тап переключает выделение
                 if (typeof _selectMode !== 'undefined' && _selectMode) {
@@ -18834,28 +18451,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             messageEl.addEventListener('touchend', onEnd, { passive: true });
             messageEl.addEventListener('touchcancel', onEnd, { passive: true });
 
-            // На ПК long-press через mouse не нужен (есть contextmenu и dblclick),
-            // поэтому mouse-обработчики не добавляем. Это убирает лишние задержки
-            // и конфликты с двойным кликом на десктопе.
-            // messageEl.addEventListener('mousedown', onStart);
-            // messageEl.addEventListener('mousemove', onMove);
-            // messageEl.addEventListener('mouseup', onEnd);
-            // messageEl.addEventListener('mouseleave', onEnd);
-
-            // ПК: правый клик (context menu) → показать popup с действиями,
-            // включая реакцию. Это стандартный паттерн для десктопа (как в Telegram).
-            messageEl.addEventListener('contextmenu', (e) => {
-                // Игнорируем на интерактивных элементах (ссылки, аудио и т.д.)
-                if (e.target.closest('.audio-play-btn') ||
-                    e.target.closest('a') ||
-                    e.target.closest('.mention-link') ||
-                    e.target.closest('.msg-reaction-chip')) return;
-                // В режиме выделения — не показываем popup
-                if (typeof _selectMode !== 'undefined' && _selectMode) return;
-                e.preventDefault();
-                e.stopPropagation();
-                showMessagePopup(messageEl, messageData);
-            });
+            messageEl.addEventListener('mousedown', onStart);
+            messageEl.addEventListener('mousemove', onMove);
+            messageEl.addEventListener('mouseup', onEnd);
+            messageEl.addEventListener('mouseleave', onEnd);
         }
 
         const MSG_REACT_EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '🔥'];
@@ -18873,24 +18472,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             // Создаём оверлей
             const overlay = document.createElement('div');
             overlay.className = 'msg-quick-react-overlay active';
-            // Grace period: на ПК после contextmenu/dblclick браузер генерирует
-            // лишние клики. Игнорируем клики по overlay в первые 300мс.
-            let _pickerOpenedAt = Date.now();
-            overlay.addEventListener('click', (e) => {
-                if (Date.now() - _pickerOpenedAt < 300) return;
-                hideQuickReactPicker();
-            });
-            overlay.addEventListener('mousedown', (e) => {
-                if (Date.now() - _pickerOpenedAt < 300) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            });
-            overlay.addEventListener('touchstart', (e) => {
-                if (Date.now() - _pickerOpenedAt < 300) return;
-                e.preventDefault();
-                hideQuickReactPicker();
-            }, { passive: false });
+            overlay.addEventListener('click', () => hideQuickReactPicker());
+            overlay.addEventListener('touchstart', (e) => { e.preventDefault(); hideQuickReactPicker(); }, { passive: false });
             document.body.appendChild(overlay);
             _quickReactOverlay = overlay;
 
@@ -18902,22 +18485,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                 const btn = document.createElement('button');
                 btn.className = 'msg-quick-react-btn';
                 btn.textContent = emoji;
-                // Клик по эмодзи — ставим реакцию.
-                // stopPropagation чтобы клик не дошёл до overlay и не закрыл пикер
-                // раньше, чем toggleMessageReaction выполнится.
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    e.preventDefault();
                     toggleMessageReaction(msgId, emoji);
                     hideQuickReactPicker();
-                });
-                btn.addEventListener('mousedown', (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                });
-                btn.addEventListener('mouseup', (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
                 });
                 btn.addEventListener('touchstart', (e) => {
                     e.stopPropagation();
@@ -18925,27 +18496,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                 picker.appendChild(btn);
             });
 
-            // Вставляем пикер в body с фиксированным позиционированием.
-            // Раньше вставляли в .message-content, но из-за stacking context
-            // (transform/transition на .message) overlay перекрывал пикер на ПК.
-            // Теперь пикер в body → глобальный stacking context → выше overlay.
-            const rect = messageEl.getBoundingClientRect();
-            picker.style.position = 'fixed';
-            // Размещаем над сообщением (на 42px выше верхнего края)
-            picker.style.top = (rect.top - 42) + 'px';
-            // Для sent — прижимаем справа, для received — слева
-            if (messageEl.classList.contains('sent')) {
-                picker.style.right = (window.innerWidth - rect.right) + 'px';
-                picker.style.left = 'auto';
+            // Вставляем пикер в message-content для позиционирования
+            const contentEl = messageEl.querySelector('.message-content');
+            if (contentEl) {
+                contentEl.style.position = 'relative';
+                contentEl.appendChild(picker);
             } else {
-                picker.style.left = rect.left + 'px';
-                picker.style.right = 'auto';
+                messageEl.style.position = 'relative';
+                messageEl.appendChild(picker);
             }
-            // Если пикер не помещается сверху — показываем снизу
-            if (rect.top < 50) {
-                picker.style.top = (rect.bottom + 8) + 'px';
-            }
-            document.body.appendChild(picker);
 
             _activeQuickReact = picker;
 
@@ -19793,112 +19352,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                 showNotification('Сообщение не найдено (возможно, старое)');
             }
         };
-
-        /**
-         * Открытие чата/профиля по клику на @username упоминание (как в Telegram).
-         *
-         * Алгоритм:
-         *   1. Если username === текущий пользователь → открываем настройки своего профиля.
-         *   2. Иначе проверяем в Firebase, существует ли такой пользователь.
-         *      - Существует → открываем с ним чат (openChat).
-         *      - Не существует → показываем уведомление «Пользователь не найден».
-         *
-         * Срабатывает по клику на .mention-link в любом месте: в сообщениях чата,
-         * в описании профиля (bio), в комментариях каналов.
-         */
-        window.openChatFromMention = async function(username) {
-            if (!username) return;
-
-            // Нормализуем — юзернеймы в Firebase хранятся как есть (чувствительны к регистру?),
-            // но упоминания в тексте могут быть в любом регистре. Сначала пробуем точное
-            // совпадение, потом case-insensitive поиск по users/.
-            const cleanName = String(username).replace(/[^A-Za-z0-9_]/g, '');
-
-            // Если упомянули себя — открываем настройки своего профиля.
-            // Предварительно закрываем все открытые модалки (например, чужой профиль).
-            if (currentUser && cleanName.toLowerCase() === currentUser.toLowerCase()) {
-                _closeAllProfileModals();
-                if (typeof openProfileSettings === 'function') {
-                    openProfileSettings();
-                } else {
-                    showNotification('Это вы 🙂');
-                }
-                return;
-            }
-
-            // Если Firebase недоступен — не можем проверить существование
-            if (typeof database === 'undefined') {
-                showNotification('Не удалось проверить пользователя — нет связи с сервером');
-                return;
-            }
-
-            try {
-                // 1. Пробуем точное совпадение по ключу
-                let snap = await database.ref('users/' + encodeURIComponent(cleanName)).once('value');
-                let userData = snap.val();
-                let actualUsername = cleanName;
-
-                // 2. Если не нашли — пробуем case-insensitive поиск по всем пользователям
-                if (!userData) {
-                    const allSnap = await database.ref('users').once('value');
-                    const allUsers = allSnap.val();
-                    if (allUsers) {
-                        const lowerName = cleanName.toLowerCase();
-                        const foundKey = Object.keys(allUsers).find(function(key) {
-                            return key.toLowerCase() === lowerName;
-                        });
-                        if (foundKey) {
-                            userData = allUsers[foundKey];
-                            actualUsername = foundKey; // правильный (точный) ключ для openChat
-                        }
-                    }
-                }
-
-                if (!userData) {
-                    showNotification('Пользователь @' + cleanName + ' не найден');
-                    return;
-                }
-
-                // Если уже в чате с этим пользователем — просто прокручиваем вниз
-                if (currentChat === actualUsername && currentChatType === 'user') {
-                    _closeAllProfileModals();
-                    if (typeof smoothScrollToBottom === 'function') smoothScrollToBottom();
-                    return;
-                }
-
-                // Открываем чат (используем openChat, как при клике на пользователя в списке).
-                // Предварительно закрываем все открытые модалки (например, модалку профиля,
-                // из которой кликнули по @упоминанию).
-                _closeAllProfileModals();
-                const displayName = userData.name || actualUsername;
-                const emoji = userData.emoji || '😊';
-                if (typeof openChat === 'function') {
-                    openChat(actualUsername, emoji, displayName);
-                }
-            } catch (error) {
-                console.error('[Mention] Ошибка открытия чата по @упоминанию:', error);
-                showNotification('Не удалось открыть профиль @' + cleanName);
-            }
-        };
-
-        /**
-         * Закрывает все открытые модальные окна профилей/настроек.
-         * Используется перед открытием чата по @упоминанию, чтобы новое окно чата
-         * не оказалось перекрыто старой модалкой.
-         */
-        function _closeAllProfileModals() {
-            try {
-                // Удаляем все активные модалки (профиль другого пользователя и т.д.)
-                const modals = document.querySelectorAll('.modal.active');
-                modals.forEach(function(m) {
-                    // Не трогаем #image-modal (фото на весь экран) и #settings-modal (настройки).
-                    // Только модалки профиля.
-                    if (m.id === 'image-modal') return;
-                    m.classList.remove('active');
-                    m.classList.remove('modal-fullscreen');
-                });
-            } catch(e) { /* молча */ }
-        }
 
         async function saveEditedMessage() {
             if (!editingMessageId || !currentChat) return;
@@ -24417,13 +23870,7 @@ document.addEventListener('click', function(e) {
                         </div>` : ''}
                     </div>
 
-                    ${userData.bio ? `
-                    <div class="profile-bio-section">
-                        <div class="profile-bio-label">Описание</div>
-                        <div class="profile-bio-content">${parseFormattedText(userData.bio)}</div>
-                    </div>` : ''}
-
-                    <div id="profile-music-section-${username.replace(/[^a-z0-9]/gi,'_')}" style="margin: 0 20px 16px;"></div>
+                    <div id="profile-music-section-${username.replace(/[^a-z0-9]/gi,'_')}" style="margin: 0 ${hasCover ? '20px' : '20px'} 16px;"></div>
                     
                     <div style="margin: 20px ${hasCover ? '20px' : '0'} 20px;">
                         <h3 style="
@@ -24513,12 +23960,6 @@ document.addEventListener('click', function(e) {
                                 ${onlineStatus}
                             </div>` : ''}
                         </div>
-
-                        ${userData.bio ? `
-                        <div class="profile-bio-section">
-                            <div class="profile-bio-label">Описание</div>
-                            <div class="profile-bio-content">${parseFormattedText(userData.bio)}</div>
-                        </div>` : ''}
 
                         <div id="profile-music-section-${username.replace(/[^a-z0-9]/gi,'_')}" style="margin: 0 20px 16px;"></div>
                         
